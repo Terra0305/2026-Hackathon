@@ -7,7 +7,11 @@ const todos = ref([])
 async function getTodos() {
   const { data, error } = await supabase.from('todos').select()
   if (error) {
-    console.error('Error fetching todos:', error)
+    if (error.code === 'PGRST116' || error.message?.includes('not found')) {
+      console.warn('Supabase: "todos" 테이블을 찾을 수 없습니다. 대시보드에서 테이블을 생성해주세요.')
+    } else {
+      console.error('Error fetching todos:', error.message || error)
+    }
   } else {
     todos.value = data
   }
