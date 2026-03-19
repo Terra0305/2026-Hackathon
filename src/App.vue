@@ -1,47 +1,47 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { supabase } from './utils/supabase'
-
-const todos = ref([])
-
-async function getTodos() {
-  const { data, error } = await supabase.from('todos').select()
-  if (error) {
-    if (error.code === 'PGRST116' || error.message?.includes('not found')) {
-      console.warn('Supabase: "todos" 테이블을 찾을 수 없습니다. 대시보드에서 테이블을 생성해주세요.')
-    } else {
-      console.error('Error fetching todos:', error.message || error)
-    }
-  } else {
-    todos.value = data
-  }
-}
-
-onMounted(() => {
-  getTodos()
-})
+import { RouterView } from 'vue-router'
+import NavBar from './components/NavBar.vue'
+import './assets/main.css'
 </script>
 
 <template>
-  <div class="todo-container">
-    <h1>Todo List</h1>
-    <ul v-if="todos.length > 0">
-      <li v-for="todo in todos" :key="todo.id">{{ todo.name }}</li>
-    </ul>
-    <p v-else>No todos found or loading...</p>
+  <div class="app-layout">
+    <NavBar />
+    
+    <main class="main-container">
+      <RouterView v-slot="{ Component }">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </RouterView>
+    </main>
   </div>
 </template>
 
 <style scoped>
-.todo-container {
-  padding: 20px;
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+
+.main-container {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
 }
-li {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
+
+/* Page Transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 </style>
