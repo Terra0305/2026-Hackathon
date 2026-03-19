@@ -1,114 +1,60 @@
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
+import { computed } from 'vue'
+
+const route = useRoute()
+
+// Utility to match root paths for active states
+const isPathActive = (path) => {
+  if (path === '/' && route.path === '/') return true;
+  if (path !== '/' && route.path.startsWith(path)) return true;
+  return false;
+}
 </script>
 
 <template>
-  <header class="navbar-wrapper">
-    <div class="navbar-content">
-      <RouterLink to="/" class="brand">
-        <span class="logo-icon">✨</span>
-        <span class="brand-text">HTHON 26</span>
+  <header class="sticky top-0 z-50 w-full bg-[#0D0E12]/80 backdrop-blur-xl border-b border-navbar-border">
+    <div class="max-w-[1240px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <RouterLink to="/" class="flex items-center gap-2">
+        <span class="font-outfit font-bold text-xl tracking-tight text-white">AELIER</span>
       </RouterLink>
 
-      <nav class="nav-links">
-        <RouterLink to="/hackathons" class="nav-link" active-class="active">Hackathons</RouterLink>
-        <RouterLink to="/camp" class="nav-link" active-class="active">Camp</RouterLink>
-        <RouterLink to="/rankings" class="nav-link" active-class="active">Rankings</RouterLink>
+      <nav class="hidden md:flex items-center gap-8 h-full">
+        <RouterLink to="/" class="h-full flex items-center text-xs font-semibold tracking-wider text-aelier-muted hover:text-white transition-colors duration-200 relative" :class="{ 'text-aelier-primary': isPathActive('/') }">
+          HOME
+          <span v-if="isPathActive('/')" class="absolute bottom-0 left-0 w-full h-[2px] bg-aelier-primary rounded-t-md"></span>
+        </RouterLink>
+        
+        <RouterLink to="/hackathons" class="h-full flex items-center text-xs font-semibold tracking-wider text-aelier-muted hover:text-white transition-colors duration-200 relative" :class="{ 'text-aelier-primary': isPathActive('/hackathons') }">
+          HACKATHONS
+          <span v-if="isPathActive('/hackathons')" class="absolute bottom-0 left-0 w-full h-[2px] bg-aelier-primary rounded-t-md"></span>
+        </RouterLink>
+        
+        <RouterLink to="/camp" class="h-full flex items-center text-xs font-semibold tracking-wider text-aelier-muted hover:text-white transition-colors duration-200 relative" :class="{ 'text-aelier-primary': isPathActive('/camp') }">
+          CAMP
+          <span v-if="isPathActive('/camp')" class="absolute bottom-0 left-0 w-full h-[2px] bg-aelier-primary rounded-t-md"></span>
+        </RouterLink>
+        <RouterLink to="/rankings" class="h-full flex items-center text-xs font-semibold tracking-wider text-aelier-muted hover:text-white transition-colors duration-200 relative" :class="{ 'text-aelier-primary': isPathActive('/rankings') }">
+          RANKINGS
+          <span v-if="isPathActive('/rankings')" class="absolute bottom-0 left-0 w-full h-[2px] bg-aelier-primary rounded-t-md"></span>
+        </RouterLink>
       </nav>
 
-      <div class="user-actions">
-        <button class="btn btn-primary btn-sm">Sign In</button>
+      <div class="flex items-center gap-5 relative">
+        <button class="text-aelier-muted hover:text-white transition-colors relative">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+          <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-[#0D0E12]"></span>
+        </button>
+        <div class="w-8 h-8 rounded-full bg-orange-200 overflow-hidden cursor-pointer flex-shrink-0">
+          <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" alt="User Profile" class="w-full h-full object-cover">
+        </div>
       </div>
     </div>
   </header>
 </template>
 
 <style scoped>
-.navbar-wrapper {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  width: 100%;
-  background: rgba(11, 15, 25, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border-color);
-}
-
-.navbar-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-}
-
-.logo-icon {
-  font-size: 1.5rem;
-}
-
-.brand-text {
-  font-family: 'Outfit', sans-serif;
-  font-weight: 700;
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
-  background: var(--accent-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.nav-links {
-  display: flex;
-  gap: 2rem;
-}
-
-.nav-link {
-  font-weight: 500;
-  color: var(--text-secondary);
-  position: relative;
-  transition: color 0.2s ease;
-}
-
-.nav-link:hover {
-  color: var(--text-primary);
-}
-
-.nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--accent-blue);
-  transition: width 0.3s ease;
-}
-
-.nav-link:hover::after,
-.nav-link.active::after {
-  width: 100%;
-}
-
-.nav-link.active {
-  color: var(--text-primary);
-}
-
-.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-}
-
-@media (max-width: 768px) {
-  .nav-links {
-    display: none;
-  }
+.border-navbar-border {
+  border-color: rgba(255, 255, 255, 0.04);
 }
 </style>
