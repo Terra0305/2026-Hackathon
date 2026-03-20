@@ -1,235 +1,241 @@
 <script setup>
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useDbStore } from '../stores/db'
+
+const route = useRoute()
+const db = useDbStore()
+
+const hackathonSlug = route.params.id || route.params.slug
+const hackathon = computed(() => db.hackathons.find(h => h.slug === hackathonSlug || h.id === hackathonSlug))
+
+const tabs = ['개요', '평가 기준', '일정', '상금', '팀 찾기', '제출', '리더보드']
+const activeTab = ref('개요')
+
+// 팀 찾기
+const teams = computed(() => db.teams.filter(t => t.hackathonSlug === hackathon.value?.slug || t.hackathonSlug === hackathon.value?.id))
+
+// 리더보드
+const leaderboards = computed(() => db.leaderboards.filter(l => l.hackathonSlug === hackathon.value?.slug || l.hackathonSlug === hackathon.value?.id))
+
+// 제출 폼
+const submitMemo = ref('')
+const submitLink = ref('')
+const handleSubmission = () => {
+  if (!submitMemo.value) return alert('내용을 입력해주세요.')
+  db.addSubmission({
+    hackathonSlug: hackathon.value.slug || hackathon.value.id,
+    userId: 'currentUser', // Mock
+    memo: submitMemo.value,
+    link: submitLink.value,
+    createdAt: new Date().toISOString()
+  })
+  alert('제출이 완료되었습니다!')
+  submitMemo.value = ''
+  submitLink.value = ''
+}
 </script>
 
 <template>
-  <div class="flex flex-col gap-6 pb-24 max-w-[1200px] mx-auto w-full">
+  <div v-if="hackathon" class="flex flex-col gap-6 pb-24 max-w-[1200px] mx-auto w-full">
     <!-- Hero Section -->
-    <section class="relative w-full rounded-[2rem] overflow-hidden bg-gradient-to-br from-[#101928] to-[#0A0D14] border border-white/5 p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+    <section class="relative w-full rounded-[2rem] overflow-hidden bg-gradient-to-br from-[#101928] to-[#0A0D14] border border-white/5 p-12 flex flex-col items-start gap-8">
       <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-500/10 blur-[100px] rounded-full pointer-events-none translate-x-1/4 -translate-y-1/4"></div>
       
       <div class="relative z-10 flex flex-col items-start gap-6 max-w-2xl">
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-xs font-bold tracking-[0.15em] uppercase">
-          <span class="w-1.5 h-1.5 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]"></span>
-          LIVE NOW
+          <span v-if="hackathon.status === 'ongoing'" class="w-1.5 h-1.5 rounded-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]"></span>
+          {{ hackathon.status === 'ongoing' ? 'LIVE NOW' : hackathon.status === 'upcoming' ? 'RECRUITING' : 'ENDED' }}
         </div>
         
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-outfit font-bold tracking-tight text-white leading-[1.1]">
-          2026 글로벌 AI 해커톤
+          {{ hackathon.title }}
         </h1>
         
         <p class="text-base text-sync-muted leading-relaxed max-w-xl">
-          차세대 인공지능 모델을 활용한 혁신적인 서비스를 빌드하세요. 전 세계 엔지니어들과 경쟁하며 미래의 디지털 생태계를 설계하는 72시간의 몰입 여정입니다.
+          {{ hackathon.description }}
         </p>
         
         <div class="flex flex-wrap items-center gap-3 pt-2">
           <button class="bg-sync-primary hover:bg-sync-primaryHover text-white font-medium py-3 px-6 rounded-xl transition-all shadow-md">
             참가 신청하기
           </button>
-          <button class="bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium py-3 px-6 rounded-xl transition-colors">
-            자세히 보기
-          </button>
-        </div>
-      </div>
-
-      <div class="hidden lg:flex relative z-10 w-48 h-48 items-center justify-center">
-        <!-- Circular decorative graphic -->
-        <div class="absolute inset-0 rounded-full border border-white/5"></div>
-        <div class="absolute inset-4 rounded-full border border-white/10"></div>
-        <div class="absolute inset-8 rounded-full border border-white/20"></div>
-        <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(99,102,241,0.4)]">
-          <span class="text-3xl">✨</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Progress & Timeline Grid -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-      <!-- Progress Card -->
-      <div class="lg:col-span-4 bg-[#181A20] rounded-2xl border border-white/5 p-6 flex flex-col justify-between">
-        <h3 class="text-sm font-bold text-sync-muted mb-6">진행률</h3>
-        
-        <div class="flex flex-col items-center gap-6 flex-1 justify-center">
-          <div class="relative w-40 h-40">
-            <!-- Circular Progress Bar -->
-            <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" fill="none" class="stroke-[#22252D]" stroke-width="8"></circle>
-              <circle cx="50" cy="50" r="45" fill="none" class="stroke-sync-primary" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="70.75" stroke-linecap="round"></circle>
-            </svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span class="text-3xl font-outfit font-bold text-white">75%</span>
-              <span class="text-[10px] text-sync-muted uppercase tracking-widest mt-1">개발 단계</span>
-            </div>
-          </div>
-          
-          <p class="text-xs text-center text-sync-muted">최종 결과 발표까지 <span class="text-white font-medium">3일 14시간</span> 남음</p>
-        </div>
-      </div>
-
-      <!-- Roadmap Card -->
-      <div class="lg:col-span-8 bg-[#181A20] rounded-2xl border border-white/5 p-6 flex flex-col">
-        <div class="flex items-center justify-between mb-8">
-          <h3 class="text-sm font-bold text-sync-muted">해커톤 로드맵</h3>
-          <span class="px-3 py-1 bg-white/5 rounded text-[10px] text-white/50 tracking-widest uppercase">Phase 2</span>
-        </div>
-        
-        <div class="flex-1 flex items-center px-4 py-8">
-          <!-- Timeline -->
-          <div class="relative w-full flex justify-between items-center">
-            <!-- Track Background -->
-            <div class="absolute top-[9px] left-0 w-full h-1 bg-[#22252D] rounded-full"></div>
-            <!-- Track Progress (75% -> up to 심사) -->
-            <div class="absolute top-[9px] left-0 w-[66%] h-1 bg-sync-primary rounded-full"></div>
-            
-            <!-- Nodes -->
-            <div class="relative flex flex-col items-center gap-3 z-10 w-1/4">
-              <div class="w-5 h-5 rounded-full bg-sync-primary border-4 border-[#181A20] shadow-[0_0_10px_rgba(50,132,255,0.5)]"></div>
-              <div class="text-center">
-                <div class="text-sm font-bold text-white">접수</div>
-                <div class="text-[10px] text-sync-muted">01.01 - 01.15</div>
-              </div>
-            </div>
-            
-            <div class="relative flex flex-col items-center gap-3 z-10 w-1/4">
-              <div class="w-5 h-5 rounded-full bg-sync-primary border-4 border-[#181A20] shadow-[0_0_10px_rgba(50,132,255,0.5)]"></div>
-               <div class="text-center">
-                <div class="text-sm font-bold text-white">개발</div>
-                <div class="text-[10px] text-sync-muted">01.16 - 01.19</div>
-              </div>
-            </div>
-            
-            <div class="relative flex flex-col items-center gap-3 z-10 w-1/4">
-              <div class="w-5 h-5 rounded-full bg-[#22252D] border-4 border-[#181A20] flex items-center justify-center">
-                 <div class="w-2.5 h-2.5 rounded-full bg-sync-primary"></div>
-              </div>
-               <div class="text-center">
-                <div class="text-sm font-bold text-white">심사</div>
-                <div class="text-[10px] text-sync-muted">01.20 - 01.22</div>
-              </div>
-            </div>
-            
-            <div class="relative flex flex-col items-center gap-3 z-10 w-1/4">
-              <div class="w-5 h-5 rounded-full bg-[#323642] border-[4px] border-[#181A20]"></div>
-               <div class="text-center">
-                <div class="text-sm font-medium text-sync-muted">발표</div>
-                <div class="text-[10px] text-[#555A68]">01.23</div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </section>
 
     <!-- Navigation Tabs -->
-    <div class="flex items-center gap-2 border-b border-white/5 pb-0 my-2 overflow-x-auto">
-      <button class="px-5 py-2.5 bg-white/10 text-white text-sm font-medium rounded-t-lg border-b-2 border-white/20">개요</button>
-      <button class="px-5 py-2.5 text-sync-muted hover:text-white text-sm font-medium transition-colors">일정</button>
-      <button class="px-5 py-2.5 text-sync-muted hover:text-white text-sm font-medium transition-colors">팀</button>
-      <button class="px-5 py-2.5 text-sync-muted hover:text-white text-sm font-medium transition-colors">제출</button>
-      <button class="px-5 py-2.5 text-sync-muted hover:text-white text-sm font-medium transition-colors">리더보드</button>
+    <div class="flex border-b border-white/5 pb-0 my-2 overflow-x-auto no-scrollbar scroll-smooth">
+      <button 
+        v-for="tab in tabs" :key="tab"
+        @click="activeTab = tab"
+        :class="[
+          activeTab === tab ? 'bg-white/10 text-white border-b-2 border-white/20 rounded-t-lg font-bold' : 'text-sync-muted hover:text-white',
+          'px-6 py-4 text-sm font-medium transition-colors whitespace-nowrap outline-none'
+        ]"
+      >{{ tab }}</button>
     </div>
 
-    <!-- Bottom Grids -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-      <!-- Notices & Team Row -->
-      <div class="lg:col-span-8 flex flex-col gap-6">
-        <div class="bg-[#181A20] rounded-2xl border border-white/5 p-6 h-full flex flex-col">
-          <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-bold text-white">주요 공지사항</h3>
-            <button class="text-[10px] text-sync-muted hover:text-white uppercase tracking-widest font-bold transition-colors">모두 보기</button>
+    <!-- Content Sections -->
+    <section class="w-full bg-[#181A20] rounded-2xl border border-white/5 p-6 lg:p-10 min-h-[400px]">
+      <!-- 1. 개요 -->
+      <div v-if="activeTab === '개요'" class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease]">
+        <h3 class="text-xl font-bold text-white mb-2">해커톤 개요</h3>
+        <p class="text-sync-muted leading-relaxed whitespace-pre-wrap">{{ hackathon.description }}</p>
+        
+        <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-[#22252D] rounded-xl p-6 flex flex-col gap-2 border border-white/5">
+            <span class="text-[10px] text-sync-muted uppercase tracking-[0.2em] font-bold">참가자</span>
+            <span class="text-2xl font-outfit font-bold text-white">{{ hackathon.participants }}명</span>
           </div>
-          
-          <div class="flex flex-col gap-3">
-            <div class="p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 flex gap-4">
-              <div class="text-blue-400 mt-0.5"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"></path></svg></div>
-              <div class="flex flex-col gap-1">
-                <h4 class="text-sm font-bold text-blue-100">API 엔드포인트 업데이트 안내</h4>
-                <p class="text-xs text-sync-muted">2시간 전</p>
-              </div>
-            </div>
-            
-            <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5 flex gap-4">
-               <div class="text-teal-400 mt-0.5"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>
-              <div class="flex flex-col gap-1">
-                <h4 class="text-sm font-bold text-white/80">중간 멘토링 세션 신청 마감 임박</h4>
-                <p class="text-xs text-sync-muted">6시간 전</p>
-              </div>
+          <div class="bg-[#22252D] rounded-xl p-6 flex flex-col gap-2 border border-white/5">
+            <span class="text-[10px] text-sync-muted uppercase tracking-[0.2em] font-bold">상태</span>
+            <span class="text-2xl font-outfit font-bold text-white capitalize">{{ hackathon.status }}</span>
+          </div>
+          <div class="md:col-span-2 bg-[#22252D] rounded-xl p-6 flex flex-col gap-2 border border-white/5">
+            <span class="text-[10px] text-sync-muted uppercase tracking-[0.2em] font-bold">태그</span>
+            <div class="flex flex-wrap gap-2 mt-1">
+              <span v-for="tag in hackathon.tags" :key="tag" class="px-2.5 py-1 text-xs font-bold text-white/70 bg-white/5 rounded-md border border-white/5">{{ tag }}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="lg:col-span-4 flex flex-col gap-6">
-        <div class="bg-[#181A20] rounded-2xl border border-white/5 p-6 h-full flex flex-col items-center justify-center text-center">
-          <h3 class="text-sm font-bold text-white w-full text-left mb-6">나의 팀 현황</h3>
-          
-          <div class="flex flex-col items-center gap-4 w-full">
-            <div class="flex -space-x-3 mb-2">
-              <div class="w-10 h-10 rounded-full border-2 border-[#181A20] bg-gradient-to-tr from-purple-500 to-pink-500 z-30"></div>
-              <div class="w-10 h-10 rounded-full border-2 border-[#181A20] bg-gradient-to-tr from-blue-400 to-cyan-400 z-20"></div>
-              <div class="w-10 h-10 rounded-full border-2 border-[#181A20] bg-[#22252D] flex items-center justify-center text-[10px] text-white/70 font-bold z-10">+2</div>
+      <!-- 2. 평가 기준 -->
+      <div v-if="activeTab === '평가 기준'" class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease]">
+         <h3 class="text-xl font-bold text-white mb-2">평가 기준</h3>
+         <div class="p-8 rounded-2xl bg-gradient-to-br from-[#22252D] to-[#1A1C23] border border-white/5 shadow-inner">
+           <p class="text-sync-muted leading-relaxed whitespace-pre-wrap text-lg">{{ hackathon.evaluation || '평가 기준이 등록되지 않았습니다.' }}</p>
+         </div>
+      </div>
+
+      <!-- 3. 일정 -->
+      <div v-if="activeTab === '일정'" class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease]">
+         <h3 class="text-xl font-bold text-white mb-2">대회 일정</h3>
+         <div class="flex flex-col gap-4">
+           <div class="flex items-center gap-6 p-6 rounded-2xl border border-white/5 bg-[#22252D]">
+             <div class="w-14 h-14 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-2xl font-bold">🏁</div>
+             <div>
+               <h4 class="text-white font-bold mb-1">시작일</h4>
+               <p class="text-sm text-sync-muted">{{ hackathon.startDate }}</p>
+             </div>
+           </div>
+           <div class="flex items-center gap-6 p-6 rounded-2xl border border-white/5 bg-[#22252D]">
+             <div class="w-14 h-14 rounded-xl bg-red-500/10 text-red-400 flex items-center justify-center text-2xl font-bold">🛑</div>
+             <div>
+               <h4 class="text-white font-bold mb-1">종료일</h4>
+               <p class="text-sm text-sync-muted">{{ hackathon.endDate }}</p>
+             </div>
+           </div>
+         </div>
+      </div>
+
+      <!-- 4. 상금 -->
+      <div v-if="activeTab === '상금'" class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease]">
+         <h3 class="text-xl font-bold text-white mb-2">총 상금 (Prize Pool)</h3>
+         <div class="py-12 flex items-center justify-center border border-white/5 rounded-2xl bg-[#22252D] shadow-inner relative overflow-hidden">
+           <div class="absolute inset-0 bg-gradient-to-r from-teal-500/5 to-blue-500/5 pointer-events-none"></div>
+           <div class="text-6xl md:text-8xl font-outfit font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-blue-500 drop-shadow-sm">
+             {{ hackathon.prizePool }}
+           </div>
+         </div>
+      </div>
+
+      <!-- 5. 팀 찾기 -->
+      <div v-if="activeTab === '팀 찾기'" class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease]">
+        <div class="flex justify-between items-center mb-2">
+          <h3 class="text-xl font-bold text-white">팀 찾기 <span class="text-sync-muted text-sm font-normal ml-2">({{ teams.length }}팀 모집중)</span></h3>
+        </div>
+        <div v-if="teams.length === 0" class="text-center py-20 text-sync-muted border border-white/5 border-dashed rounded-2xl">
+          등록된 팀이 없습니다. Camp에서 팀을 생성해보세요.
+        </div>
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div v-for="team in teams" :key="team.id" class="p-6 rounded-2xl border border-white/5 bg-[#22252D] flex flex-col justify-between hover:border-white/10 transition-colors">
+            <div class="flex flex-col gap-3">
+              <h4 class="text-white font-bold text-lg leading-tight">{{ team.name }}</h4>
+              <p class="text-sm text-sync-muted line-clamp-3 leading-relaxed h-[60px]">{{ team.intro }}</p>
+              
+              <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                <span v-for="role in team.lookingFor" :key="role" class="px-2 py-1 bg-[#181A20] border border-white/5 text-[10px] font-medium text-white/80 rounded-md">{{ role }}</span>
+              </div>
             </div>
-            
-            <div class="flex flex-col gap-1">
-              <h4 class="text-base font-bold text-white">Team PixelBenders</h4>
-              <p class="text-xs text-sync-muted">멤버 3/5명 참여 중</p>
-            </div>
-            
-            <button class="w-full mt-2 py-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-sm font-medium text-white transition-colors border border-white/5">
-              팀 관리하기
+            <button @click="() => alert('참여 요청이 전송되었습니다!')" class="mt-6 w-full py-2.5 bg-sync-primary/10 text-sync-primary hover:bg-sync-primary hover:text-white rounded-xl text-sm font-bold transition-all shadow-sm">
+              참여 요청하기
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Submit & Stats Row -->
-      <div class="lg:col-span-4">
-        <div class="bg-[#181A20] rounded-2xl border border-white/5 p-6 h-full flex flex-col">
-          <h3 class="text-sm font-bold text-white mb-6">제출 현황</h3>
-          
-          <div class="flex flex-col gap-4 mb-6 relative z-10">
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-sync-muted">최종 코드</span>
-              <span class="flex items-center gap-1.5 text-red-400 font-medium"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> 미제출</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-sync-muted">기획안</span>
-              <span class="flex items-center gap-1.5 text-teal-400 font-medium"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> 완료</span>
-            </div>
-            <div class="flex items-center justify-between text-sm">
-              <span class="text-sync-muted">데모 영상</span>
-              <span class="text-white/60 font-medium">준비 중</span>
-            </div>
-          </div>
-          
-          <div class="mt-auto relative z-20">
-            <button class="w-full py-3 bg-sync-primary hover:bg-sync-primaryHover rounded-lg text-sm font-medium text-white transition-colors">
-              지금 제출하기
-            </button>
-          </div>
-        </div>
+      <!-- 6. 제출 -->
+      <div v-if="activeTab === '제출'" class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease]">
+         <h3 class="text-xl font-bold text-white mb-2">프로젝트 제출</h3>
+         <form @submit.prevent="handleSubmission" class="flex flex-col gap-6 max-w-2xl">
+           <div class="flex flex-col gap-2.5">
+             <label class="text-sm font-bold text-white">프로젝트 설명 <span class="text-red-400">*</span></label>
+             <textarea required v-model="submitMemo" rows="6" class="w-full bg-[#22252D] border border-white/10 rounded-xl p-5 text-white placeholder-white/30 focus:outline-none focus:border-sync-primary transition-colors focus:ring-1 focus:ring-sync-primary resize-none shadow-inner" placeholder="프로젝트에 대한 간단한 설명을 입력하세요. 사용 기술스택과 해결하고자 하는 문제 등을 적어주시면 좋습니다."></textarea>
+           </div>
+           <div class="flex flex-col gap-2.5">
+             <label class="text-sm font-bold text-white">데모 링크 또는 소스코드 URL <span class="text-sync-muted font-normal">(선택)</span></label>
+             <input type="url" v-model="submitLink" class="w-full bg-[#22252D] border border-white/10 rounded-xl p-5 text-white placeholder-white/30 focus:outline-none focus:border-sync-primary transition-colors focus:ring-1 focus:ring-sync-primary shadow-inner" placeholder="https://github.com/..." />
+           </div>
+           <button type="submit" class="self-end mt-2 py-3 px-8 bg-sync-primary hover:bg-sync-primaryHover text-white font-bold rounded-xl transition-all shadow-[0_4px_12px_rgba(50,132,255,0.2)]">제출 완료하기</button>
+         </form>
       </div>
 
-      <div class="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="bg-[#181A20] rounded-2xl border border-white/5 p-6 flex flex-col justify-center gap-2 relative overflow-hidden group hover:border-white/10 transition-colors">
-          <div class="text-[9px] text-sync-muted uppercase tracking-[0.2em] font-bold">PARTICIPANTS</div>
-          <div class="text-2xl md:text-3xl font-outfit font-bold text-white group-hover:text-sync-primary transition-colors">1,240</div>
-        </div>
-        
-        <div class="bg-[#181A20] rounded-2xl border border-white/5 p-6 flex flex-col justify-center gap-2 relative overflow-hidden group hover:border-white/10 transition-colors">
-          <div class="text-[9px] text-sync-muted uppercase tracking-[0.2em] font-bold">PRIZE POOL</div>
-          <div class="text-2xl md:text-3xl font-outfit font-bold text-teal-400 group-hover:text-teal-300 transition-colors">$50k</div>
-        </div>
-        
-        <div class="bg-[#181A20] rounded-2xl border border-white/5 p-6 flex flex-col justify-center gap-2 relative overflow-hidden group hover:border-white/10 transition-colors">
-          <div class="text-[9px] text-sync-muted uppercase tracking-[0.2em] font-bold">TEAMS</div>
-          <div class="text-2xl md:text-3xl font-outfit font-bold text-white group-hover:text-sync-primary transition-colors">312</div>
-        </div>
-        
-        <div class="bg-[#181A20] rounded-2xl border border-white/5 p-6 flex flex-col justify-center gap-2 relative overflow-hidden group hover:border-white/10 transition-colors">
-          <div class="text-[9px] text-sync-muted uppercase tracking-[0.2em] font-bold">DAYS LEFT</div>
-          <div class="text-2xl md:text-3xl font-outfit font-bold text-white group-hover:text-sync-primary transition-colors">03</div>
-        </div>
+      <!-- 7. 리더보드 -->
+      <div v-if="activeTab === '리더보드'" class="flex flex-col gap-6 animate-[fadeIn_0.3s_ease]">
+         <h3 class="text-xl font-bold text-white mb-2">해커톤 리더보드</h3>
+         <div v-if="leaderboards.length === 0" class="text-center py-20 text-sync-muted border border-white/5 border-dashed rounded-2xl">
+           아직 리더보드 데이터가 없습니다. (진행 중이거나 제출된 프로젝트가 없음)
+         </div>
+         <div v-else class="flex flex-col gap-3">
+           <div v-for="(lb, i) in leaderboards.sort((a,b) => b.score - a.score)" :key="lb.id" class="flex items-center gap-6 p-5 rounded-2xl border border-white/5 bg-[#22252D] hover:bg-white/[0.04] transition-colors relative overflow-hidden group">
+             <!-- rank badge bg -->
+             <div v-if="i === 0" class="absolute top-0 left-0 bottom-0 w-1 bg-amber-400"></div>
+             <div v-if="i === 1" class="absolute top-0 left-0 bottom-0 w-1 bg-gray-300"></div>
+             <div v-if="i === 2" class="absolute top-0 left-0 bottom-0 w-1 bg-amber-700"></div>
+             
+             <div class="w-10 flex items-center justify-center font-outfit font-black text-2xl" :class="i === 0 ? 'text-amber-400 drop-shadow-md' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-700' : 'text-sync-muted'">
+               {{ i + 1 }}
+             </div>
+             <div class="w-12 h-12 rounded-full bg-[#181A20] flex items-center justify-center text-lg shadow-inner font-outfit text-white">
+               {{ lb.avatarSeed.charAt(0) }}
+             </div>
+             <div class="flex-1 flex flex-col gap-0.5">
+               <span class="text-white font-bold text-lg">{{ lb.nickname }}</span>
+               <div class="flex items-center gap-2">
+                 <span class="px-2 py-0.5 rounded bg-white/5 text-[9px] font-bold tracking-widest text-sync-muted uppercase">{{ lb.status }}</span>
+               </div>
+             </div>
+             <div class="pr-2 flex flex-col items-end">
+               <span class="text-2xl font-outfit font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">{{ lb.score.toLocaleString() }}</span>
+               <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase">Points</span>
+             </div>
+           </div>
+         </div>
       </div>
     </section>
   </div>
+  
+  <div v-else class="min-h-[50vh] flex flex-col items-center justify-center gap-6 text-center">
+    <div class="text-6xl mb-2 opacity-50">🧭</div>
+    <h2 class="text-2xl text-white font-bold tracking-tight">해커톤 정보를 찾을 수 없습니다.</h2>
+    <p class="text-sync-muted text-sm">입력하신 링크가 잘못되었거나 삭제된 페이지입니다.</p>
+    <router-link to="/hackathons" class="mt-2 text-sync-primary hover:text-white transition-colors bg-sync-primary/10 hover:bg-sync-primary py-2.5 px-6 rounded-xl font-bold border border-sync-primary/20">목록으로 돌아가기</router-link>
+  </div>
 </template>
+
+<style scoped>
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+</style>

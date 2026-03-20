@@ -1,7 +1,15 @@
 <script setup>
+import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import NavBar from './components/NavBar.vue'
 import './assets/main.css'
+import { useDbStore } from './stores/db'
+
+const db = useDbStore()
+
+onMounted(() => {
+  db.initialize()
+})
 </script>
 
 <template>

@@ -1,5 +1,10 @@
 <script setup>
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { useDbStore } from '../stores/db'
+
+const db = useDbStore()
+const activeHackathons = computed(() => db.hackathons.filter(h => h.status !== 'ended').slice(0, 3))
 </script>
 
 <template>
@@ -78,66 +83,27 @@ import { RouterLink } from 'vue-router'
       </div>
 
       <div class="flex flex-col gap-3">
-        <!-- List Item 1 -->
-        <RouterLink to="/hackathons/1" class="bg-[#181A20] p-4 rounded-xl border border-white/5 hover:border-white/10 flex items-center justify-between group cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm">
+        <RouterLink v-for="h in activeHackathons" :key="h.id" :to="`/hackathons/${h.slug}`" class="bg-[#181A20] p-4 rounded-xl border border-white/5 hover:border-white/10 flex items-center justify-between group cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm">
           <div class="flex items-center gap-5">
-            <div class="w-14 h-14 rounded-xl bg-[#F4F5F7] flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0">
-              <span class="text-2xl font-black text-gray-800">A<span class="text-gray-400">/</span>I</span>
+            <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-[#22252D] to-[#181A20] border border-white/5 flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0">
+               <span class="text-white/80 text-xl font-bold font-outfit tracking-tighter">{{ h.title.charAt(0) }}</span>
             </div>
             <div class="flex flex-col gap-1.5">
-              <h4 class="text-white font-bold md:text-lg group-hover:text-sync-primary transition-colors">Generative Art Challenge 2026</h4>
-              <div class="flex items-center gap-4 text-xs font-medium text-sync-muted">
-                <span class="flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> D-14</span>
-                <span class="flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> 120 Participants</span>
+              <h4 class="text-white font-bold md:text-lg group-hover:text-sync-primary transition-colors">{{ h.title }}</h4>
+              <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-sync-muted">
+                <span class="flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> {{ h.startDate }} ~ {{ h.endDate }}</span>
+                <span class="flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> {{ h.participants }}명 참여 중</span>
               </div>
             </div>
           </div>
           <div class="flex items-center gap-6">
-            <span class="hidden sm:inline-flex px-3 py-1.5 rounded-md bg-white/5 text-[10px] font-bold text-white/50 border border-white/5 uppercase tracking-widest">Recruiting</span>
+            <span v-if="h.status === 'ongoing'" class="hidden sm:inline-flex px-3 py-1.5 rounded-md bg-teal-500/10 text-[10px] font-bold text-teal-400 border border-teal-500/20 uppercase tracking-widest">진행 중</span>
+            <span v-else-if="h.status === 'upcoming'" class="hidden sm:inline-flex px-3 py-1.5 rounded-md bg-blue-500/10 text-[10px] font-bold text-blue-400 border border-blue-500/20 uppercase tracking-widest">모집 중</span>
+            <span v-else class="hidden sm:inline-flex px-3 py-1.5 rounded-md bg-white/5 text-[10px] font-bold text-white/50 border border-white/5 uppercase tracking-widest">종료</span>
+            
             <svg class="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
           </div>
         </RouterLink>
-
-        <!-- List Item 2 -->
-        <RouterLink to="/hackathons/2" class="bg-[#181A20] p-4 rounded-xl border border-white/5 hover:border-white/10 flex items-center justify-between group cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm">
-          <div class="flex items-center gap-5">
-             <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0">
-               <span class="text-white text-xl font-bold font-mono tracking-tighter">Web3</span>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <h4 class="text-white font-bold md:text-lg group-hover:text-sync-primary transition-colors">Web3 Security Audit Hack</h4>
-              <div class="flex items-center gap-4 text-xs font-medium text-sync-muted">
-                <span class="flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> D-5</span>
-                <span class="flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> 84 Participants</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex items-center gap-6">
-            <span class="hidden sm:inline-flex px-3 py-1.5 rounded-md bg-teal-500/10 text-[10px] font-bold text-teal-400 border border-teal-500/20 uppercase tracking-widest">Ongoing</span>
-            <svg class="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-        </RouterLink>
-        
-        <!-- List Item 3 -->
-        <RouterLink to="/hackathons/3" class="bg-[#181A20] p-4 rounded-xl border border-white/5 hover:border-white/10 flex items-center justify-between group cursor-pointer transition-all hover:-translate-y-0.5 shadow-sm">
-          <div class="flex items-center gap-5">
-             <div class="w-14 h-14 rounded-xl bg-[#2ECC71]/20 border border-[#2ECC71]/30 flex items-center justify-center shadow-inner overflow-hidden flex-shrink-0">
-               <span class="text-[#2ECC71] text-2xl font-bold">☁️</span>
-            </div>
-            <div class="flex flex-col gap-1.5">
-              <h4 class="text-white font-bold md:text-lg group-hover:text-sync-primary transition-colors">Cloud Infrastructure Optimization</h4>
-              <div class="flex items-center gap-4 text-xs font-medium text-sync-muted">
-                <span class="flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> D-21</span>
-                <span class="flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg> 215 Participants</span>
-              </div>
-            </div>
-          </div>
-          <div class="flex items-center gap-6">
-            <span class="hidden sm:inline-flex px-3 py-1.5 rounded-md bg-white/5 text-[10px] font-bold text-white/50 border border-white/5 uppercase tracking-widest">Recruiting</span>
-            <svg class="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-          </div>
-        </RouterLink>
-
       </div>
     </section>
   </div>
