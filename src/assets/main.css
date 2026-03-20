@@ -5,8 +5,30 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --sync-bg: #F8FAFC;
+    --sync-card: rgba(255, 255, 255, 0.6);
+    --sync-cardHover: rgba(255, 255, 255, 0.9);
+    --sync-border: rgba(255, 255, 255, 0.6);
+    --sync-primary: #3284FF;
+    --sync-primaryHover: #266BDE;
+    --sync-text: #111827;
+    --sync-muted: #6B7280;
+  }
+  
+  .dark {
+    --sync-bg: #0D0E12;
+    --sync-card: rgba(24, 26, 32, 0.65);
+    --sync-cardHover: rgba(34, 37, 45, 0.85);
+    --sync-border: rgba(255, 255, 255, 0.12);
+    --sync-primary: #3284FF;
+    --sync-primaryHover: #5297FF;
+    --sync-text: #F1F3F5;
+    --sync-muted: #8A92A0;
+  }
+
   body {
-    @apply bg-sync-bg text-sync-text antialiased font-sans;
+    @apply bg-sync-bg text-sync-text antialiased font-sans transition-colors duration-300;
     min-height: 100vh;
   }
   
@@ -21,11 +43,11 @@
   }
 
   .glass-card {
-    @apply bg-sync-card border border-sync-border rounded-2xl transition-all duration-300;
+    @apply bg-white/80 dark:bg-sync-card backdrop-blur-2xl border border-slate-200/80 dark:border-sync-border rounded-[2rem] transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)];
   }
   
   .glass-card-hover {
-    @apply hover:-translate-y-1 hover:bg-sync-cardHover hover:shadow-lg hover:shadow-black/50;
+    @apply hover:-translate-y-1 hover:bg-white dark:hover:bg-sync-cardHover hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_16px_48px_rgba(50,132,255,0.15)] hover:border-[rgba(50,132,255,0.3)] dark:hover:border-[rgba(50,132,255,0.3)];
   }
 
   .btn-primary {
@@ -33,10 +55,10 @@
   }
   
   .btn-secondary {
-    @apply bg-white/5 text-white font-medium rounded-lg px-5 py-2.5 transition-colors duration-200 hover:bg-white/10 border border-white/10;
+    @apply bg-black/5 dark:bg-white/5 text-sync-text font-medium rounded-lg px-5 py-2.5 transition-colors duration-200 hover:bg-black/10 dark:hover:bg-white/10 border border-black/10 dark:border-white/10;
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-sync-primary;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-sync-primary;
   }
 }

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{vue,js,ts,jsx,tsx}",
@@ -12,14 +13,14 @@ export default {
       },
       colors: {
         sync: {
-          bg: '#0D0E12',
-          card: '#181A20',
-          cardHover: '#22252D',
-          border: 'rgba(255,255,255,0.08)',
-          primary: '#3284FF',
-          primaryHover: '#5297FF',
-          text: '#F1F3F5',
-          muted: '#8A92A0'
+          bg: 'var(--sync-bg)',
+          card: 'var(--sync-card)',
+          cardHover: 'var(--sync-cardHover)',
+          border: 'var(--sync-border)',
+          primary: 'var(--sync-primary)',
+          primaryHover: 'var(--sync-primaryHover)',
+          text: 'var(--sync-text)',
+          muted: 'var(--sync-muted)'
         }
       }
     },

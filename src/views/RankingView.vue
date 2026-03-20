@@ -1,163 +1,147 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useDbStore } from '../stores/db'
-
-const db = useDbStore()
-const timeFilter = ref('전체') // '7일', '30일', '전체'
-
-const sortedLeaderboards = computed(() => {
-  // Mock filter logic based on time filter
-  return [...db.leaderboards].sort((a,b) => b.score - a.score)
-})
-
-const top3 = computed(() => sortedLeaderboards.value.slice(0, 3))
-const others = computed(() => sortedLeaderboards.value.slice(3))
-
-const rank1 = computed(() => top3.value[0])
-const rank2 = computed(() => top3.value[1])
-const rank3 = computed(() => top3.value[2])
 </script>
 
 <template>
-  <div class="flex flex-col gap-16 pb-24 max-w-[1200px] mx-auto w-full">
-    
-    <!-- Header Section -->
-    <section class="flex flex-col md:flex-row md:items-end justify-between gap-6 pt-4 px-4">
-      <div class="flex flex-col gap-4">
-        <h1 class="text-5xl md:text-6xl font-outfit font-bold tracking-tight text-white leading-none">
-          TOP <span class="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">BUILDERS</span>
-        </h1>
-        <p class="text-sm text-sync-muted leading-relaxed max-w-md mt-2">
-          Sync 생태계에서 혁신적인 가치를 창출하고 있는 최고의 빌더들을 확인하세요.
-        </p>
+  <div class="flex flex-col gap-12 pb-24 max-w-[1000px] mx-auto w-full transition-colors duration-300">
+    <div class="flex items-end justify-between border-b border-sync-border pb-6 transition-colors duration-300">
+      <div class="flex flex-col gap-2">
+        <h1 class="text-4xl font-outfit font-bold text-sync-text tracking-tight transition-colors">Top Builders</h1>
+        <p class="text-sm text-sync-muted transition-colors">글로벌 해커톤 생태계를 이끌어가는 상위 빌더 랭킹입니다.</p>
+      </div>
+      <div class="hidden sm:flex items-center gap-2 bg-black/5 dark:bg-white/5 p-1 rounded-lg border border-sync-border">
+        <button class="px-4 py-1.5 text-xs font-bold bg-sync-card text-sync-text rounded shadow-sm">All Time</button>
+        <button class="px-4 py-1.5 text-xs font-bold text-sync-muted hover:text-sync-text transition-colors">Monthly</button>
+      </div>
+    </div>
+
+    <!-- Podium Section (Top 3) -->
+    <section class="flex items-end justify-center gap-4 sm:gap-8 h-[380px] mt-8">
+      <!-- 2nd Place -->
+      <div class="flex flex-col items-center justify-end h-full w-[120px] sm:w-[160px] relative group hover:-translate-y-2 transition-transform">
+        <div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/5 dark:bg-white/10 text-sync-text text-[10px] font-bold px-3 py-1.5 border border-sync-border rounded-full backdrop-blur-md z-20">Full-stack Dev</div>
+        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-[#C0C0C0] shadow-[0_0_20px_rgba(192,192,192,0.3)] bg-blue-200 relative z-10 overflow-hidden bg-cover bg-center text-center flex items-center justify-center font-bold text-xl text-blue-800">
+          A
+        </div>
+        <div class="mt-4 flex flex-col items-center gap-1 z-10">
+          <span class="text-lg font-bold text-sync-text">Alex_Dev</span>
+          <span class="text-xs font-bold text-[#C0C0C0]">8,420 PTS</span>
+        </div>
+        <div class="w-full h-[180px] bg-gradient-to-t from-transparent to-[#C0C0C0]/10 border-t-2 border-[#C0C0C0] mt-4 rounded-t-2xl flex items-start justify-center pt-4 backdrop-blur-sm">
+          <span class="text-4xl font-outfit font-black text-[#C0C0C0]/50">2</span>
+        </div>
       </div>
 
-      <div class="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/5 w-fit overflow-hidden">
-        <button @click="timeFilter = '7일'" :class="[timeFilter === '7일' ? 'bg-sync-primary text-white shadow-sm' : 'text-sync-muted hover:text-white', 'px-5 py-2 rounded-lg text-sm font-medium transition-colors']">7일</button>
-        <button @click="timeFilter = '30일'" :class="[timeFilter === '30일' ? 'bg-sync-primary text-white shadow-sm' : 'text-sync-muted hover:text-white', 'px-5 py-2 rounded-lg text-sm font-medium transition-colors']">30일</button>
-        <button @click="timeFilter = '전체'" :class="[timeFilter === '전체' ? 'bg-sync-primary text-white shadow-sm' : 'text-sync-muted hover:text-white', 'px-5 py-2 rounded-lg text-sm font-medium transition-colors']">전체</button>
+      <!-- 1st Place -->
+      <div class="flex flex-col items-center justify-end h-full w-[140px] sm:w-[200px] relative group hover:-translate-y-2 transition-transform">
+        <div class="absolute -top-[72px] flex items-center justify-center z-20">
+          <svg class="w-8 h-8 text-[#FFD700] drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+        </div>
+        <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-[#FFD700] shadow-[0_0_30px_rgba(255,215,0,0.4)] bg-amber-200 relative z-10 overflow-hidden bg-cover bg-center text-center flex items-center justify-center font-bold text-xl text-amber-800">
+          Kim
+        </div>
+        <div class="mt-4 flex flex-col items-center gap-1 z-10">
+          <span class="text-xl font-bold text-sync-text drop-shadow-md">건축가_Kim</span>
+          <span class="text-[10px] text-sync-muted uppercase tracking-widest font-bold">Grand Master</span>
+          <span class="text-sm font-black text-[#FFD700] mt-1">11,250 PTS</span>
+        </div>
+        <div class="w-full h-[240px] bg-gradient-to-t from-transparent to-[#FFD700]/10 border-t-2 border-[#FFD700] mt-4 rounded-t-2xl flex items-start justify-center pt-4 backdrop-blur-sm">
+          <span class="text-5xl font-outfit font-black text-[#FFD700]/50 drop-shadow-sm">1</span>
+        </div>
+      </div>
+
+      <!-- 3rd Place -->
+      <div class="flex flex-col items-center justify-end h-full w-[120px] sm:w-[160px] relative group hover:-translate-y-2 transition-transform">
+         <div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/5 dark:bg-white/10 text-sync-text text-[10px] font-bold px-3 py-1.5 border border-sync-border rounded-full backdrop-blur-md z-20">Smart Contract Eng</div>
+        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-[#CD7F32] shadow-[0_0_20px_rgba(205,127,50,0.3)] bg-orange-200 relative z-10 overflow-hidden bg-cover bg-center text-center flex items-center justify-center font-bold text-xl text-orange-800">
+          M
+        </div>
+        <div class="mt-4 flex flex-col items-center gap-1 z-10">
+          <span class="text-sm sm:text-lg font-bold text-sync-text">Web3_Ninja</span>
+          <span class="text-xs font-bold text-[#CD7F32]">7,890 PTS</span>
+        </div>
+        <div class="w-full h-[140px] bg-gradient-to-t from-transparent to-[#CD7F32]/10 border-t-2 border-[#CD7F32] mt-4 rounded-t-2xl flex items-start justify-center pt-4 backdrop-blur-sm">
+          <span class="text-4xl font-outfit font-black text-[#CD7F32]/50">3</span>
+        </div>
       </div>
     </section>
 
-    <!-- Podium Section -->
-    <section class="flex flex-col lg:flex-row items-center justify-center gap-6 w-full lg:px-12 mt-8">
+    <!-- Rankings Table List -->
+    <section class="bg-sync-card border border-sync-border rounded-[2rem] p-4 sm:p-8 shadow-sm transition-colors duration-300">
+      <div class="overflow-x-auto w-full">
+        <table class="w-full text-left border-collapse min-w-[600px]">
+          <thead>
+            <tr class="border-b border-sync-border text-xs font-bold text-sync-muted uppercase tracking-widest transition-colors">
+              <th class="py-4 px-4 sm:px-6 w-16 text-center">Rank</th>
+              <th class="py-4 px-4 sm:px-6">Builder</th>
+              <th class="py-4 px-4 sm:px-6">Badges</th>
+              <th class="py-4 px-4 sm:px-6 text-right">Points</th>
+              <th class="py-4 px-4 sm:px-6 w-24 text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm">
+            <!-- Row 4 -->
+            <tr class="border-b border-sync-border hover:bg-black/5 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer">
+              <td class="py-5 px-4 sm:px-6 text-center font-bold text-sync-muted">4</td>
+              <td class="py-5 px-4 sm:px-6">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-indigo-200 overflow-hidden text-center flex justify-center items-center text-xs font-bold text-indigo-800">L</div>
+                  <span class="font-bold text-sync-text group-hover:text-sync-primary transition-colors">Infra_God</span>
+                </div>
+              </td>
+              <td class="py-5 px-4 sm:px-6 flex gap-2">
+                <span class="w-6 h-6 rounded bg-black/5 dark:bg-white/5 flex items-center justify-center text-xs border border-sync-border transition-colors">☁️</span>
+                <span class="w-6 h-6 rounded bg-black/5 dark:bg-white/5 flex items-center justify-center text-xs border border-sync-border transition-colors">🛡️</span>
+              </td>
+              <td class="py-5 px-4 sm:px-6 text-right font-outfit font-bold text-sync-text">7,120</td>
+              <td class="py-5 px-4 sm:px-6 text-center text-teal-500 dark:text-teal-400">
+                <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+              </td>
+            </tr>
+            <!-- Row 5 -->
+             <tr class="border-b border-sync-border hover:bg-black/5 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer">
+              <td class="py-5 px-4 sm:px-6 text-center font-bold text-sync-muted">5</td>
+              <td class="py-5 px-4 sm:px-6">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-pink-200 overflow-hidden text-center flex justify-center items-center text-xs font-bold text-pink-800">N</div>
+                  <span class="font-bold text-sync-text group-hover:text-sync-primary transition-colors">Design_Master</span>
+                </div>
+              </td>
+              <td class="py-5 px-4 sm:px-6 flex gap-2">
+                <span class="w-6 h-6 rounded bg-black/5 dark:bg-white/5 flex items-center justify-center text-xs border border-sync-border transition-colors">✨</span>
+              </td>
+              <td class="py-5 px-4 sm:px-6 text-right font-outfit font-bold text-sync-text">6,850</td>
+              <td class="py-5 px-4 sm:px-6 text-center text-sync-muted">
+                <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6"></path></svg>
+              </td>
+            </tr>
+             <!-- Row 6 -->
+             <tr class="border-b border-sync-border hover:bg-black/5 dark:hover:bg-white/[0.02] transition-colors group cursor-pointer">
+              <td class="py-5 px-4 sm:px-6 text-center font-bold text-sync-muted">6</td>
+              <td class="py-5 px-4 sm:px-6">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-teal-200 overflow-hidden text-center flex justify-center items-center text-xs font-bold text-teal-800">R</div>
+                  <span class="font-bold text-sync-text group-hover:text-sync-primary transition-colors">Front_End_Wizard</span>
+                </div>
+              </td>
+              <td class="py-5 px-4 sm:px-6 flex gap-2">
+                <span class="w-6 h-6 rounded bg-black/5 dark:bg-white/5 flex items-center justify-center text-xs border border-sync-border transition-colors">🚀</span>
+                <span class="w-6 h-6 rounded bg-black/5 dark:bg-white/5 flex items-center justify-center text-xs border border-sync-border transition-colors">💻</span>
+              </td>
+              <td class="py-5 px-4 sm:px-6 text-right font-outfit font-bold text-sync-text">6,400</td>
+              <td class="py-5 px-4 sm:px-6 text-center text-red-500 dark:text-red-400">
+                 <svg class="w-5 h-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       
-      <!-- Rank 2 -->
-      <div v-if="rank2" class="w-full lg:w-1/3 max-w-sm mt-0 lg:mt-16 relative">
-        <div class="absolute -top-4 w-full flex justify-center z-20">
-          <div class="w-8 h-8 rounded-full bg-[#181A20] border border-white/10 flex items-center justify-center text-xs font-bold text-gray-300 shadow-xl">2</div>
-        </div>
-        <div class="bg-[#181A20] rounded-[2rem] border border-white/5 p-8 flex flex-col items-center gap-6 relative z-10 hover:-translate-y-2 transition-transform shadow-lg">
-          <div class="w-24 h-24 rounded-full border-4 border-[#22252D] bg-[#FFE0B2] flex items-center justify-center text-3xl font-bold flex-shrink-0 mt-4 overflow-hidden relative">
-            {{ rank2.avatarSeed.charAt(0).toUpperCase() }}
-          </div>
-          <div class="flex flex-col items-center gap-1">
-            <h3 class="text-xl font-bold text-white">{{ rank2.nickname }}</h3>
-            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">RANK 2</p>
-          </div>
-          <div class="flex items-baseline gap-1 mt-2">
-            <span class="text-2xl font-outfit font-bold text-white">{{ rank2.score.toLocaleString() }}</span>
-            <span class="text-[10px] text-sync-muted font-bold tracking-wider">PTS</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Rank 1 (Center) -->
-      <div v-if="rank1" class="w-full lg:w-1/3 max-w-sm relative z-30">
-        <div class="absolute -top-5 w-full flex justify-center z-20">
-          <div class="w-10 h-10 rounded-full bg-amber-500 border-[3px] border-[#0D0E12] flex items-center justify-center text-sm font-bold text-white shadow-[0_0_20px_rgba(245,158,11,0.5)]">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM6.5 9a3.5 3.5 0 117 0 3.5 3.5 0 01-7 0zM10 12.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd"></path></svg>
-          </div>
-        </div>
-        
-        <div class="bg-[#181A20] rounded-[2rem] border border-amber-500/20 p-8 flex flex-col items-center gap-6 shadow-[0_20px_40px_rgba(0,0,0,0.4)] shadow-amber-500/10 hover:-translate-y-2 transition-transform pb-12">
-          <div class="relative mt-4">
-            <div class="w-28 h-28 rounded-full border-[5px] border-amber-500/20 p-1 flex flex-shrink-0 relative overflow-hidden">
-               <div class="w-full h-full rounded-full bg-[#FFD180] flex items-center justify-center text-4xl font-bold overflow-hidden text-[#181A20]">
-                  {{ rank1.avatarSeed.charAt(0).toUpperCase() }}
-               </div>
-            </div>
-            <div class="absolute -bottom-2 -right-2 px-2.5 py-0.5 bg-amber-400 text-[#0D0E12] text-[9px] font-black tracking-widest uppercase rounded-full border-2 border-[#181A20] shadow-sm">
-              CHAMP
-            </div>
-          </div>
-          
-          <div class="flex flex-col items-center gap-1">
-            <h3 class="text-2xl font-bold text-white">{{ rank1.nickname }}</h3>
-            <p class="text-[10px] font-bold text-amber-400/80 uppercase tracking-widest mt-1">RANK 1</p>
-          </div>
-          
-          <div class="flex items-baseline gap-1 mt-4">
-            <span class="text-4xl font-outfit font-bold text-amber-400 text-shadow-glow">{{ rank1.score.toLocaleString() }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Rank 3 -->
-      <div v-if="rank3" class="w-full lg:w-1/3 max-w-sm mt-0 lg:mt-16 relative">
-        <div class="absolute -top-4 w-full flex justify-center z-20">
-          <div class="w-8 h-8 rounded-full bg-[#181A20] border border-white/10 flex items-center justify-center text-xs font-bold text-amber-700 shadow-xl">3</div>
-        </div>
-        <div class="bg-[#181A20] rounded-[2rem] border border-white/5 p-8 flex flex-col items-center gap-6 relative z-10 hover:-translate-y-2 transition-transform shadow-lg">
-          <div class="w-24 h-24 rounded-full border-4 border-[#22252D] bg-[#FFE0B2] flex items-center justify-center text-3xl font-bold flex-shrink-0 mt-4 overflow-hidden relative">
-            {{ rank3.avatarSeed.charAt(0).toUpperCase() }}
-          </div>
-          <div class="flex flex-col items-center gap-1">
-            <h3 class="text-xl font-bold text-white">{{ rank3.nickname }}</h3>
-            <p class="text-[10px] font-bold text-amber-700/80 uppercase tracking-widest">RANK 3</p>
-          </div>
-          <div class="flex items-baseline gap-1 mt-2">
-            <span class="text-2xl font-outfit font-bold text-white">{{ rank3.score.toLocaleString() }}</span>
-            <span class="text-[10px] text-sync-muted font-bold tracking-wider">PTS</span>
-          </div>
-        </div>
-      </div>
-
-    </section>
-
-    <!-- Rankings Data Table -->
-    <section class="w-full bg-[#13151A] rounded-3xl border border-white/5 overflow-hidden mt-8 px-4 lg:px-0">
-      
-      <!-- Table Header -->
-      <div class="grid grid-cols-12 gap-4 border-b border-white/5 p-6 text-[11px] font-bold text-sync-muted tracking-widest uppercase">
-        <div class="col-span-2 md:col-span-2 pl-4">순위</div>
-        <div class="col-span-5 md:col-span-5">닉네임</div>
-        <div class="col-span-3">포인트</div>
-        <div class="col-span-2 text-right pr-6">상태</div>
-      </div>
-
-      <!-- Table Body -->
-      <div class="flex flex-col">
-        <div v-for="(user, i) in others" :key="user.id" class="grid grid-cols-12 gap-4 items-center p-6 border-b border-white/[0.02] hover:bg-white/[0.04] transition-colors group">
-          <div class="col-span-2 md:col-span-2 pl-4 text-sm font-outfit text-sync-muted font-medium">{{ String(i + 4).padStart(2, '0') }}</div>
-          <div class="col-span-5 md:col-span-5 flex items-center gap-4">
-            <div class="w-10 h-10 rounded-full bg-blue-200 text-[#181A20] flex items-center justify-center font-bold text-lg overflow-hidden flex-shrink-0">
-               {{ user.avatarSeed.charAt(0).toUpperCase() }}
-            </div>
-            <span class="text-sm font-bold text-white group-hover:text-sync-primary transition-colors">{{ user.nickname }}</span>
-          </div>
-          <div class="col-span-3 text-sm font-outfit font-bold text-white">{{ user.score.toLocaleString() }}</div>
-          <div class="col-span-2 text-right pr-4">
-            <span v-if="user.status === 'STABLE'" class="inline-flex px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold uppercase tracking-widest rounded-full w-[70px] justify-center">STABLE</span>
-            <span v-else-if="user.status === 'RISING'" class="inline-flex items-center justify-center gap-1 px-3 py-1 bg-[#22252D] border border-white/5 text-blue-400 text-[9px] font-bold uppercase tracking-widest rounded-full w-[70px]">RISING</span>
-            <span v-else-if="user.status === 'LIVE'" class="inline-flex px-3 py-1 bg-teal-500/10 border border-teal-500/20 text-teal-400 text-[9px] font-bold uppercase tracking-widest rounded-full w-[70px] justify-center">LIVE</span>
-            <span v-else class="inline-flex px-3 py-1 bg-[#181A20] border border-white/5 text-sync-muted text-[9px] font-bold uppercase tracking-widest rounded-full w-[70px] justify-center">IDLE</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="w-full p-6 flex justify-center border-t border-white/5">
-        <button class="px-6 py-2.5 rounded-full bg-[#181A20] hover:bg-[#22252D] border border-white/5 text-[11px] font-bold text-white tracking-widest transition-colors flex items-center gap-2">
-          더 보기 
-          <svg class="w-3 h-3 text-sync-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      <div class="w-full mt-6 flex justify-center">
+        <button class="px-6 py-2.5 rounded-lg border border-sync-border text-sync-muted hover:text-sync-text hover:border-sync-muted text-sm font-bold transition-all bg-black/5 dark:bg-white/5 shadow-sm">
+          Load More
         </button>
       </div>
     </section>
+
   </div>
 </template>
-
-<style scoped>
-.text-shadow-glow {
-  text-shadow: 0 0 40px rgba(245, 158, 11, 0.4);
-}
-</style>

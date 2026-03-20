@@ -25,9 +25,24 @@ const router = createRouter({
       component: () => import('../views/CampView.vue')
     },
     {
+      path: '/camp/create',
+      name: 'camp-create',
+      component: () => import('../views/CampCreateView.vue')
+    },
+    {
       path: '/rankings',
       name: 'rankings',
       component: () => import('../views/RankingView.vue')
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue')
+    },
+    {
+      path: '/mypage',
+      name: 'mypage',
+      component: () => import('../views/MyPageView.vue')
     }
   ],
   scrollBehavior() {
