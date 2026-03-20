@@ -18,8 +18,8 @@ import './assets/main.css'
 
     <!-- Simple footer to match design bottoms -->
     <footer class="mt-auto py-8 border-t border-white/5">
-      <div class="max-w-[1240px] mx-auto px-6 flex items-center justify-between text-xs text-aelier-muted">
-        <div>© 2024 AELIER. All rights reserved.</div>
+      <div class="max-w-[1240px] mx-auto px-6 flex items-center justify-between text-xs text-sync-muted">
+        <div>© 2024 Sync. All rights reserved.</div>
         <div class="flex gap-4">
           <a href="#" class="hover:text-white">Terms</a>
           <a href="#" class="hover:text-white">Privacy</a>

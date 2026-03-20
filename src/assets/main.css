@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    @apply bg-aelier-bg text-aelier-text antialiased font-sans;
+    @apply bg-sync-bg text-sync-text antialiased font-sans;
     min-height: 100vh;
   }
   
@@ -21,15 +21,15 @@
   }
 
   .glass-card {
-    @apply bg-aelier-card border border-aelier-border rounded-2xl transition-all duration-300;
+    @apply bg-sync-card border border-sync-border rounded-2xl transition-all duration-300;
   }
   
   .glass-card-hover {
-    @apply hover:-translate-y-1 hover:bg-aelier-cardHover hover:shadow-lg hover:shadow-black/50;
+    @apply hover:-translate-y-1 hover:bg-sync-cardHover hover:shadow-lg hover:shadow-black/50;
   }
 
   .btn-primary {
-    @apply bg-aelier-primary text-white font-medium rounded-lg px-5 py-2.5 transition-colors duration-200 hover:bg-aelier-primaryHover;
+    @apply bg-sync-primary text-white font-medium rounded-lg px-5 py-2.5 transition-colors duration-200 hover:bg-sync-primaryHover;
   }
   
   .btn-secondary {
@@ -37,6 +37,6 @@
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-aelier-primary;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-sync-primary;
   }
 }

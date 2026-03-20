@@ -11,7 +11,7 @@ export default {
         outfit: ['Outfit', 'sans-serif'],
       },
       colors: {
-        aelier: {
+        sync: {
           bg: '#0D0E12',
           card: '#181A20',
           cardHover: '#22252D',
