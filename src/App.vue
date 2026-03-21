@@ -28,7 +28,7 @@ useThemeStore()
     <!-- Footer -->
     <footer class="mt-auto py-8 border-t border-sync-border transition-colors duration-300">
       <div class="max-w-[1240px] mx-auto px-6 flex items-center justify-between text-xs text-sync-muted">
-        <div>© 2024 Sync. Atmospheric Precision.</div>
+        <div>© 2026 Sync. Atmospheric Precision.</div>
         <div class="flex gap-4">
           <a href="#" class="hover:text-sync-text transition-colors">Terms</a>
           <a href="#" class="hover:text-sync-text transition-colors">Privacy</a>
