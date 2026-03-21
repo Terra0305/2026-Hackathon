@@ -255,22 +255,67 @@ const recentTimeline = [
              </div>
          </div>
 
-         <div v-if="activeMenu === 'activities'" class="glass-card p-6 md:p-10 animate-fade-in shadow-sm border border-slate-200 dark:border-white/5 rounded-3xl">
-             <div class="relative pl-8 flex flex-col gap-10 before:content-[''] before:absolute before:left-[17px] before:top-2 before:bottom-2 before:w-0.5 before:bg-sync-border">
-                <div v-if="mockMyActivities.length === 0" class="text-sync-muted text-sm py-4">활동 기록이 존재하지 않습니다.</div>
+         <div v-if="activeMenu === 'activities'" class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
+             <div class="lg:col-span-2 glass-card p-6 md:p-10 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem]">
+                 <h3 class="text-xl font-bold text-sync-text mb-8 md:mb-10 font-outfit">최근 활동 내역</h3>
+                 <div class="relative flex flex-col gap-6 sm:gap-8">
+                    <div class="absolute left-[19px] top-4 bottom-4 w-px bg-sync-border pointer-events-none"></div>
+                    <div v-if="mockMyActivities.length === 0" class="text-sync-muted text-sm py-4 z-10 bg-white/50 dark:bg-[#181A20]/50 relative backdrop-blur-md rounded-xl p-4 border border-sync-border">활동 기록이 존재하지 않습니다.</div>
 
-                <div v-for="act in mockMyActivities" :key="act.id" class="relative group">
-                   <div class="absolute -left-[45px] top-0 w-10 h-10 rounded-full border-[3px] bg-sync-card border-sync-bg flex items-center justify-center text-[15px] z-10 transition-colors shadow-sm" :class="act.iconColor">
-                     {{ act.icon }}
-                   </div>
-                   <div class="flex flex-col gap-2 pl-4 glass-card-hover p-5 rounded-2xl border border-transparent hover:border-sync-border transition-colors">
-                     <div class="flex flex-col sm:flex-row sm:items-center justify-between sm:gap-3">
-                        <h4 class="text-base font-bold text-sync-text">{{ act.title }}</h4>
-                        <span class="text-[10px] font-bold text-sync-muted mt-1 sm:mt-0 opacity-70">{{ act.date }}</span>
+                    <div v-for="act in mockMyActivities" :key="act.id" class="relative flex gap-4 sm:gap-6 items-start group">
+                       <div class="w-10 h-10 shrink-0 rounded-full border-[4px] border-white dark:border-[#181A20] flex items-center justify-center text-[15px] z-10 shadow-sm transition-transform group-hover:scale-110 ml-0 mt-3 mix-blend-normal" :class="act.iconColor">
+                         {{ act.icon }}
+                       </div>
+                       <div class="flex-1 flex flex-col gap-2 glass-card-hover p-5 rounded-2xl border border-transparent hover:border-sync-border hover:shadow-sm transition-all bg-black/[0.02] dark:bg-white/[0.02]">
+                         <div class="flex flex-col sm:flex-row sm:items-center justify-between sm:gap-3">
+                            <h4 class="text-base font-bold text-sync-text">{{ act.title }}</h4>
+                            <span class="text-[10px] font-bold text-sync-muted mt-1 sm:mt-0 opacity-70 tracking-widest uppercase">{{ act.date }}</span>
+                         </div>
+                         <p class="text-[13.5px] text-sync-muted leading-relaxed font-medium mt-1">{{ act.desc }}</p>
+                       </div>
+                    </div>
+                 </div>
+             </div>
+
+             <div class="lg:col-span-1 flex flex-col gap-6">
+                 <!-- Ranking Card -->
+                 <div class="glass-card p-8 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem] flex flex-col items-center text-center">
+                    <div class="w-full flex justify-between items-center mb-6">
+                       <h3 class="text-sm font-bold text-sync-muted tracking-widest uppercase">나의 실시간 랭킹</h3>
+                       <button class="text-sync-primary hover:text-sync-primaryHover transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
+                    </div>
+                    <div class="relative w-28 h-28 mb-4 drop-shadow-md">
+                       <img :src="authStore.user.avatar" class="w-full h-full rounded-full border-[4px] border-sync-primary/30 bg-white/50 dark:bg-black/50" />
+                       <div class="absolute -bottom-1 -right-1 w-11 h-11 bg-gradient-to-br from-amber-300 to-orange-500 rounded-full flex items-center justify-center text-2xl shadow-lg border-2 border-white dark:border-[#181A20] z-10 transform -rotate-12">🏆</div>
+                    </div>
+                    <div class="flex items-center gap-2 mb-1">
+                      <h2 class="text-4xl font-black text-sync-text tracking-tight">{{ authStore.user.rank }}<span class="text-2xl font-bold text-sync-muted ml-0.5">위</span></h2>
+                    </div>
+                    <p class="text-[11px] font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 border border-teal-500/20 px-3 py-1 rounded-full mt-2">상위 1.2% 진입 (마스터티어)</p>
+                    
+                    <div class="w-full h-px bg-sync-border my-6"></div>
+                    
+                    <div class="flex justify-between w-full items-center mb-3">
+                       <span class="text-sm font-bold text-sync-muted">누적 경험치</span>
+                       <span class="text-[15px] font-black text-sync-text">{{ authStore.user.points.toLocaleString() }} <span class="text-xs font-bold text-sync-primary">XP</span></span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-black/5 dark:bg-white/5 overflow-hidden shadow-inner flex">
+                       <div class="h-full bg-gradient-to-r from-sync-primary to-blue-400 rounded-full w-[80%] relative"></div>
+                    </div>
+                    <div class="w-full flex justify-between mt-2">
+                       <span class="text-[10px] text-sync-muted font-bold">{{ authStore.user.points.toLocaleString() }}</span>
+                       <span class="text-[10px] text-sync-muted font-bold opacity-50">15,000 XP (다음 랭크 승급)</span>
+                    </div>
+                 </div>
+
+                 <!-- Global Leaderboard Widget -->
+                 <RouterLink to="/rankings" class="glass-card p-6 shadow-sm border border-slate-200 dark:border-white/5 rounded-[1.5rem] bg-gradient-to-br from-sync-primary/5 to-transparent hover:border-sync-primary/30 transition-all cursor-pointer group flex items-center gap-4 hover:-translate-y-1">
+                     <div class="w-12 h-12 rounded-xl bg-white dark:bg-[#181A20] shadow-sm border border-sync-border flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📊</div>
+                     <div class="flex flex-col gap-0.5">
+                        <h4 class="font-bold text-[15px] text-sync-text group-hover:text-sync-primary transition-colors">글로벌 랭킹 리더보드</h4>
+                        <p class="text-xs text-sync-muted font-medium">전체 순위와 개발자 티어를 확인하세요.</p>
                      </div>
-                     <p class="text-sm text-sync-muted leading-relaxed font-medium">{{ act.desc }}</p>
-                   </div>
-                </div>
+                 </RouterLink>
              </div>
          </div>
 

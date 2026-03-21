@@ -1,12 +1,19 @@
 <script setup>
 import { RouterLink, useRoute } from 'vue-router'
-import { mockTeams } from '../data/mockData'
+import { mockTeams, mockHackathons } from '../data/mockData'
 import { ref, computed } from 'vue'
 
 const route = useRoute()
 const currentRole = ref('all')
 const searchQuery = ref('')
 const joinedTeams = ref(new Set()) // Local mockup tracking
+
+const queryHackathonTitle = computed(() => {
+  const qId = route.query.hackathonId ? parseInt(route.query.hackathonId) : null
+  if (!qId) return null
+  const hack = mockHackathons.find(h => h.id === qId)
+  return hack ? hack.title : null
+})
 
 const handleJoin = (teamId) => {
   joinedTeams.value.add(teamId)
@@ -33,13 +40,28 @@ const filteredTeams = computed(() => {
 
     <div class="flex flex-col md:flex-row justify-between md:items-end gap-6 border-b border-sync-border pb-6 transition-colors duration-300">
       <div class="flex flex-col gap-2">
-        <h1 class="text-4xl font-outfit font-bold text-sync-text tracking-tight transition-colors">Project Camp</h1>
+        <h1 class="text-4xl font-outfit font-bold text-sync-text tracking-tight transition-colors flex items-center flex-wrap gap-2">
+           Project Camp
+           <span v-if="queryHackathonTitle" class="text-xl md:text-2xl text-sync-primary">/ {{ queryHackathonTitle }}</span>
+        </h1>
         <p class="text-sync-muted transition-colors">최고의 팀원들을 만나 새로운 프로젝트를 시작하세요.</p>
+        
+        <div v-if="queryHackathonTitle" class="mt-2 md:hidden">
+           <RouterLink to="/camp" class="text-xs font-bold bg-sync-primary/10 text-sync-primary border border-sync-primary/20 px-3 py-1.5 rounded-lg inline-flex items-center gap-2 group hover:bg-sync-primary hover:text-white transition-colors">
+             필터 초기화
+             <svg class="w-3 h-3 pt-px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+           </RouterLink>
+        </div>
       </div>
-      <RouterLink to="/camp/create" class="px-6 py-3 rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-sm font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        새로운 팀 포스팅
-      </RouterLink>
+      <div class="flex items-center gap-3">
+        <RouterLink v-if="queryHackathonTitle" to="/camp" class="hidden md:flex px-4 py-3 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border text-sync-muted hover:text-sync-text text-sm font-bold transition-all items-center justify-center gap-2 hover:bg-black/10 dark:hover:bg-white/10">
+          필터 해제
+        </RouterLink>
+        <RouterLink :to="`/camp/create${route.query.hackathonId ? '?hackathonId=' + route.query.hackathonId : ''}`" class="px-6 py-3 rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-sm font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          새로운 팀 포스팅
+        </RouterLink>
+      </div>
     </div>
 
     <!-- Search & Filter Bar -->

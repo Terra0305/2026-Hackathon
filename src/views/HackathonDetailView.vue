@@ -161,16 +161,16 @@ onMounted(() => {
            </div>
 
            <div class="pt-6 border-t border-sync-border flex flex-col gap-4">
-              <!-- Application Vue State Logic -->
-              <button 
+              <!-- Application Vue State Logic (Redirect to Form) -->
+              <RouterLink
                 v-if="!hasApplied" 
-                @click="hasApplied = true" 
+                :to="hackathon.status === '종료' ? '' : `/hackathons/${hackathon.id}/apply`"
                 class="w-full py-5 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:shadow-[0_6px_20px_rgba(50,132,255,0.4)] hover:-translate-y-1 active:translate-y-0 text-white text-[15px]"
                 :class="hackathon.status === '종료' ? 'bg-gray-400 text-gray-200 cursor-not-allowed pointer-events-none shadow-none' : 'bg-sync-primary hover:bg-sync-primaryHover'"
               >
                 {{ hackathon.status === '종료' ? '마감된 해커톤' : '대회 참가 신청하기' }}
                 <svg v-if="hackathon.status !== '종료'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-              </button>
+              </RouterLink>
               
               <div v-else class="w-full py-5 rounded-2xl border-2 border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold transition-all flex items-center justify-center gap-2 shadow-[0_8px_20px_rgba(20,184,166,0.2)]">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -178,7 +178,7 @@ onMounted(() => {
               </div>
 
               <!-- Call to Action for Teams -->
-              <RouterLink to="/camp" class="w-full py-4 rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text text-sm font-bold transition-all flex items-center justify-center gap-2">
+              <RouterLink :to="`/camp?hackathonId=${hackathon.id}`" class="w-full py-4 rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text text-sm font-bold transition-all flex items-center justify-center gap-2 mt-2">
                 이 해커톤의 구인 팀원 찾기 <svg class="w-4 h-4 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
               </RouterLink>
            </div>

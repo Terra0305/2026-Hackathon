@@ -15,14 +15,14 @@ const router = createRouter({
       component: () => import('../views/HackathonListView.vue')
     },
     {
-      path: '/hackathons/:slug',
-      name: 'hackathon-detail',
-      component: () => import('../views/HackathonDetailView.vue')
-    },
-    {
       path: '/hackathons/:slug/apply',
       name: 'hackathon-apply',
       component: () => import('../views/HackathonApplyView.vue')
+    },
+    {
+      path: '/hackathons/:slug',
+      name: 'hackathon-detail',
+      component: () => import('../views/HackathonDetailView.vue')
     },
     {
       path: '/workspace/:slug',
