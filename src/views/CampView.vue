@@ -1,8 +1,9 @@
 <script setup>
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { mockTeams } from '../data/mockData'
 import { ref, computed } from 'vue'
 
+const route = useRoute()
 const currentRole = ref('all')
 const searchQuery = ref('')
 const joinedTeams = ref(new Set()) // Local mockup tracking
@@ -12,10 +13,14 @@ const handleJoin = (teamId) => {
 }
 
 const filteredTeams = computed(() => {
+  const queryHackId = route.query.hackathonId ? parseInt(route.query.hackathonId) : null
+  
   return mockTeams.filter(team => {
     const matchRole = currentRole.value === 'all' || team.roles.some(r => r.name.includes(currentRole.value) || currentRole.value.includes(r.name))
     const matchQuery = !searchQuery.value || team.teamName.toLowerCase().includes(searchQuery.value.toLowerCase()) || team.hackathonTitle.toLowerCase().includes(searchQuery.value.toLowerCase())
-    return matchRole && matchQuery
+    const matchHackathon = queryHackId ? team.hackathonId === queryHackId : true
+    
+    return matchRole && matchQuery && matchHackathon
   })
 })
 </script>

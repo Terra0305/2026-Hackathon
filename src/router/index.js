@@ -20,6 +20,16 @@ const router = createRouter({
       component: () => import('../views/HackathonDetailView.vue')
     },
     {
+      path: '/hackathons/:slug/apply',
+      name: 'hackathon-apply',
+      component: () => import('../views/HackathonApplyView.vue')
+    },
+    {
+      path: '/workspace/:slug',
+      name: 'workspace',
+      component: () => import('../views/WorkspaceView.vue')
+    },
+    {
       path: '/camp',
       name: 'camp',
       component: () => import('../views/CampView.vue')

@@ -1,3 +1,5 @@
+import { reactive } from 'vue';
+
 export const mockHackathons = [
   {
     id: 1,
@@ -155,7 +157,7 @@ export const mockHackathons = [
   }
 ];
 
-export const mockUsers = [
+export const mockUsers = reactive([
   {
     id: 1,
     nickname: "건축가_Kim",
@@ -164,7 +166,10 @@ export const mockUsers = [
     points: 11250,
     rank: 1,
     status: "up",
-    badges: ["✨", "🚀", "👑"]
+    badges: ["✨", "🚀", "👑"],
+    githubConnected: true,
+    techStack: ["Vue.js", "Node.js", "PostgreSQL", "TailwindCSS"],
+    githubCommits: 432
   },
   {
     id: 2,
@@ -196,7 +201,7 @@ export const mockUsers = [
     status: "up",
     badges: ["☁️", "🛡️"]
   }
-];
+]);
 
 export const mockTeams = [
   {
@@ -246,12 +251,12 @@ export const mockTeams = [
   }
 ];
 
-export const mockMyHackathons = [
+export const mockMyHackathons = reactive([
   { id: 1, hackathonId: 1, title: "2026 글로벌 AI 해커톤", role: "프론트엔드", teamName: "Team Nexus", status: "진행 중", appliedDate: "2026.04.15" },
   { id: 2, hackathonId: 2, title: "차세대 보안 아키텍처 챌린지", role: "개인 참가 (팀 매칭 대기)", teamName: null, status: "매칭 중", appliedDate: "2026.05.20" }
-];
+]);
 
-export const mockMySubmissions = [
+export const mockMySubmissions = reactive([
   {
     id: 1,
     hackathonTitle: "Sync Web3 넥서스",
@@ -261,7 +266,11 @@ export const mockMySubmissions = [
     award: "Innovation (3위)",
     awardColor: "from-orange-500 to-red-500",
     link: "https://github.com/sync-web3/escrow",
-    thumbnail: "https://api.dicebear.com/7.x/shapes/svg?seed=Crypto"
+    thumbnail: "https://api.dicebear.com/7.x/shapes/svg?seed=Crypto",
+    historyDocs: [
+      { title: '서비스 기획서 (Draft)', type: '기획', date: '2026.03.20' },
+      { title: '최종 발표 덱 (PT)', type: '발표자료', date: '2026.03.22' }
+    ]
   },
   {
     id: 2,
@@ -272,9 +281,13 @@ export const mockMySubmissions = [
     award: "본선 진출",
     awardColor: "from-slate-400 to-slate-500",
     link: "https://github.com/uni-algo/opti-path",
-    thumbnail: "https://api.dicebear.com/7.x/shapes/svg?seed=Code"
+    thumbnail: "https://api.dicebear.com/7.x/shapes/svg?seed=Code",
+    historyDocs: [
+      { title: '아키텍처 설계도', type: '기획', date: '2025.10.12' },
+      { title: '최종 결과 보고서.pdf', type: '보고서', date: '2025.11.08' }
+    ]
   }
-];
+]);
 
 export const mockMyActivities = [
   { id: 1, type: "badge", title: "새로운 뱃지 획득!", desc: "'✨ 그랜드 마스터' 뱃지를 획득하셨습니다.", date: "Today, 10:30 AM", icon: "🏆", iconColor: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20" },
