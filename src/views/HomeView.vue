@@ -35,35 +35,58 @@ const participatingHackathons = computed(() => authStore.isAuthenticated ? mockM
     </section>
 
     <!-- Participating Hackathons Section -->
-    <section v-if="authStore.isAuthenticated && participatingHackathons.length > 0" class="flex flex-col gap-8">
+    <section class="flex flex-col gap-8">
       <div class="flex items-end justify-between border-b border-sync-border pb-4 transition-colors">
         <div class="flex flex-col gap-1">
           <h2 class="text-3xl font-outfit font-bold text-sync-text tracking-tight transition-colors">현재 참여중인 해커톤</h2>
           <p class="text-sync-muted text-sm transition-colors">진행 중이거나 심사 대기 중인 나의 해커톤 목록입니다.</p>
         </div>
-        <RouterLink to="/mypage" class="hidden sm:flex items-center text-sm font-bold text-sync-primary hover:text-sync-primaryHover transition-colors group">
+        <RouterLink v-if="authStore.isAuthenticated" to="/mypage" class="hidden sm:flex items-center text-sm font-bold text-sync-primary hover:text-sync-primaryHover transition-colors group">
           마이페이지 <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
         </RouterLink>
       </div>
 
       <div class="flex flex-col gap-5">
-         <div v-for="hack in participatingHackathons" :key="hack.id" class="glass-card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-sync-primary/40 transition-colors border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl cursor-pointer">
+         <template v-if="authStore.isAuthenticated && participatingHackathons.length > 0">
+           <div v-for="hack in participatingHackathons" :key="hack.id" class="glass-card p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-sync-primary/40 transition-colors border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl cursor-pointer">
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-3 mb-1">
+                  <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border transition-colors shadow-sm" :class="hack.status === '진행 중' ? 'bg-teal-500/10 border-teal-500/20 text-teal-600 dark:text-teal-400' : 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'">{{ hack.status }}</span>
+                  <span class="text-[11px] text-sync-muted font-bold">지원 일자: {{ hack.appliedDate }}</span>
+                </div>
+                <h3 class="text-xl font-bold text-sync-text mt-1">{{ hack.title }}</h3>
+                <div class="flex items-center gap-2.5 text-sm text-sync-muted mt-1">
+                  <span class="font-bold underline decoration-sync-border underline-offset-4">{{ hack.role }}</span>
+                  <span v-if="hack.teamName" class="w-1.5 h-1.5 rounded-full bg-sync-border"></span>
+                  <span v-if="hack.teamName" class="font-bold text-sync-text">{{ hack.teamName }} 팀 소속</span>
+                </div>
+              </div>
+              <div class="flex flex-col sm:flex-row justify-end gap-3 shrink-0 mt-4 md:mt-0">
+                <RouterLink :to="`/hackathons/${hack.hackathonId}`" class="px-6 py-3 min-w-[130px] shrink-0 text-center rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border text-sync-text text-sm font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors">공고 열람</RouterLink>
+                <RouterLink v-if="hack.status === '진행 중'" :to="`/workspace/${hack.hackathonId}`" class="px-6 py-3 min-w-[130px] shrink-0 text-center rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-sm font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:-translate-y-0.5">작업 공간</RouterLink>
+              </div>
+           </div>
+         </template>
+         
+         <!-- Empty / Logged out state -->
+         <div v-else-if="authStore.isAuthenticated" class="py-20 px-6 flex flex-col items-center justify-center gap-6 text-center">
             <div class="flex flex-col gap-2">
-              <div class="flex items-center gap-3 mb-1">
-                <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border transition-colors shadow-sm" :class="hack.status === '진행 중' ? 'bg-teal-500/10 border-teal-500/20 text-teal-600 dark:text-teal-400' : 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'">{{ hack.status }}</span>
-                <span class="text-[11px] text-sync-muted font-bold">지원 일자: {{ hack.appliedDate }}</span>
-              </div>
-              <h3 class="text-xl font-bold text-sync-text mt-1">{{ hack.title }}</h3>
-              <div class="flex items-center gap-2.5 text-sm text-sync-muted mt-1">
-                <span class="font-bold underline decoration-sync-border underline-offset-4">{{ hack.role }}</span>
-                <span v-if="hack.teamName" class="w-1.5 h-1.5 rounded-full bg-sync-border"></span>
-                <span v-if="hack.teamName" class="font-bold text-sync-text">{{ hack.teamName }} 팀 소속</span>
-              </div>
+              <h3 class="text-3xl font-outfit font-black text-sync-text">아직 참여 중인 해커톤이 없으신가요?</h3>
+              <p class="text-base text-sync-muted font-medium mt-1">지금 바로 새로운 해커톤에 도전하고 혁신적인 아이디어를 세상에 선보이세요!</p>
             </div>
-            <div class="flex flex-col sm:flex-row justify-end gap-3 shrink-0 mt-4 md:mt-0">
-              <RouterLink :to="`/hackathons/${hack.hackathonId}`" class="px-6 py-3 min-w-[130px] shrink-0 text-center rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border text-sync-text text-sm font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors">공고 열람</RouterLink>
-              <RouterLink v-if="hack.status === '진행 중'" :to="`/workspace/${hack.hackathonId}`" class="px-6 py-3 min-w-[130px] shrink-0 text-center rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-sm font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:-translate-y-0.5">작업 공간</RouterLink>
+            <RouterLink to="/hackathons" class="mt-4 px-8 py-3.5 bg-sync-primary hover:bg-sync-primaryHover text-white text-base font-bold rounded-xl transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:shadow-[0_6px_20px_rgba(50,132,255,0.4)] hover:-translate-y-0.5">
+              해커톤 둘러보기
+            </RouterLink>
+         </div>
+
+         <div v-else class="py-20 px-6 flex flex-col items-center justify-center gap-6 text-center">
+            <div class="flex flex-col gap-2">
+              <h3 class="text-3xl font-outfit font-black text-sync-text">해커톤에 참가해보고 싶으신가요?</h3>
+              <p class="text-base text-sync-muted font-medium mt-1">지금 바로 로그인하여 전 세계의 혁신적인 빌더들과 함께 아이디어를 실현하세요!</p>
             </div>
+            <RouterLink to="/login" class="mt-4 px-8 py-3.5 bg-sync-primary hover:bg-sync-primaryHover text-white text-base font-bold rounded-xl transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:shadow-[0_6px_20px_rgba(50,132,255,0.4)] hover:-translate-y-0.5">
+              로그인 및 회원가입
+            </RouterLink>
          </div>
       </div>
     </section>
