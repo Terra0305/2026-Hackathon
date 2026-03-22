@@ -34,13 +34,6 @@ const documents = ref([
         <h1 class="text-3xl font-outfit font-black text-sync-text">{{ team.teamName }} <span class="text-xl text-sync-muted font-medium ml-2 drop-shadow-sm">Workspace</span></h1>
         <p class="text-sm font-medium text-sync-muted mt-2 border border-sync-border px-3 py-1 rounded bg-black/5 dark:bg-white/5 inline-block">{{ hackathon.title }} 전용 협업 공간</p>
       </div>
-      <div class="flex -space-x-3 isolate">
-         <div class="w-10 h-10 rounded-full border-[3px] border-white dark:border-[#181A20] z-20 overflow-hidden bg-slate-200 flex items-center justify-center font-bold text-xs text-black relative group">
-           나
-           <div class="absolute inset-0 bg-blue-500/20 mix-blend-overlay"></div>
-         </div>
-         <div v-for="(m, idx) in team.members" :key="idx" class="w-10 h-10 rounded-full border-[3px] border-white dark:border-[#181A20] z-10 overflow-hidden bg-slate-300 flex items-center justify-center font-bold text-xs text-black" :style="{ zIndex: 10 - idx }">{{ m }}</div>
-      </div>
     </div>
 
     <!-- Layout Grid -->
