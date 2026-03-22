@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { mockHackathons, mockTeams } from '../data/mockData'
+import { mockHackathons, mockTeams, mockUsers } from '../data/mockData'
 
 const route = useRoute()
 const router = useRouter()
@@ -108,30 +108,53 @@ const documents = ref([
          </div>
       </div>
 
-      <!-- Docs / Assets -->
-      <div class="col-span-1 glass-card p-8 rounded-[2rem] flex flex-col justify-between border border-sync-border shadow-sm">
-        <div class="flex flex-col gap-6">
-          <div class="flex justify-between items-center">
-            <h2 class="text-xl font-bold text-sync-text">팀 문서 공간</h2>
-            <span class="text-sync-muted">📁</span>
-          </div>
-          
-          <div class="flex flex-col gap-4">
-            <div v-for="doc in documents" :key="doc.id" class="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer group">
-              <div class="flex items-center gap-4">
-                 <span class="text-2xl group-hover:scale-110 transition-transform">{{ doc.type === '기획서' ? '📄' : '🎨' }}</span>
-                 <div class="flex flex-col gap-0.5">
-                   <span class="text-[13px] font-bold text-sync-text underline decoration-transparent group-hover:decoration-sync-border underline-offset-2">{{ doc.name }}</span>
-                   <span class="text-[10px] text-sync-muted font-bold">업데이트: {{ doc.updated }}</span>
-                 </div>
+      <!-- Right Column -->
+      <div class="col-span-1 flex flex-col gap-6">
+        <!-- Docs / Assets -->
+        <div class="glass-card p-8 rounded-[2rem] flex flex-col justify-between border border-sync-border shadow-sm">
+          <div class="flex flex-col gap-6">
+            <div class="flex justify-between items-center">
+              <h2 class="text-xl font-bold text-sync-text">팀 문서 공간</h2>
+              <span class="text-sync-muted">📁</span>
+            </div>
+            
+            <div class="flex flex-col gap-4">
+              <div v-for="doc in documents" :key="doc.id" class="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer group">
+                <div class="flex items-center gap-4">
+                   <span class="text-2xl group-hover:scale-110 transition-transform">{{ doc.type === '기획서' ? '📄' : '🎨' }}</span>
+                   <div class="flex flex-col gap-0.5">
+                     <span class="text-[13px] font-bold text-sync-text underline decoration-transparent group-hover:decoration-sync-border underline-offset-2">{{ doc.name }}</span>
+                     <span class="text-[10px] text-sync-muted font-bold">업데이트: {{ doc.updated }}</span>
+                   </div>
+                </div>
               </div>
             </div>
           </div>
+
+          <button class="w-full py-4 rounded-xl border border-dashed border-sync-border bg-black/5 dark:bg-white/5 text-xs font-bold text-sync-muted hover:text-sync-text hover:border-sync-primary transition-all mt-6 shadow-sm">
+            + 새 문서 추가
+          </button>
         </div>
 
-        <button class="w-full py-4 rounded-xl border border-dashed border-sync-border bg-black/5 dark:bg-white/5 text-xs font-bold text-sync-muted hover:text-sync-text hover:border-sync-primary transition-all mt-6 shadow-sm">
-          + 새 문서 추가
-        </button>
+        <!-- Team Members -->
+        <div class="glass-card p-8 rounded-[2rem] border border-sync-border shadow-sm">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-sync-text">팀 멤버</h2>
+            <span class="text-sync-muted">👥</span>
+          </div>
+          
+          <div class="flex flex-col gap-4">
+            <div v-for="user in mockUsers" :key="user.id" 
+                 class="flex items-center gap-4 p-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer group"
+                 @click="router.push(`/user/${user.id}`)">
+               <img :src="user.avatar" class="w-12 h-12 flex-shrink-0 rounded-full border border-sync-border bg-white group-hover:scale-105 transition-transform" alt="profile"/>
+               <div class="flex flex-col flex-1 min-w-0">
+                 <span class="text-sm font-bold text-sync-text group-hover:text-sync-primary transition-colors truncate">{{ user.nickname }}</span>
+                 <span class="text-[11px] text-sync-muted font-medium truncate">{{ user.role }}</span>
+               </div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>

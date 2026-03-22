@@ -53,6 +53,11 @@ const router = createRouter({
       path: '/mypage',
       name: 'mypage',
       component: () => import('../views/MyPageView.vue')
+    },
+    {
+      path: '/user/:id',
+      name: 'user-profile',
+      component: () => import('../views/UserProfileView.vue')
     }
   ],
   scrollBehavior() {
