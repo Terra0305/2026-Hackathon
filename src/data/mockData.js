@@ -164,6 +164,7 @@ export const mockUsers = reactive([
     role: "Digital Craftsman & Full-stack Architect",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Kim",
     points: 11250,
+    monthlyPoints: 3400,
     rank: 1,
     status: "up",
     badges: ["✨", "🚀", "👑"],
@@ -177,6 +178,7 @@ export const mockUsers = reactive([
     role: "Full-stack Dev",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Oliver",
     points: 8420,
+    monthlyPoints: 4100,
     rank: 2,
     status: "up",
     badges: ["💻", "🧠"]
@@ -187,6 +189,7 @@ export const mockUsers = reactive([
     role: "Smart Contract Eng",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Mia",
     points: 7890,
+    monthlyPoints: 2150,
     rank: 3,
     status: "down",
     badges: ["⛓️", "🛡️"]
@@ -197,9 +200,76 @@ export const mockUsers = reactive([
     role: "DevOps Engineer",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Leo",
     points: 7120,
+    monthlyPoints: 2800,
     rank: 4,
     status: "up",
     badges: ["☁️", "🛡️"]
+  },
+  {
+    id: 5,
+    nickname: "Design_Master",
+    role: "UX/UI Designer & Developer",
+    avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Nora",
+    points: 6850,
+    monthlyPoints: 3200,
+    rank: 5,
+    status: "up",
+    badges: ["✨"]
+  },
+  {
+    id: 6,
+    nickname: "Front_End_Wizard",
+    role: "Frontend Developer",
+    avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Rudy",
+    points: 6400,
+    monthlyPoints: 1950,
+    rank: 6,
+    status: "down",
+    badges: ["🚀", "💻"]
+  },
+  {
+    id: 7,
+    nickname: "Data_Guru",
+    role: "Data Scientist",
+    avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Finn",
+    points: 5900,
+    monthlyPoints: 2200,
+    rank: 7,
+    status: "up",
+    badges: ["📊", "🧠"]
+  },
+  {
+    id: 8,
+    nickname: "Mobile_King",
+    role: "iOS/Android Developer",
+    avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Chloe",
+    points: 5400,
+    monthlyPoints: 1700,
+    rank: 8,
+    status: "down",
+    badges: ["📱"]
+  },
+  {
+    id: 9,
+    nickname: "Game_Dev_Pro",
+    role: "Game Engine Developer",
+    avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Oscar",
+    points: 4800,
+    monthlyPoints: 2600,
+    rank: 9,
+    status: "up",
+    badges: ["🎮", "🚀"]
+  },
+  {
+    id: 10,
+    nickname: "Security_Ninja",
+    role: "Security Researcher",
+    avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Ivy",
+    points: 4200,
+    monthlyPoints: 950,
+    rank: 10,
+    status: "down",
+    badges: ["🛡️", "🕵️"]
   }
 ]);
 
