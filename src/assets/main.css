@@ -43,7 +43,29 @@
   }
 
   .glass-card {
-    @apply bg-white/80 dark:bg-sync-card backdrop-blur-2xl border border-slate-200/80 dark:border-sync-border rounded-[2rem] transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)];
+    @apply bg-white/80 dark:bg-sync-card backdrop-blur-2xl border border-slate-200/80 dark:border-sync-border rounded-[2rem] transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden;
+  }
+  
+  .glass-card::before {
+    content: "";
+    @apply absolute inset-0 z-0 opacity-0 transition-opacity duration-500 pointer-events-none;
+    background: radial-gradient(
+      600px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+      rgba(255, 255, 255, 0.5),
+      transparent 40%
+    );
+  }
+
+  .dark .glass-card::before {
+    background: radial-gradient(
+      600px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+      rgba(255, 255, 255, 0.08),
+      transparent 40%
+    );
+  }
+  
+  .glass-card:hover::before {
+    @apply opacity-100;
   }
   
   .glass-card-hover {

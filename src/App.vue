@@ -15,9 +15,9 @@ useThemeStore()
     <div class="fixed top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-blue-400/20 dark:bg-blue-600/10 blur-[140px] rounded-full pointer-events-none -z-10 mix-blend-multiply dark:mix-blend-screen transition-colors duration-1000"></div>
     <div class="fixed bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-teal-400/20 dark:bg-teal-500/10 blur-[140px] rounded-full pointer-events-none -z-10 mix-blend-multiply dark:mix-blend-screen transition-colors duration-1000"></div>
 
-    <NavBar />
+    <NavBar class="relative z-10" />
     
-    <main class="flex-1 w-full max-w-[1240px] mx-auto px-4 sm:px-6 py-8">
+    <main class="flex-1 w-full relative z-10">
       <RouterView v-slot="{ Component }">
         <transition name="fade" mode="out-in">
           <component :is="Component" />
@@ -26,7 +26,7 @@ useThemeStore()
     </main>
 
     <!-- Footer -->
-    <footer class="mt-auto py-8 border-t border-sync-border transition-colors duration-300">
+    <footer class="mt-auto py-8 border-t border-sync-border transition-colors duration-300 relative z-10">
       <div class="max-w-[1240px] mx-auto px-6 flex items-center justify-between text-xs text-sync-muted">
         <div>© 2026 Sync. Atmospheric Precision.</div>
         <div class="flex gap-4">

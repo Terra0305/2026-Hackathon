@@ -15,7 +15,7 @@ const filteredHackathons = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-8 pb-32 transition-colors duration-300">
+  <div class="max-w-[1240px] mx-auto px-4 sm:px-6 py-8 flex flex-col gap-8 pb-32 transition-colors duration-300">
     <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between md:items-end gap-4 border-b border-sync-border pb-6 transition-colors duration-300">
       <div class="flex flex-col gap-2">
