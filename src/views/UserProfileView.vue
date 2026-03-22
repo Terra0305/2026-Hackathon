@@ -214,8 +214,8 @@ const recentTimeline = [
          </div>
 
          <!-- Array Mappings -->
-         <div v-if="activeMenu === 'participating'" class="flex flex-col gap-5 animate-fade-in">
-             <div v-if="mockMyHackathons.length === 0" class="py-16 text-center text-sync-muted border border-dashed border-sync-border rounded-2xl glass-card">아직 참여 중인 해커톤이 없습니다.</div>
+         <GlowCardContainer v-if="activeMenu === 'participating'" class="flex flex-col gap-5 animate-fade-in">
+             <div v-if="mockMyHackathons.length === 0" class="py-16 text-center text-sync-muted border border-dashed border-sync-border rounded-2xl bg-black/5 dark:bg-white/5">아직 참여 중인 해커톤이 없습니다.</div>
              
              <GlowCard v-for="hack in mockMyHackathons" :key="hack.id" class="group border border-slate-200 dark:border-white/5 shadow-sm" contentClass="p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-sync-primary/40 transition-colors rounded-3xl">
                 <div class="flex flex-col gap-2">
@@ -236,10 +236,10 @@ const recentTimeline = [
                   <RouterLink v-if="hack.status === '진행 중'" :to="`/workspace/${hack.hackathonId}`" class="px-6 py-3 min-w-[130px] shrink-0 text-center rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-sm font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:-translate-y-0.5">작업 공간</RouterLink>
                 </div>
              </GlowCard>
-         </div>
+         </GlowCardContainer>
 
-         <div v-if="activeMenu === 'submissions'" class="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
-             <div v-if="mockMySubmissions.length === 0" class="col-span-full py-16 text-center text-sync-muted border border-dashed border-sync-border rounded-2xl glass-card">제출된 프로젝트 내역이 없습니다.</div>
+         <GlowCardContainer v-if="activeMenu === 'submissions'" class="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
+             <div v-if="mockMySubmissions.length === 0" class="col-span-full py-16 text-center text-sync-muted border border-dashed border-sync-border rounded-2xl bg-black/5 dark:bg-white/5">제출된 프로젝트 내역이 없습니다.</div>
 
              <GlowCard v-for="sub in mockMySubmissions" :key="sub.id" class="shadow-sm border border-slate-200 dark:border-white/5 group transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)]" contentClass="overflow-hidden rounded-3xl">
                 <div class="h-36 bg-gradient-to-br flex items-center justify-center relative shadow-inner overflow-hidden" :class="sub.awardColor">
@@ -269,11 +269,11 @@ const recentTimeline = [
                     <a :href="sub.link" target="_blank" class="font-bold text-sync-primary hover:text-sync-primaryHover transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sync-primary/10 border border-sync-primary/20 shadow-sm">Source Code <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>
                   </div>
                 </div>
-             </div>
-         </div>
+             </GlowCard>
+         </GlowCardContainer>
 
-         <div v-if="activeMenu === 'activities'" class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
-             <div class="lg:col-span-2 glass-card p-6 md:p-10 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem]">
+         <GlowCardContainer v-if="activeMenu === 'activities'" class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
+             <GlowCard class="lg:col-span-2 bg-black/5 dark:bg-white/5 p-6 md:p-10 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem]">
                  <h3 class="text-xl font-bold text-sync-text mb-8 md:mb-10 font-outfit">최근 활동 내역</h3>
                  <div class="relative flex flex-col gap-6 sm:gap-8">
                     <div class="absolute left-[19px] top-4 bottom-4 w-px bg-sync-border pointer-events-none"></div>
@@ -283,7 +283,7 @@ const recentTimeline = [
                        <div class="w-10 h-10 shrink-0 rounded-full border-[4px] border-white dark:border-[#181A20] flex items-center justify-center text-[15px] z-10 shadow-sm transition-transform group-hover:scale-110 ml-0 mt-3 mix-blend-normal" :class="act.iconColor">
                          {{ act.icon }}
                        </div>
-                       <div class="flex-1 flex flex-col gap-2 glass-card-hover p-5 rounded-2xl border border-transparent hover:border-sync-border hover:shadow-sm transition-all bg-black/[0.02] dark:bg-white/[0.02]">
+                       <div class="flex-1 flex flex-col gap-2 bg-black/5 dark:bg-white/5-hover p-5 rounded-2xl border border-transparent hover:border-sync-border hover:shadow-sm transition-all bg-black/[0.02] dark:bg-white/[0.02]">
                          <div class="flex flex-col sm:flex-row sm:items-center justify-between sm:gap-3">
                             <h4 class="text-base font-bold text-sync-text">{{ act.title }}</h4>
                             <span class="text-[10px] font-bold text-sync-muted mt-1 sm:mt-0 opacity-70 tracking-widest uppercase">{{ act.date }}</span>
@@ -292,11 +292,11 @@ const recentTimeline = [
                        </div>
                     </div>
                  </div>
-             </div>
+             </GlowCard>
 
              <div class="lg:col-span-1 flex flex-col gap-6">
                  <!-- Ranking Card -->
-                 <div class="glass-card p-8 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem] flex flex-col items-center text-center">
+                 <GlowCard class="bg-black/5 dark:bg-white/5 p-8 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem] flex flex-col items-center text-center">
                     <div class="w-full flex justify-between items-center mb-6">
                        <h3 class="text-sm font-bold text-sync-muted tracking-widest uppercase">실시간 랭킹</h3>
                        <button class="text-sync-primary hover:text-sync-primaryHover transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
@@ -323,18 +323,18 @@ const recentTimeline = [
                        <span class="text-[10px] text-sync-muted font-bold">{{ userProfile.points.toLocaleString() }}</span>
                        <span class="text-[10px] text-sync-muted font-bold opacity-50">15,000 XP (다음 랭크 승급)</span>
                     </div>
-                 </div>
+                 </GlowCard>
 
                  <!-- Global Leaderboard Widget -->
-                 <RouterLink to="/rankings" class="glass-card p-6 shadow-sm border border-slate-200 dark:border-white/5 rounded-[1.5rem] bg-gradient-to-br from-sync-primary/5 to-transparent hover:border-sync-primary/30 transition-all cursor-pointer group flex items-center gap-4 hover:-translate-y-1">
+                 <GlowCard to="/rankings" class="bg-black/5 dark:bg-white/5 p-6 shadow-sm border border-slate-200 dark:border-white/5 rounded-[1.5rem] bg-gradient-to-br from-sync-primary/5 to-transparent hover:border-sync-primary/30 transition-all cursor-pointer group flex items-center gap-4 hover:-translate-y-1">
                      <div class="w-12 h-12 rounded-xl bg-white dark:bg-[#181A20] shadow-sm border border-sync-border flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📊</div>
                      <div class="flex flex-col gap-0.5">
                         <h4 class="font-bold text-[15px] text-sync-text group-hover:text-sync-primary transition-colors">글로벌 랭킹 리더보드</h4>
                         <p class="text-xs text-sync-muted font-medium">전체 순위와 개발자 티어를 확인하세요.</p>
                      </div>
-                 </RouterLink>
+                 </GlowCard>
              </div>
-         </div>
+         </GlowCardContainer>
 
       </div>
     </div>

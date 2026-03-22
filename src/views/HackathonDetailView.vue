@@ -94,7 +94,7 @@ onMounted(() => {
               
               <div v-for="(item, idx) in hackathon.timeline" :key="idx" class="relative">
                 <div class="absolute -left-[32px] top-1.5 w-4 h-4 rounded-full bg-sync-bg border-[4px] border-sync-primary shadow-[0_0_12px_rgba(50,132,255,0.4)] transition-all"></div>
-                <div class="flex flex-col gap-1 pl-4 glass-card-hover p-4 rounded-2xl border border-transparent hover:border-sync-border transition-colors">
+                <div class="flex flex-col gap-1 hover:bg-black/10 dark:hover:bg-white/10 p-4 rounded-2xl border border-transparent hover:border-sync-border transition-colors">
                   <p class="text-[11px] font-bold text-sync-primary tracking-widest uppercase">{{ item.date }}</p>
                   <h4 class="text-lg font-bold text-sync-text mt-1">{{ item.step }}</h4>
                 </div>
@@ -189,16 +189,14 @@ onMounted(() => {
               </RouterLink>
            </div>
          </GlowCard>
-         </div>
-         
+
          <!-- Footer Utility links -->
          <div class="flex items-center gap-4 text-xs font-bold text-sync-muted py-6 justify-center">
-             <button class="hover:text-sync-text transition-colors flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>공유하기</button>
-             <div class="w-1.5 h-1.5 rounded-full bg-sync-border"></div>
-             <button class="hover:text-sync-text transition-colors flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>문의하기</button>
+           <button class="hover:text-sync-text transition-colors flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>공유하기</button>
+           <div class="w-1.5 h-1.5 rounded-full bg-sync-border"></div>
+           <button class="hover:text-sync-text transition-colors flex items-center gap-1.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>문의하기</button>
          </div>
       </div>
-
     </div>
   </div>
 </template>
