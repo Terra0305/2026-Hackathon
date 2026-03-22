@@ -2,6 +2,8 @@
 import { RouterLink } from 'vue-router'
 import { mockHackathons } from '../data/mockData'
 import { ref, computed } from 'vue'
+import GlowCard from '../components/GlowCard.vue'
+import GlowCardContainer from '../components/GlowCardContainer.vue'
 
 const currentTab = ref('all')
 
@@ -31,15 +33,17 @@ const filteredHackathons = computed(() => {
     </div>
 
     <!-- Grid Layout mapping the computed filtered array -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <GlowCardContainer class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
        
        <div v-if="filteredHackathons.length === 0" class="col-span-full py-16 text-center text-sync-muted font-medium border border-dashed border-sync-border rounded-2xl glass-card">해당 상태에 존재하는 해커톤이 없습니다. 다른 필터를 선택하세요.</div>
 
-       <RouterLink 
+       <GlowCard 
           v-for="hackathon in filteredHackathons" 
           :key="hackathon.id"
+          :as="RouterLink"
           :to="`/hackathons/${hackathon.id}`" 
-          class="glass-card glass-card-hover p-6 flex flex-col gap-6 group cursor-pointer"
+          class="flex flex-col gap-6 group cursor-pointer"
+          contentClass="p-6"
         >
         
         <div class="h-40 rounded-2xl bg-gradient-to-br flex flex-col p-5 relative overflow-hidden transition-all duration-500 group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]" :class="hackathon.bgGradient">
@@ -71,17 +75,17 @@ const filteredHackathons = computed(() => {
 
         <div class="mt-auto pt-4 flex items-center justify-between border-t border-sync-border transition-colors">
            <div class="flex items-center gap-2">
-             <span class="relative flex h-2 w-2">
-               <span v-if="hackathon.status === '진행 중'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :class="'bg-' + hackathon.statusColor + '-400'"></span>
-               <span class="relative inline-flex rounded-full h-2 w-2" :class="'bg-' + hackathon.statusColor + '-500'"></span>
-             </span>
-             <span class="text-xs font-bold text-sync-text">{{ hackathon.status }}</span>
+              <span class="relative flex h-2 w-2">
+                <span v-if="hackathon.status === '진행 중'" class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :class="'bg-' + hackathon.statusColor + '-400'"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2" :class="'bg-' + hackathon.statusColor + '-500'"></span>
+              </span>
+              <span class="text-xs font-bold text-sync-text">{{ hackathon.status }}</span>
            </div>
            <svg class="w-5 h-5 text-sync-muted group-hover:text-sync-primary transition-colors group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
         </div>
-      </RouterLink>
+      </GlowCard>
 
-    </div>
+    </GlowCardContainer>
   </div>
 </template>
 

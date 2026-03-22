@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { mockUsers } from '../data/mockData'
 import { useAuthStore } from '../stores/auth'
+import GlowCard from '../components/GlowCard.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -41,25 +42,27 @@ const loadMore = () => {
     </div>
 
     <!-- My Rank Section -->
-    <section v-if="authStore.isAuthenticated && authStore.user" class="glass-card p-4 rounded-2xl flex items-center justify-between border border-sync-primary/20 shadow-sm">
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded-full bg-sync-card border border-sync-border overflow-hidden">
-          <img :src="authStore.user.avatar" class="w-full h-full object-cover" alt="My Profile"/>
+    <section v-if="authStore.isAuthenticated && authStore.user">
+      <GlowCard contentClass="p-4 flex items-center justify-between border border-sync-primary/20 shadow-sm" :hoverable="false">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-sync-card border border-sync-border overflow-hidden">
+            <img :src="authStore.user.avatar" class="w-full h-full object-cover" alt="My Profile"/>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-sm font-bold text-sync-text">나의 랭킹 현황</span>
+            <span class="text-xs text-sync-muted">{{ authStore.user.nickname }}</span>
+          </div>
         </div>
-        <div class="flex flex-col">
-          <span class="text-sm font-bold text-sync-text">나의 랭킹 현황</span>
-          <span class="text-xs text-sync-muted">{{ authStore.user.nickname }}</span>
+        <div class="flex flex-col items-end">
+          <span class="text-lg font-outfit font-black text-sync-primary">
+            {{ filterType === 'all-time' 
+                 ? (mockUsers.find(u => u.id === authStore.user.id)?.points || authStore.user.points || 0).toLocaleString()
+                 : (mockUsers.find(u => u.id === authStore.user.id)?.monthlyPoints || authStore.user.monthlyPoints || 0).toLocaleString() 
+            }} PTS
+          </span>
+          <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase">My {{ filterType === 'all-time' ? 'All-Time' : 'Monthly' }} Points</span>
         </div>
-      </div>
-      <div class="flex flex-col items-end">
-        <span class="text-lg font-outfit font-black text-sync-primary">
-          {{ filterType === 'all-time' 
-               ? (mockUsers.find(u => u.id === authStore.user.id)?.points || authStore.user.points || 0).toLocaleString()
-               : (mockUsers.find(u => u.id === authStore.user.id)?.monthlyPoints || authStore.user.monthlyPoints || 0).toLocaleString() 
-          }} PTS
-        </span>
-        <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase">My {{ filterType === 'all-time' ? 'All-Time' : 'Monthly' }} Points</span>
-      </div>
+      </GlowCard>
     </section>
 
     <!-- Podium Section (Top 3) -->

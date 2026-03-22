@@ -83,4 +83,43 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-500 to-sync-primary;
   }
+
+  /* Glow Card Effect (Nuxt.js Style) */
+  .glow-card-container {
+    @apply flex flex-wrap gap-4;
+  }
+
+  .glow-card {
+    @apply relative rounded-[2rem] overflow-hidden transition-all duration-300 bg-black/5 dark:bg-white/5;
+  }
+
+  .glow-card::before {
+    content: "";
+    @apply absolute inset-0 z-[1] opacity-0 transition-opacity duration-500 pointer-events-none;
+    background: radial-gradient(
+      800px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+      rgba(255, 255, 255, 0.3),
+      transparent 40%
+    );
+  }
+
+  .dark .glow-card::before {
+    background: radial-gradient(
+      800px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+      rgba(255, 255, 255, 0.1),
+      transparent 40%
+    );
+  }
+
+  .glow-card:hover::before {
+    @apply opacity-100;
+  }
+
+  .glow-card-content {
+    @apply relative z-[2] m-[1px] h-[calc(100%-2px)] w-[calc(100%-2px)] rounded-[inherit] bg-white/90 dark:bg-sync-card backdrop-blur-3xl transition-colors duration-500;
+  }
+
+  .glow-card-hover {
+    @apply hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)];
+  }
 }

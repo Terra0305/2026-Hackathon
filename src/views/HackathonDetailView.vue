@@ -2,6 +2,8 @@
 import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { mockHackathons } from '../data/mockData'
+import GlowCard from '../components/GlowCard.vue'
+import GlowCardContainer from '../components/GlowCardContainer.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -68,7 +70,7 @@ onMounted(() => {
         </div>
 
         <!-- Tab Content Base -->
-        <div class="glass-card p-6 md:p-10 min-h-[400px]">
+        <GlowCard contentClass="p-6 md:p-10 min-h-[400px]" :hoverable="false">
           
           <!-- 1. Overview -->
           <div v-if="currentTab === 'overview'" class="flex flex-col gap-8 animate-fade-in text-sync-text">
@@ -104,15 +106,19 @@ onMounted(() => {
           <!-- 3. Prizes -->
           <div v-if="currentTab === 'prizes'" class="flex flex-col gap-8 animate-fade-in">
              <h2 class="text-2xl font-bold font-outfit text-sync-text">시상 규모 및 상금</h2>
-             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+             <GlowCardContainer class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Golden card logic -->
-                <div v-for="(prize, idx) in hackathon.prizes" :key="idx" class="glass-card p-6 md:p-8 flex flex-col items-center text-center rounded-3xl bg-gradient-to-br border shadow-[0_8px_32px_rgba(0,0,0,0.05)] relative overflow-hidden transition-all hover:-translate-y-2 hover:shadow-[0_16px_48px_rgba(0,0,0,0.1)]" :class="idx === 0 ? 'from-amber-200/40 to-amber-50/40 border-amber-300 dark:border-amber-500/30 dark:from-amber-900/40 dark:to-transparent' : idx === 1 ? 'from-slate-200/40 to-slate-50/40 border-slate-300 dark:border-slate-500/30 dark:from-slate-800/50' : 'from-orange-200/40 to-orange-50/40 border-orange-300 dark:border-orange-500/30 dark:from-orange-900/40'">
+                <GlowCard v-for="(prize, idx) in hackathon.prizes" :key="idx" 
+                  class="flex flex-col items-center text-center transition-all hover:-translate-y-2"
+                  contentClass="p-6 md:p-8 rounded-3xl bg-gradient-to-br border shadow-[0_8px_32px_rgba(0,0,0,0.05)] relative overflow-hidden"
+                  :class="idx === 0 ? 'from-amber-200/40 to-amber-50/40 border-amber-300 dark:border-amber-500/30 dark:from-amber-900/40 dark:to-transparent' : idx === 1 ? 'from-slate-200/40 to-slate-50/40 border-slate-300 dark:border-slate-500/30 dark:from-slate-800/50' : 'from-orange-200/40 to-orange-50/40 border-orange-300 dark:border-orange-500/30 dark:from-orange-900/40'"
+                >
                   <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/30 dark:bg-white/10 blur-[20px] rounded-full mix-blend-overlay"></div>
                   <div class="text-5xl mb-6 relative z-10 drop-shadow-sm">{{ idx === 0 ? '🏆' : idx === 1 ? '🥈' : '🥉' }}</div>
                   <h4 class="text-[11px] font-bold text-sync-text opacity-70 uppercase tracking-widest mb-2 z-10">{{ prize.rank }}</h4>
                   <p class="text-xl md:text-2xl font-black text-sync-text tracking-tight z-10">{{ prize.reward }}</p>
-                </div>
-             </div>
+                </GlowCard>
+             </GlowCardContainer>
           </div>
 
           <!-- 4. Rules -->
@@ -129,12 +135,12 @@ onMounted(() => {
             </ul>
           </div>
           
-        </div>
+        </GlowCard>
       </div>
 
       <!-- Right: Application Configurator Sidebar -->
       <div class="w-full lg:w-[380px] flex flex-col shrink-0">
-         <div class="glass-card p-6 md:p-8 flex flex-col gap-8 sticky top-24">
+         <GlowCard contentClass="p-6 md:p-8 flex flex-col gap-8" class="sticky top-24" :hoverable="false">
            
            <div class="flex flex-col gap-3">
              <span class="text-[10px] font-bold text-sync-muted uppercase tracking-widest">신청 및 진행 상태</span>
@@ -182,6 +188,7 @@ onMounted(() => {
                 이 해커톤의 구인 팀원 찾기 <svg class="w-4 h-4 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
               </RouterLink>
            </div>
+         </GlowCard>
          </div>
          
          <!-- Footer Utility links -->

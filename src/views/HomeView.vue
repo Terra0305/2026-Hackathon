@@ -1,8 +1,10 @@
 <script setup>
 import { RouterLink } from 'vue-router'
 import { mockHackathons, mockMyHackathons } from '../data/mockData'
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
+import GlowCard from '../components/GlowCard.vue'
+import GlowCardContainer from '../components/GlowCardContainer.vue'
 
 const authStore = useAuthStore()
 // Ensure these are refs for stable template rendering
@@ -11,23 +13,6 @@ const participatingHackathons = computed(() => authStore.isAuthenticated ? mockM
 
 const isHeroFolded = ref(false)
 const contentArea = ref(null)
-
-// Optimized Mouse tracking for card glow
-let rafId = null
-const handleMouseMove = (e) => {
-  if (rafId) return
-  rafId = requestAnimationFrame(() => {
-    const target = e.target.closest('.glass-card')
-    if (target) {
-      const rect = target.getBoundingClientRect()
-      const x = e.clientX - rect.left
-      const y = e.clientY - rect.top
-      target.style.setProperty('--mouse-x', `${x}px`)
-      target.style.setProperty('--mouse-y', `${y}px`)
-    }
-    rafId = null
-  })
-}
 
 // Switching logic (Wheel & Touch)
 const handleWheel = (e) => {
@@ -48,15 +33,6 @@ const handleTouchMove = (e) => {
     isHeroFolded.value = false
   }
 }
-
-onMounted(() => {
-  window.addEventListener('mousemove', handleMouseMove, { passive: true })
-})
-
-onUnmounted(() => {
-  window.removeEventListener('mousemove', handleMouseMove)
-  if (rafId) cancelAnimationFrame(rafId)
-})
 </script>
 
 <template>
@@ -110,9 +86,9 @@ onUnmounted(() => {
             </RouterLink>
           </div>
           
-          <div class="flex flex-col gap-6">
+          <GlowCardContainer class="flex flex-col gap-6">
             <template v-if="authStore.isAuthenticated && participatingHackathons.length > 0">
-              <div v-for="hack in participatingHackathons" :key="hack.id" class="glass-card p-10 flex flex-col md:flex-row md:items-center justify-between gap-8 bg-[#151723] border-white/10">
+              <GlowCard v-for="hack in participatingHackathons" :key="hack.id" contentClass="p-10 flex flex-col md:flex-row md:items-center justify-between gap-8 bg-[#151723]/50">
                 <div class="flex flex-col gap-3 relative z-10">
                   <div class="flex items-center gap-4">
                     <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest bg-teal-500/20 text-teal-300 border border-teal-500/30 shadow-lg">{{ hack.status }}</span>
@@ -129,23 +105,23 @@ onUnmounted(() => {
                    <RouterLink :to="`/hackathons/${hack.hackathonId}`" class="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all">공고 열람</RouterLink>
                    <RouterLink v-if="hack.status === '진행 중'" :to="`/workspace/${hack.hackathonId}`" class="px-8 py-4 rounded-2xl bg-sync-primary text-white font-bold shadow-2xl hover:bg-sync-primaryHover hover:-translate-y-1 transition-all">작업 공간 입장</RouterLink>
                 </div>
-              </div>
+              </GlowCard>
             </template>
             
-            <div v-else-if="authStore.isAuthenticated" class="py-24 px-10 flex flex-col items-center gap-8 text-center glass-card border-dashed bg-white/[0.02]">
+            <GlowCard v-else-if="authStore.isAuthenticated" contentClass="py-24 px-10 flex flex-col items-center gap-8 text-center bg-white/[0.02] border-dashed">
               <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-2">
                 <svg class="w-10 h-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
               <h3 class="text-3xl font-black text-white">참여 중인 해커톤이 없습니다.</h3>
               <RouterLink to="/hackathons" class="px-12 py-5 bg-sync-primary text-white font-black rounded-2xl shadow-2xl hover:scale-105 transition-transform">모든 해커톤 둘러보기</RouterLink>
-            </div>
+            </GlowCard>
 
-            <div v-else class="py-32 px-10 flex flex-col items-center gap-8 text-center glass-card border-dashed bg-white/[0.02]">
+            <GlowCard v-else contentClass="py-32 px-10 flex flex-col items-center gap-8 text-center bg-white/[0.02] border-dashed">
               <h3 class="text-4xl font-black text-white tracking-tight">당신의 첫 해커톤을 시작하세요</h3>
               <p class="text-slate-400 text-lg max-w-md">로그인하고 전 세계 개발자들과 함께 협업하며 아이디어를 현실로 만드세요.</p>
               <RouterLink to="/login" class="px-16 py-6 bg-sync-primary text-white font-black text-xl rounded-2xl shadow-2xl hover:scale-105 transition-transform tracking-widest uppercase">로그인하기</RouterLink>
-            </div>
-          </div>
+            </GlowCard>
+          </GlowCardContainer>
         </section>
 
         <!-- Section: Active Hackathons -->
@@ -155,9 +131,9 @@ onUnmounted(() => {
             <RouterLink to="/hackathons" class="text-slate-400 hover:text-white font-bold text-sm flex items-center gap-2">전체 보기 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg></RouterLink>
           </div>
           
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            <RouterLink v-for="hackathon in activeHackathons" :key="hackathon.id" :to="`/hackathons/${hackathon.id}`" 
-              class="glass-card flex flex-col group h-full bg-[#151723] border-white/10 relative overflow-hidden">
+          <GlowCardContainer class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <GlowCard v-for="hackathon in activeHackathons" :key="hackathon.id" :as="RouterLink" :to="`/hackathons/${hackathon.id}`" 
+              class="flex flex-col group h-full" contentClass="bg-[#151723]/50">
               <div class="w-full h-52 rounded-b-none bg-gradient-to-br flex items-center justify-center p-8 relative overflow-hidden" :class="hackathon.bgGradient">
                 <div class="absolute inset-0 bg-black/10"></div>
                 <h3 class="text-3xl font-black text-white text-center drop-shadow-2xl z-10 select-none">{{ hackathon.heroText }}</h3>
@@ -174,8 +150,8 @@ onUnmounted(() => {
                   <span class="font-black text-white uppercase">{{ hackathon.participants }} PARTICIPANTS</span>
                 </div>
               </div>
-            </RouterLink>
-          </div>
+            </GlowCard>
+          </GlowCardContainer>
         </section>
       </div>
     </div>
@@ -183,34 +159,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.glass-card {
-  position: relative;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 32px;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    600px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
-    rgba(255, 255, 255, 0.1),
-    transparent 40%
-  );
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  z-index: 0;
-  pointer-events: none;
-}
-
-.glass-card:hover::before {
-  opacity: 1;
-}
-
 .content-scrollbar::-webkit-scrollbar {
   width: 8px;
 }

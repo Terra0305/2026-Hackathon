@@ -2,6 +2,8 @@
 import { RouterLink, useRoute } from 'vue-router'
 import { mockTeams, mockHackathons } from '../data/mockData'
 import { ref, computed } from 'vue'
+import GlowCard from '../components/GlowCard.vue'
+import GlowCardContainer from '../components/GlowCardContainer.vue'
 
 const route = useRoute()
 const currentRole = ref('all')
@@ -83,14 +85,15 @@ const filteredTeams = computed(() => {
     </div>
 
     <!-- Recruitment Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <GlowCardContainer class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       
       <div v-if="filteredTeams.length === 0" class="col-span-full py-16 text-center text-sync-muted font-medium">검색된 팀 모집 공고가 없습니다. 새로운 팀을 포스팅해보세요!</div>
 
-      <div 
+      <GlowCard 
         v-for="team in filteredTeams" 
         :key="team.id"
-        class="glass-card glass-card-hover p-8 flex flex-col gap-6 group cursor-pointer relative overflow-hidden"
+        class="flex flex-col gap-6 group cursor-pointer"
+        contentClass="p-8"
       >
         <div class="flex items-start justify-between z-10 w-full">
           <div class="flex items-center gap-4">
@@ -141,8 +144,8 @@ const filteredTeams = computed(() => {
              </button>
           </div>
         </div>
-      </div>
-    </div>
+      </GlowCard>
+    </GlowCardContainer>
   </div>
 </template>
 
