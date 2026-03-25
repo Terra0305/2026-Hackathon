@@ -57,9 +57,9 @@ const handleTouchMove = (e) => {
           전 세계의 뛰어난 개발자, 디자이너, 기획자들과 함께 혁신적인 프로젝트를 시작할 수 있습니다.
         </p>
         <div class="flex items-center gap-4 mt-8">
-          <button @click="isHeroFolded = true" class="px-10 py-5 bg-sync-primary hover:bg-sync-primaryHover text-white text-lg font-bold rounded-2xl transition-all shadow-xl hover:-translate-y-0.5 cursor-pointer">
+          <RouterLink to="/hackathons" class="px-10 py-5 bg-sync-primary hover:bg-sync-primaryHover text-white text-lg font-bold rounded-2xl transition-all shadow-xl hover:-translate-y-0.5 cursor-pointer text-center">
             해커톤 찾아보기
-          </button>
+          </RouterLink>
           <RouterLink to="/camp" class="px-10 py-5 bg-white/10 hover:bg-white/20 text-white text-lg font-bold rounded-2xl border border-white/10 transition-all hover:-translate-y-0.5 backdrop-blur-md">
             팀 모집하기
           </RouterLink>

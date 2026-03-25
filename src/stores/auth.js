@@ -8,7 +8,17 @@ export const useAuthStore = defineStore('auth', () => {
   
   // Initialize with dummy data if present in localStorage
   const localSession = localStorage.getItem('sync_user')
-  const user = ref(localSession ? JSON.parse(localSession) : null)
+  let parsedUser = localSession ? JSON.parse(localSession) : null
+  
+  // Implicit Migration: Populate GitHub data if missing from older session signatures
+  if (parsedUser && !parsedUser.techStack) {
+    parsedUser.techStack = ["Vue.js", "React", "Node.js"]
+    parsedUser.githubCommits = 142
+    parsedUser.githubConnected = true
+    localStorage.setItem('sync_user', JSON.stringify(parsedUser))
+  }
+  
+  const user = ref(parsedUser)
 
   const isAuthenticated = computed(() => !!user.value)
 
@@ -34,7 +44,10 @@ export const useAuthStore = defineStore('auth', () => {
       points: 0,
       rank: 99,
       status: 'up',
-      badges: ['🌱', '🚀']
+      badges: ['🌱', '🚀'],
+      githubConnected: true,
+      techStack: ["React", "JavaScript", "HTML/CSS"],
+      githubCommits: 28
     }
     user.value = mockUser
     localStorage.setItem('sync_user', JSON.stringify(mockUser))

@@ -6,6 +6,26 @@ import { mockMyHackathons, mockMySubmissions, mockMyActivities } from '../data/m
 import EmptyState from '../components/EmptyState.vue'
 
 const authStore = useAuthStore()
+
+const isPointShopOpen = ref(false)
+const pointShopItems = [
+  { id: 1, name: 'CGV 영화 관람권 1인', price: 15000, icon: '🍿', color: 'from-red-500 to-rose-400' },
+  { id: 2, name: '스타벅스 아메리카노', price: 4500, icon: '☕', color: 'from-green-500 to-emerald-400' },
+  { id: 3, name: 'AWS $100 Cloud Credit', price: 20000, icon: '☁️', color: 'from-orange-500 to-amber-400' },
+  { id: 4, name: 'GitHub Pro 1개월권', price: 12000, icon: '💻', color: 'from-slate-700 to-slate-900' }
+]
+
+const buyItem = (item) => {
+  if (authStore.user.points >= item.price) {
+    if (confirm(`'${item.name}' 상품을 교환하시겠습니까?\n(${item.price.toLocaleString()} 포인트가 차감됩니다)`)) {
+      authStore.user.points -= item.price
+      localStorage.setItem('sync_user', JSON.stringify(authStore.user))
+      alert('성공적으로 교환되었습니다! 🎁\n가입하신 이메일로 쿠폰 코드가 즉시 발송됩니다.')
+    }
+  } else {
+    alert('포인트가 부족합니다. 해커톤과 커뮤니티 활동을 통해 포인트를 더 모아보세요!')
+  }
+}
 const activeMenu = ref('dashboard')
 
 const menus = [
@@ -55,8 +75,11 @@ const recentTimeline = [
              <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase">참여 중인 해커톤</span>
              <span class="text-2xl font-black text-sync-text tracking-tight">{{ mockMyHackathons.length || 0 }}개</span>
            </div>
-           <div class="glass-card p-5 px-6 rounded-2xl flex flex-col justify-center gap-1.5 min-w-[140px] flex-1 md:flex-auto shadow-sm border border-slate-200 dark:border-white/5">
-             <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase">현재 포인트</span>
+           <div @click="isPointShopOpen = true" class="glass-card p-5 px-6 rounded-2xl flex flex-col justify-center gap-1.5 min-w-[140px] flex-1 md:flex-auto shadow-sm border border-slate-200 dark:border-white/5 cursor-pointer hover:border-teal-500/50 hover:bg-teal-500/5 hover:-translate-y-0.5 transition-all group">
+             <div class="flex items-center justify-between">
+                <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase group-hover:text-teal-500 transition-colors">현재 포인트</span>
+                <span class="text-[10px] text-teal-500 bg-teal-500/10 px-1.5 py-0.5 rounded font-bold opacity-0 group-hover:opacity-100 transition-opacity">상점 가기 ➔</span>
+             </div>
              <span class="text-2xl font-black text-teal-500 dark:text-teal-400 tracking-tight">{{ authStore.user.points.toLocaleString() }}점</span>
            </div>
         </div>
@@ -339,6 +362,57 @@ const recentTimeline = [
       <p class="text-sm text-sync-muted font-medium mb-4">마이페이지에 접근하려면 먼저 로그인을 해주세요.</p>
       <RouterLink to="/login" class="px-8 py-3 bg-sync-primary hover:bg-sync-primaryHover text-white rounded-xl font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:-translate-y-0.5">로그인 하러 가기</RouterLink>
     </div>
+    <!-- Point Shop Modal -->
+    <Teleport to="body">
+      <div v-if="isPointShopOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" @click="isPointShopOpen = false"></div>
+        <div class="glass-card relative w-full max-w-3xl max-h-[90vh] bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] shadow-2xl animate-fade-in flex flex-col overflow-hidden">
+          
+          <div class="flex justify-between items-center px-8 py-6 border-b border-sync-border bg-black/5 dark:bg-white/5 relative overflow-hidden">
+            <div class="relative z-10 flex flex-col gap-1">
+              <h3 class="text-2xl font-black text-sync-text">🎁 Sync 포인트 상점</h3>
+              <p class="text-sm font-bold text-sync-muted hidden sm:block">활동으로 모은 포인트를 유용한 리워드로 교환하세요!</p>
+            </div>
+            <button @click="isPointShopOpen = false" class="relative z-10 p-2 text-sync-muted hover:text-red-500 transition-colors bg-white/50 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-full">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-teal-500/20 rounded-full blur-3xl mix-blend-screen pointer-events-none"></div>
+          </div>
+
+          <div class="flex-1 overflow-y-auto p-4 sm:p-8 bg-black/5 dark:bg-black/20 custom-scrollbar flex flex-col gap-6">
+            
+            <div class="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-r from-teal-500/10 to-emerald-500/10 border border-teal-500/20 shadow-sm">
+               <span class="text-sm font-bold text-sync-text flex items-center gap-2"><span class="text-xl">💰</span>내 보유 포인트</span>
+               <span class="text-3xl font-black text-teal-600 dark:text-teal-400 drop-shadow-sm">{{ authStore.user.points.toLocaleString() }} <span class="text-lg text-teal-500/70">PTS</span></span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               <div v-for="item in pointShopItems" :key="item.id" class="flex flex-col p-6 rounded-2xl bg-white dark:bg-[#181A20] border border-sync-border hover:border-sync-primary/50 transition-colors shadow-sm relative group overflow-hidden">
+                  <div class="absolute top-0 right-0 w-32 h-32 opacity-10 bg-gradient-to-br transition-opacity group-hover:opacity-20 pointer-events-none rounded-bl-full" :class="item.color"></div>
+                  
+                  <div class="flex items-start justify-between mb-4 relative z-10">
+                     <div class="w-14 h-14 flex items-center justify-center text-3xl bg-black/5 dark:bg-white/5 rounded-2xl shadow-inner border border-white/10">{{ item.icon }}</div>
+                     <span class="px-3 py-1 bg-sync-border/30 dark:bg-white/5 rounded-full text-xs font-bold text-sync-muted group-hover:text-sync-text transition-colors border border-sync-border">리워드</span>
+                  </div>
+                  
+                  <h4 class="text-lg font-bold text-sync-text mb-1 relative z-10">{{ item.name }}</h4>
+                  <p class="text-2xl font-black text-sync-primary mb-6 relative z-10">{{ item.price.toLocaleString() }} <span class="text-sm">PTS</span></p>
+                  
+                  <button @click="buyItem(item)" class="mt-auto w-full py-3 rounded-xl font-bold text-sm transition-all relative z-10 shadow-sm" :class="authStore.user.points >= item.price ? 'bg-sync-primary text-white hover:bg-sync-primaryHover hover:-translate-y-0.5 shadow-[0_4px_14px_rgba(50,132,255,0.3)]' : 'bg-black/5 dark:bg-white/5 text-sync-muted cursor-not-allowed'">
+                     {{ authStore.user.points >= item.price ? '교환하기' : '포인트 부족' }}
+                  </button>
+               </div>
+            </div>
+
+            <div class="mt-4 p-4 rounded-xl border border-dashed border-sync-border bg-black/5 dark:bg-white/5 text-center">
+              <p class="text-xs font-bold text-sync-muted leading-relaxed">쿠폰은 내 정보에 등록된 이메일 주소로 영업일 기준 1~2일 이내에 발송됩니다.<br/>발송된 기프티콘 및 혜택은 환불이 불가능하니 신중하게 교환해 주세요.</p>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
   </div>
 </template>
 
