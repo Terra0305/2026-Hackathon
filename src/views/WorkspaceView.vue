@@ -80,6 +80,30 @@ const completeUpload = () => {
   uploadProgress.value = 0
   uploadedFile.value = null
 }
+
+const isDocViewerOpen = ref(false)
+const currentDocName = ref('')
+
+const openDocument = (doc) => {
+  currentDocName.value = doc.name
+  isDocViewerOpen.value = true
+}
+
+const deleteDocument = (id) => {
+  if (confirm('정말 이 파일을 삭제하시겠습니까?')) {
+    documents.value = documents.value.filter(d => d.id !== id)
+  }
+}
+
+const downloadDocument = (docName) => {
+  const blob = new Blob(['Mock data placeholder for document: ' + docName], { type: 'text/plain' })
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = docName
+  a.click()
+  window.URL.revokeObjectURL(url)
+}
 </script>
 
 <template>
@@ -173,15 +197,23 @@ const completeUpload = () => {
             </div>
             
             <div class="flex flex-col gap-4">
-              <div v-for="doc in documents" :key="doc.id" class="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer group">
-                <div class="flex items-center gap-4">
-                   <span class="text-2xl group-hover:scale-110 transition-transform">{{ doc.type === '기획서' ? '📄' : '🎨' }}</span>
-                   <div class="flex flex-col gap-0.5">
-                     <span class="text-[13px] font-bold text-sync-text underline decoration-transparent group-hover:decoration-sync-border underline-offset-2">{{ doc.name }}</span>
-                     <span class="text-[10px] text-sync-muted font-bold">업데이트: {{ doc.updated }}</span>
-                   </div>
-                </div>
-              </div>
+               <div v-for="doc in documents" :key="doc.id" class="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border hover:bg-black/10 dark:hover:bg-white/10 transition-colors group">
+                 <div class="flex items-center gap-4 cursor-pointer w-full overflow-hidden" @click="openDocument(doc)">
+                    <span class="text-2xl group-hover:scale-110 transition-transform flex-shrink-0">{{ doc.type === '기획서' ? '📄' : (doc.type === '디자인' ? '🎨' : '📦') }}</span>
+                    <div class="flex flex-col gap-0.5 min-w-0 pr-2">
+                      <span class="text-[13px] font-bold text-sync-text underline decoration-transparent group-hover:decoration-sync-border underline-offset-2 truncate">{{ doc.name }}</span>
+                      <span class="text-[10px] text-sync-muted font-bold flex-shrink-0">업데이트: {{ doc.updated }}</span>
+                    </div>
+                 </div>
+                 <div class="flex items-center gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                    <button @click.stop="downloadDocument(doc.name)" class="p-1.5 text-sync-muted hover:text-sync-primary hover:bg-sync-primary/10 rounded-lg transition-colors" title="다운로드">
+                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    </button>
+                    <button @click.stop="deleteDocument(doc.id)" class="p-1.5 text-sync-muted hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors" title="삭제">
+                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                 </div>
+               </div>
             </div>
           </div>
 
@@ -214,53 +246,107 @@ const completeUpload = () => {
     </div>
 
     <!-- Upload Modal -->
-    <div v-if="isUploadModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="!isUploading && (isUploadModalOpen = false)"></div>
-      <div class="glass-card relative w-full max-w-md bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] p-8 shadow-2xl animate-fade-in flex flex-col">
-        
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-xl font-bold text-sync-text">문서 스토리지 업로드</h3>
-          <button v-if="!isUploading" @click="isUploadModalOpen = false" class="text-sync-muted hover:text-sync-text transition-colors">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-          </button>
-        </div>
+    <Teleport to="body">
+      <div v-if="isUploadModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="!isUploading && (isUploadModalOpen = false)"></div>
+        <div class="glass-card relative w-full max-w-md bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] p-8 shadow-2xl animate-fade-in flex flex-col">
+          
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-sync-text">문서 스토리지 업로드</h3>
+            <button v-if="!isUploading" @click="isUploadModalOpen = false" class="text-sync-muted hover:text-sync-text transition-colors">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
 
-        <p class="text-sm text-sync-muted mb-6">최종 결과물(ZIP, PDF 등)이나 팀 기획서를 업로드하세요. 팀원 모두와 즉시 실시간 동기화됩니다.</p>
+          <p class="text-sm text-sync-muted mb-6">최종 결과물(ZIP, PDF 등)이나 팀 기획서를 업로드하세요. 팀원 모두와 즉시 실시간 동기화됩니다.</p>
 
-        <div v-if="!isUploading" 
-             @dragover.prevent="isDragging = true" 
-             @dragleave.prevent="isDragging = false"
-             @drop="handleDrop"
-             class="relative border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-colors cursor-pointer group"
-             :class="isDragging ? 'border-sync-primary bg-sync-primary/5' : 'border-sync-border hover:border-sync-primary/50 hover:bg-black/5 dark:hover:bg-white/5'">
-             
-             <input type="file" @change="handleFileSelect" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".zip,.pdf,.jpg,.png,.fig,.doc,.docx" />
-             
-             <div class="w-16 h-16 rounded-full bg-sync-card border border-sync-border flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform shadow-sm">
-               ☁️
+          <div v-if="!isUploading" 
+               @dragover.prevent="isDragging = true" 
+               @dragleave.prevent="isDragging = false"
+               @drop="handleDrop"
+               class="relative border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-colors cursor-pointer group"
+               :class="isDragging ? 'border-sync-primary bg-sync-primary/5' : 'border-sync-border hover:border-sync-primary/50 hover:bg-black/5 dark:hover:bg-white/5'">
+               
+               <input type="file" @change="handleFileSelect" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".zip,.pdf,.jpg,.png,.fig,.doc,.docx" />
+               
+               <div class="w-16 h-16 rounded-full bg-sync-card border border-sync-border flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform shadow-sm">
+                 ☁️
+               </div>
+               <p class="font-bold text-sync-text text-center">클릭하거나 파일을 드래그 앤 드롭</p>
+               <p class="text-xs text-sync-muted mt-2">최대 50MB (PDF, ZIP, FIG 등 지원)</p>
+          </div>
+
+          <!-- Upload Progress -->
+          <div v-else class="flex flex-col items-center justify-center py-8">
+             <div class="w-16 h-16 rounded-full bg-sync-primary/10 border border-sync-primary/20 flex items-center justify-center mb-6 animate-pulse">
+               <span class="text-2xl animate-bounce">📦</span>
              </div>
-             <p class="font-bold text-sync-text text-center">클릭하거나 파일을 드래그 앤 드롭</p>
-             <p class="text-xs text-sync-muted mt-2">최대 50MB (PDF, ZIP, FIG 등 지원)</p>
-        </div>
+             <p class="font-bold text-sync-text mb-4">{{ uploadedFile?.name }} 업로드 중...</p>
+             
+             <div class="w-full h-3 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden border border-sync-border relative">
+                <div class="absolute top-0 left-0 bottom-0 bg-sync-primary rounded-full transition-all duration-150 overflow-hidden" 
+                     :style="`width: ${uploadProgress}%`">
+                   <div class="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_1s_infinite]"></div>
+                </div>
+             </div>
+             <p class="text-xs font-bold text-sync-primary mt-2">{{ uploadProgress }}%</p>
+          </div>
 
-        <!-- Upload Progress -->
-        <div v-else class="flex flex-col items-center justify-center py-8">
-           <div class="w-16 h-16 rounded-full bg-sync-primary/10 border border-sync-primary/20 flex items-center justify-center mb-6 animate-pulse">
-             <span class="text-2xl animate-bounce">📦</span>
-           </div>
-           <p class="font-bold text-sync-text mb-4">{{ uploadedFile?.name }} 업로드 중...</p>
-           
-           <div class="w-full h-3 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden border border-sync-border relative">
-              <div class="absolute top-0 left-0 bottom-0 bg-sync-primary rounded-full transition-all duration-150 relative overflow-hidden" 
-                   :style="`width: ${uploadProgress}%`">
-                 <div class="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_1s_infinite]"></div>
-              </div>
-           </div>
-           <p class="text-xs font-bold text-sync-primary mt-2">{{ uploadProgress }}%</p>
         </div>
-
       </div>
-    </div>
+    </Teleport>
+
+    <!-- Document Viewer Modal -->
+    <Teleport to="body">
+      <div v-if="isDocViewerOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="isDocViewerOpen = false"></div>
+        <div class="glass-card relative w-full max-w-4xl h-[80vh] bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] shadow-2xl animate-fade-in flex flex-col overflow-hidden">
+          
+          <!-- Header -->
+          <div class="flex justify-between items-center px-6 py-4 border-b border-sync-border bg-black/5 dark:bg-white/5">
+            <div class="flex items-center gap-3">
+              <span class="text-2xl w-8">{{ currentDocName.includes('pdf') || currentDocName.includes('doc') ? '📄' : (currentDocName.includes('fig') || currentDocName.includes('png') || currentDocName.includes('jpg') ? '🎨' : '📦') }}</span>
+              <h3 class="font-bold text-sync-text truncate max-w-[200px] sm:max-w-xl">{{ currentDocName }}</h3>
+            </div>
+            <div class="flex items-center gap-2 lg:gap-3 shrink-0">
+              <button @click="downloadDocument(currentDocName)" class="px-3 sm:px-4 py-2 bg-sync-primary/10 text-sync-primary font-bold text-xs sm:text-sm rounded-xl hover:bg-sync-primary/20 transition-colors flex items-center gap-1.5 shrink-0">
+                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                 <span class="hidden sm:inline">다운로드</span>
+              </button>
+              <button @click="isDocViewerOpen = false" class="p-2 text-sync-muted hover:text-red-500 transition-colors bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-full shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Content Base -->
+          <div class="flex-1 overflow-y-auto p-4 sm:p-8 flex flex-col items-center justify-start bg-black/5 dark:bg-black/20 custom-scrollbar">
+             <div class="w-full max-w-2xl bg-white dark:bg-[#181A20] shadow-md border border-sync-border min-h-[400px] h-full rounded-[2rem] p-8 sm:p-12 flex flex-col items-center gap-6">
+                <div class="w-24 h-24 bg-sync-primary/10 rounded-full flex items-center justify-center text-5xl mb-2">👀</div>
+                <h2 class="text-xl sm:text-2xl font-bold text-sync-text text-center break-all">{{ currentDocName }}</h2>
+                <div class="w-full h-px bg-sync-border my-6"></div>
+                
+                <!-- Mock Document Lines -->
+                <div class="w-full h-4 bg-sync-border/40 rounded animate-pulse"></div>
+                <div class="w-full flex justify-between gap-4">
+                   <div class="w-full h-4 bg-sync-border/40 rounded animate-pulse"></div>
+                   <div class="w-1/2 h-4 bg-sync-border/40 rounded animate-pulse"></div>
+                </div>
+                <div class="w-3/4 h-4 bg-sync-border/40 rounded animate-pulse self-start mt-4"></div>
+                <div class="w-full h-4 bg-sync-border/40 rounded animate-pulse self-start"></div>
+                <div class="w-5/6 h-4 bg-sync-border/40 rounded animate-pulse self-start"></div>
+                <div class="w-full h-4 bg-sync-border/40 rounded animate-pulse self-start mt-4"></div>
+                <div class="w-2/3 h-4 bg-sync-border/40 rounded animate-pulse self-start"></div>
+                
+                <div class="mt-auto pt-16 w-full">
+                   <p class="text-sync-muted text-center text-xs sm:text-sm leading-relaxed border border-dashed border-sync-border p-5 rounded-2xl bg-black/5 dark:bg-white/5 font-medium">문서 템플릿 임시 미리보기 화면입니다.<br/>실제로 데이터베이스 연동이 이루어진 후, 파일의 종류에 따라<br/>PDF 렌더러 또는 이미지 뷰어가 스트리밍됩니다.</p>
+                </div>
+             </div>
+          </div>
+
+        </div>
+      </div>
+    </Teleport>
 
   </div>
 </template>

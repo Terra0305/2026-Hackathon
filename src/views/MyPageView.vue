@@ -113,9 +113,9 @@ const recentTimeline = [
                    <h3 class="font-bold text-lg text-sync-text">최근 활동</h3>
                    <span class="text-sync-muted">🕒</span>
                  </div>
-                 <div class="flex flex-col gap-6 relative before:absolute before:left-[3px] before:top-2 before:bottom-2 before:w-[2px] before:bg-black/10 dark:before:bg-white/10 ml-2">
-                    <div v-for="(act, idx) in recentTimeline" :key="idx" class="flex flex-col gap-1 pl-6 relative">
-                       <span class="absolute left-[-4.5px] top-1.5 w-2.5 h-2.5 rounded-full z-10" :class="act.colorClass"></span>
+                 <div class="flex flex-col gap-6 relative before:absolute before:left-[4px] before:top-3 before:bottom-3 before:w-[2px] before:bg-black/10 dark:before:bg-white/10 ml-2">
+                    <div v-for="(act, idx) in recentTimeline" :key="idx" class="flex flex-col gap-1 pl-6 relative justify-center">
+                       <span class="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full z-10" :class="act.colorClass"></span>
                        <span class="text-[13px] font-bold text-sync-text">{{ act.title }}</span>
                        <span class="text-xs font-bold text-sync-muted mt-0.5 opacity-80">{{ act.time }}</span>
                     </div>
