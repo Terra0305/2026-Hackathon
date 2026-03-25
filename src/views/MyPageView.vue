@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { mockMyHackathons, mockMySubmissions, mockMyActivities } from '../data/mockData'
-import ActivityChart from '../components/ActivityChart.vue'
 import EmptyState from '../components/EmptyState.vue'
 
 const authStore = useAuthStore()
