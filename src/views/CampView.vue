@@ -1,14 +1,23 @@
 <script setup>
 import { RouterLink, useRoute } from 'vue-router'
 import { mockTeams, mockHackathons } from '../data/mockData'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import GlowCard from '../components/GlowCard.vue'
 import GlowCardContainer from '../components/GlowCardContainer.vue'
+import SkeletonLoader from '../components/SkeletonLoader.vue'
+import EmptyState from '../components/EmptyState.vue'
 
 const route = useRoute()
 const currentRole = ref('all')
 const searchQuery = ref('')
 const joinedTeams = ref(new Set()) // Local mockup tracking
+const isLoading = ref(true)
+
+onMounted(() => {
+  setTimeout(() => {
+    isLoading.value = false
+  }, 1200)
+})
 
 const queryHackathonTitle = computed(() => {
   const qId = route.query.hackathonId ? parseInt(route.query.hackathonId) : null
@@ -87,14 +96,25 @@ const filteredTeams = computed(() => {
     <!-- Recruitment Grid -->
     <GlowCardContainer class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       
-      <div v-if="filteredTeams.length === 0" class="col-span-full py-16 text-center text-sync-muted font-medium">검색된 팀 모집 공고가 없습니다. 새로운 팀을 포스팅해보세요!</div>
+      <template v-if="isLoading">
+         <SkeletonLoader type="glow-card" :count="6" class="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" />
+      </template>
 
-      <GlowCard 
-        v-for="team in filteredTeams" 
-        :key="team.id"
-        class="flex flex-col gap-6 group cursor-pointer"
-        contentClass="p-8"
-      >
+      <div v-else-if="filteredTeams.length === 0" class="col-span-full py-16 flex justify-center w-full">
+         <EmptyState size="lg" message="검색된 팀 모집 공고가 없습니다." icon="🏕️" class="w-full">
+            <template #action>
+               <RouterLink to="/camp/create" class="mt-4 px-8 py-3 bg-sync-primary hover:bg-sync-primaryHover text-white font-bold rounded-xl transition-all shadow-sm">직접 팀 모집하기</RouterLink>
+            </template>
+         </EmptyState>
+      </div>
+
+      <template v-else>
+        <GlowCard 
+          v-for="team in filteredTeams" 
+          :key="team.id"
+          class="flex flex-col gap-6 group cursor-pointer"
+          contentClass="p-8 h-full flex flex-col"
+        >
         <div class="flex items-start justify-between z-10 w-full">
           <div class="flex items-center gap-4">
              <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr shadow-inner flex items-center justify-center text-xl" :class="team.theme">{{ team.icon }}</div>
@@ -144,7 +164,8 @@ const filteredTeams = computed(() => {
              </button>
           </div>
         </div>
-      </GlowCard>
+        </GlowCard>
+      </template>
     </GlowCardContainer>
   </div>
 </template>

@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { mockMyHackathons, mockMySubmissions, mockMyActivities } from '../data/mockData'
+import ActivityChart from '../components/ActivityChart.vue'
+import EmptyState from '../components/EmptyState.vue'
 
 const authStore = useAuthStore()
 const activeMenu = ref('dashboard')
@@ -198,7 +200,9 @@ const recentTimeline = [
 
          <!-- Array Mappings -->
          <div v-if="activeMenu === 'participating'" class="flex flex-col gap-5 animate-fade-in">
-             <div v-if="mockMyHackathons.length === 0" class="py-16 text-center text-sync-muted border border-dashed border-sync-border rounded-2xl glass-card">아직 참여 중인 해커톤이 없습니다.</div>
+             <div v-if="mockMyHackathons.length === 0" class="py-12 w-full flex justify-center">
+                <EmptyState size="md" message="참여 중인 해커톤이 없습니다." icon="🏆" />
+             </div>
              
              <div v-for="hack in mockMyHackathons" :key="hack.id" class="glass-card p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 group hover:border-sync-primary/40 transition-colors border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl">
                 <div class="flex flex-col gap-2">
@@ -222,7 +226,9 @@ const recentTimeline = [
          </div>
 
          <div v-if="activeMenu === 'submissions'" class="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
-             <div v-if="mockMySubmissions.length === 0" class="col-span-full py-16 text-center text-sync-muted border border-dashed border-sync-border rounded-2xl glass-card">제출된 프로젝트 내역이 없습니다.</div>
+             <div v-if="mockMySubmissions.length === 0" class="col-span-full py-12 flex justify-center w-full">
+                <EmptyState size="md" message="제출된 프로젝트 내역이 없습니다." icon="📦" />
+             </div>
 
              <div v-for="sub in mockMySubmissions" :key="sub.id" class="glass-card shadow-sm overflow-hidden group hover:-translate-y-1 transition-transform border border-slate-200 dark:border-white/5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)] rounded-3xl">
                 <div class="h-36 bg-gradient-to-br flex items-center justify-center relative shadow-inner overflow-hidden" :class="sub.awardColor">
@@ -259,8 +265,12 @@ const recentTimeline = [
              <div class="lg:col-span-2 glass-card p-6 md:p-10 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem]">
                  <h3 class="text-xl font-bold text-sync-text mb-8 md:mb-10 font-outfit">최근 활동 내역</h3>
                  <div class="relative flex flex-col gap-6 sm:gap-8">
-                    <div class="absolute left-[19px] top-4 bottom-4 w-px bg-sync-border pointer-events-none"></div>
-                    <div v-if="mockMyActivities.length === 0" class="text-sync-muted text-sm py-4 z-10 bg-white/50 dark:bg-[#181A20]/50 relative backdrop-blur-md rounded-xl p-4 border border-sync-border">활동 기록이 존재하지 않습니다.</div>
+                    
+                    <div v-if="mockMyActivities.length === 0" class="py-8 z-10 relative flex justify-center">
+                       <EmptyState size="sm" message="활동 기록이 존재하지 않습니다." icon="🔔" />
+                    </div>
+
+                    <div v-if="mockMyActivities.length > 0" class="absolute left-[19px] top-4 bottom-4 w-px bg-sync-border pointer-events-none"></div>
 
                     <div v-for="act in mockMyActivities" :key="act.id" class="relative flex gap-4 sm:gap-6 items-start group">
                        <div class="w-10 h-10 shrink-0 rounded-full border-[4px] border-white dark:border-[#181A20] flex items-center justify-center text-[15px] z-10 shadow-sm transition-transform group-hover:scale-110 ml-0 mt-3 mix-blend-normal" :class="act.iconColor">

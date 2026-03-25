@@ -1,11 +1,20 @@
 <script setup>
 import { RouterLink } from 'vue-router'
 import { mockHackathons } from '../data/mockData'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import GlowCard from '../components/GlowCard.vue'
 import GlowCardContainer from '../components/GlowCardContainer.vue'
+import SkeletonLoader from '../components/SkeletonLoader.vue'
+import EmptyState from '../components/EmptyState.vue'
 
 const currentTab = ref('all')
+const isLoading = ref(true)
+
+onMounted(() => {
+  setTimeout(() => {
+    isLoading.value = false
+  }, 1200) // Simulate network delay fulfilling Daker UI specifications
+})
 
 const filteredHackathons = computed(() => {
   if (currentTab.value === 'all') return mockHackathons;
@@ -35,16 +44,23 @@ const filteredHackathons = computed(() => {
     <!-- Grid Layout mapping the computed filtered array -->
     <GlowCardContainer class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
        
-       <div v-if="filteredHackathons.length === 0" class="col-span-full py-16 text-center text-sync-muted font-medium border border-dashed border-sync-border rounded-2xl glass-card">해당 상태에 존재하는 해커톤이 없습니다. 다른 필터를 선택하세요.</div>
+       <template v-if="isLoading">
+         <SkeletonLoader type="glow-card" :count="6" class="col-span-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" />
+       </template>
 
-       <GlowCard 
-          v-for="hackathon in filteredHackathons" 
-          :key="hackathon.id"
-          :as="RouterLink"
-          :to="`/hackathons/${hackathon.id}`" 
-          class="flex flex-col gap-6 group cursor-pointer"
-          contentClass="p-6"
-        >
+       <div v-else-if="filteredHackathons.length === 0" class="col-span-full py-8 text-center text-sync-muted font-medium w-full flex justify-center">
+         <EmptyState size="md" message="해당 상태에 존재하는 해커톤이 없습니다." icon="🔍" class="max-w-md w-full" />
+       </div>
+
+       <template v-else>
+         <GlowCard 
+            v-for="hackathon in filteredHackathons" 
+            :key="hackathon.id"
+            :as="RouterLink"
+            :to="`/hackathons/${hackathon.id}`" 
+            class="flex flex-col gap-6 group cursor-pointer h-full"
+            contentClass="p-6 h-full flex flex-col"
+          >
         
         <div class="h-40 rounded-2xl bg-gradient-to-br flex flex-col p-5 relative overflow-hidden transition-all duration-500 group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.2)]" :class="hackathon.bgGradient">
            <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
@@ -83,8 +99,8 @@ const filteredHackathons = computed(() => {
            </div>
            <svg class="w-5 h-5 text-sync-muted group-hover:text-sync-primary transition-colors group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
         </div>
-      </GlowCard>
-
+        </GlowCard>
+       </template>
     </GlowCardContainer>
   </div>
 </template>

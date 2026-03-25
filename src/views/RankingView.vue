@@ -3,10 +3,21 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { mockUsers } from '../data/mockData'
 import { useAuthStore } from '../stores/auth'
+import { onMounted } from 'vue'
 import GlowCard from '../components/GlowCard.vue'
+import SkeletonLoader from '../components/SkeletonLoader.vue'
+import EmptyState from '../components/EmptyState.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const isLoading = ref(true)
+
+onMounted(() => {
+  setTimeout(() => {
+    isLoading.value = false
+  }, 1200)
+})
 
 const filterType = ref('all-time') // 'all-time' or 'monthly'
 const visibleCount = ref(7) // Top 3 + 4 initially
@@ -66,7 +77,19 @@ const loadMore = () => {
     </section>
 
     <!-- Podium Section (Top 3) -->
-    <section class="flex items-end justify-center gap-4 sm:gap-8 h-[380px] mt-24">
+    <template v-if="isLoading">
+       <div class="mt-12 flex flex-col gap-8">
+          <SkeletonLoader type="list" :count="5" />
+       </div>
+    </template>
+    <template v-else-if="sortedUsers.length === 0">
+       <div class="mt-12 w-full flex justify-center py-16">
+          <EmptyState size="lg" message="랭킹 데이터가 존재하지 않습니다." icon="🏅" />
+       </div>
+    </template>
+    
+    <template v-else>
+      <section class="flex items-end justify-center gap-4 sm:gap-8 h-[380px] mt-24">
       <!-- 2nd Place -->
       <div v-if="top3[1]" @click="router.push(`/user/${top3[1].id}`)" class="cursor-pointer flex flex-col items-center justify-end h-full w-[120px] sm:w-[160px] relative group hover:-translate-y-2 transition-transform">
         <div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/5 dark:bg-white/10 text-sync-text text-[10px] font-bold px-3 py-1.5 border border-sync-border rounded-full backdrop-blur-md z-20">{{ top3[1].role }}</div>
@@ -164,6 +187,7 @@ const loadMore = () => {
         </button>
       </div>
     </section>
+    </template>
 
   </div>
 </template>

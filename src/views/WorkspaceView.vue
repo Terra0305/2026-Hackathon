@@ -19,6 +19,67 @@ const documents = ref([
   { id: 1, name: '서비스 기획 및 요구사항 정의서.pdf', type: '기획서', updated: '2시간 전' },
   { id: 2, name: '초기 아키텍처 디자인.fig', type: '디자인', updated: '1일 전' }
 ])
+
+const isUploadModalOpen = ref(false)
+const isDragging = ref(false)
+const isUploading = ref(false)
+const uploadProgress = ref(0)
+const uploadedFile = ref(null)
+
+const handleDrop = (e) => {
+  e.preventDefault()
+  isDragging.value = false
+  if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    processFile(e.dataTransfer.files[0])
+  }
+}
+
+const handleFileSelect = (e) => {
+  if (e.target.files && e.target.files.length > 0) {
+    processFile(e.target.files[0])
+  }
+}
+
+const processFile = (file) => {
+  uploadedFile.value = file
+  isUploading.value = true
+  
+  // Simulate network upload progress
+  let progress = 0
+  const interval = setInterval(() => {
+    progress += 10
+    uploadProgress.value = progress
+    if (progress >= 100) {
+      clearInterval(interval)
+      setTimeout(() => {
+        completeUpload()
+      }, 500)
+    }
+  }, 150)
+}
+
+const completeUpload = () => {
+  if (uploadedFile.value) {
+    // Add to documents array
+    const ext = uploadedFile.value.name.split('.').pop().toLowerCase()
+    let typeIcon = '문서'
+    if (ext === 'pdf') typeIcon = '기획서'
+    else if (['fig', 'png', 'jpg'].includes(ext)) typeIcon = '디자인'
+    else if (['zip', 'rar'].includes(ext)) typeIcon = '결과물'
+    
+    documents.value.unshift({
+      id: Date.now(),
+      name: uploadedFile.value.name,
+      type: typeIcon,
+      updated: '방금 전'
+    })
+  }
+  
+  isUploadModalOpen.value = false
+  isUploading.value = false
+  uploadProgress.value = 0
+  uploadedFile.value = null
+}
 </script>
 
 <template>
@@ -124,7 +185,7 @@ const documents = ref([
             </div>
           </div>
 
-          <button class="w-full py-4 rounded-xl border border-dashed border-sync-border bg-black/5 dark:bg-white/5 text-xs font-bold text-sync-muted hover:text-sync-text hover:border-sync-primary transition-all mt-6 shadow-sm">
+          <button @click="isUploadModalOpen = true" class="w-full py-4 rounded-xl border border-dashed border-sync-primary/50 bg-sync-primary/5 text-xs font-bold text-sync-primary hover:bg-sync-primary/10 transition-all mt-6 shadow-sm">
             + 새 문서 추가
           </button>
         </div>
@@ -151,6 +212,56 @@ const documents = ref([
       </div>
 
     </div>
+
+    <!-- Upload Modal -->
+    <div v-if="isUploadModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="!isUploading && (isUploadModalOpen = false)"></div>
+      <div class="glass-card relative w-full max-w-md bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] p-8 shadow-2xl animate-fade-in flex flex-col">
+        
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-xl font-bold text-sync-text">문서 스토리지 업로드</h3>
+          <button v-if="!isUploading" @click="isUploadModalOpen = false" class="text-sync-muted hover:text-sync-text transition-colors">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <p class="text-sm text-sync-muted mb-6">최종 결과물(ZIP, PDF 등)이나 팀 기획서를 업로드하세요. 팀원 모두와 즉시 실시간 동기화됩니다.</p>
+
+        <div v-if="!isUploading" 
+             @dragover.prevent="isDragging = true" 
+             @dragleave.prevent="isDragging = false"
+             @drop="handleDrop"
+             class="relative border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-colors cursor-pointer group"
+             :class="isDragging ? 'border-sync-primary bg-sync-primary/5' : 'border-sync-border hover:border-sync-primary/50 hover:bg-black/5 dark:hover:bg-white/5'">
+             
+             <input type="file" @change="handleFileSelect" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".zip,.pdf,.jpg,.png,.fig,.doc,.docx" />
+             
+             <div class="w-16 h-16 rounded-full bg-sync-card border border-sync-border flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform shadow-sm">
+               ☁️
+             </div>
+             <p class="font-bold text-sync-text text-center">클릭하거나 파일을 드래그 앤 드롭</p>
+             <p class="text-xs text-sync-muted mt-2">최대 50MB (PDF, ZIP, FIG 등 지원)</p>
+        </div>
+
+        <!-- Upload Progress -->
+        <div v-else class="flex flex-col items-center justify-center py-8">
+           <div class="w-16 h-16 rounded-full bg-sync-primary/10 border border-sync-primary/20 flex items-center justify-center mb-6 animate-pulse">
+             <span class="text-2xl animate-bounce">📦</span>
+           </div>
+           <p class="font-bold text-sync-text mb-4">{{ uploadedFile?.name }} 업로드 중...</p>
+           
+           <div class="w-full h-3 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden border border-sync-border relative">
+              <div class="absolute top-0 left-0 bottom-0 bg-sync-primary rounded-full transition-all duration-150 relative overflow-hidden" 
+                   :style="`width: ${uploadProgress}%`">
+                 <div class="absolute inset-0 bg-white/20 w-full h-full animate-[shimmer_1s_infinite]"></div>
+              </div>
+           </div>
+           <p class="text-xs font-bold text-sync-primary mt-2">{{ uploadProgress }}%</p>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 </template>
 
