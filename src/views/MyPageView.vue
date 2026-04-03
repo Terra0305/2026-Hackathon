@@ -1,11 +1,20 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { mockMyHackathons, mockMySubmissions, mockMyActivities } from '../data/mockData'
+import { mockTeams, mockMyHackathons, mockMySubmissions, mockMyActivities, mockJoinRequests } from '../data/mockData'
 import EmptyState from '../components/EmptyState.vue'
 
 const authStore = useAuthStore()
+
+const mySentRequests = computed(() => {
+  return mockJoinRequests.filter(r => r.userId === authStore.user?.id)
+})
+
+const myIncomingRequests = computed(() => {
+  const myTeamIds = mockTeams.filter(t => t.leaderId === authStore.user?.id).map(t => t.id)
+  return mockJoinRequests.filter(r => myTeamIds.includes(r.teamId))
+})
 
 const isPointShopOpen = ref(false)
 const pointShopItems = [
@@ -31,6 +40,7 @@ const activeMenu = ref('dashboard')
 const menus = [
   { id: 'dashboard', name: '개요' },
   { id: 'participating', name: '참여 해커톤 & 팀' },
+  { id: 'applications', name: '팀 합류 관리' },
   { id: 'submissions', name: '제출 내역' },
   { id: 'activities', name: '활동 및 랭킹' }
 ]
@@ -216,7 +226,7 @@ const recentTimeline = [
                    <p class="text-xs text-sync-muted font-bold">지난주 대비 120 포인트 추가 획득</p>
                  </div>
                </div>
-               <button class="px-5 py-2.5 w-full sm:w-auto bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-text text-xs font-bold rounded-lg border border-black/10 dark:border-white/10 transition-colors shrink-0">랭킹 상세보기</button>
+               <RouterLink to="/rankings" class="px-5 py-2.5 w-full sm:w-auto bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-text text-xs font-bold text-center rounded-lg border border-black/10 dark:border-white/10 transition-colors shrink-0 block">랭킹 상세보기</RouterLink>
             </div>
          </div>
 
@@ -247,7 +257,79 @@ const recentTimeline = [
              </div>
          </div>
 
-         <div v-if="activeMenu === 'submissions'" class="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
+         <div v-if="activeMenu === 'applications'" class="flex flex-col gap-10 animate-fade-in">
+             <!-- Incoming Requests to My Teams -->
+             <div class="flex flex-col gap-5">
+               <h3 class="text-xl font-bold text-sync-text flex items-center gap-2">
+                 📥 내 팀에 들어온 합류 요청 <span class="bg-red-500 text-white rounded-full px-2 py-0.5 text-xs">{{ myIncomingRequests.length }}</span>
+               </h3>
+               
+               <div v-if="myIncomingRequests.length === 0" class="py-8 w-full flex justify-center">
+                 <EmptyState size="sm" message="받은 합류 요청이 없습니다." icon="📮" />
+               </div>
+
+               <div v-for="req in myIncomingRequests" :key="'in-' + req.id" class="glass-card p-6 flex flex-col md:flex-row md:items-start justify-between gap-6 border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl relative overflow-hidden group">
+                 <div class="absolute inset-y-0 left-0 w-1.5 bg-sync-primary"></div>
+                 <div class="flex flex-col gap-3 flex-1 pl-4">
+                   <div class="flex items-center justify-between">
+                     <span class="text-[11px] bg-sync-primary/10 text-sync-primary border border-sync-primary/20 px-2 py-0.5 rounded font-bold uppercase tracking-widest">{{ req.role }} 지원</span>
+                     <span class="text-[11px] text-sync-muted font-bold">{{ req.createdAt }}</span>
+                   </div>
+                   <div class="flex items-center gap-3">
+                     <div class="w-10 h-10 bg-slate-200 rounded-full border border-sync-border overflow-hidden">
+                       <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=${req.nickname}`" class="w-full h-full object-cover"/>
+                     </div>
+                     <span class="text-lg font-bold text-sync-text">{{ req.nickname }}</span>
+                   </div>
+                   <div class="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-sync-border mt-1">
+                     <p class="text-[13px] font-medium text-sync-text whitespace-pre-line leading-relaxed">{{ req.message }}</p>
+                   </div>
+                 </div>
+                 <div class="flex lg:flex-col gap-3 shrink-0 lg:w-32 justify-end mt-2 lg:mt-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-sync-border">
+                   <button @click="req.status = 'accepted'" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5">
+                     수락하기
+                   </button>
+                   <button @click="req.status = 'rejected'" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 text-xs font-bold rounded-xl transition-all shadow-sm">거절하기</button>
+                   <span v-if="req.status === 'accepted'" class="w-full px-4 py-2.5 bg-teal-500/10 border border-teal-500/30 text-teal-500 text-xs font-bold rounded-xl text-center">수락 완료</span>
+                   <span v-if="req.status === 'rejected'" class="w-full px-4 py-2.5 bg-gray-500/10 border border-gray-500/30 text-gray-500 text-xs font-bold rounded-xl text-center">거절 완료</span>
+                 </div>
+               </div>
+             </div>
+
+             <div class="w-full h-px bg-sync-border my-2"></div>
+
+             <!-- My Sent Requests -->
+             <div class="flex flex-col gap-5">
+               <h3 class="text-xl font-bold text-sync-text flex items-center justify-between">
+                 📤 내가 보낸 합류 요청
+               </h3>
+               
+               <div v-if="mySentRequests.length === 0" class="py-12 w-full flex justify-center">
+                 <EmptyState size="sm" message="신청한 내역이 없습니다." icon="✈️" />
+               </div>
+
+               <div v-for="req in mySentRequests" :key="'out-' + req.id" class="glass-card p-6 flex flex-col gap-4 border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl opacity-90 transition-opacity hover:opacity-100">
+                 <div class="flex items-center justify-between border-b border-sync-border pb-3">
+                   <div class="flex items-center gap-2">
+                     <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest border border-sync-border px-1.5 py-0.5 rounded">{{ req.role }}</span>
+                     <span class="text-sm font-bold text-sync-text underline decoration-sync-border underline-offset-4">{{ mockTeams.find(t => t.id === req.teamId)?.teamName }}</span>
+                   </div>
+                   <span class="px-2.5 py-1 rounded flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest border"
+                         :class="req.status === 'pending' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : req.status === 'accepted' ? 'bg-teal-500/10 text-teal-500 border-teal-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'">
+                     <span v-if="req.status === 'pending'" class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+                     {{ req.status === 'pending' ? '대기 중' : req.status === 'accepted' ? '수락됨' : '거절됨' }}
+                   </span>
+                 </div>
+                 <p class="text-[13px] text-sync-muted leading-relaxed whitespace-pre-line bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-sync-border">"{{ req.message }}"</p>
+                 <div class="flex justify-between items-center mt-1">
+                   <span class="font-bold text-sync-muted text-xs">{{ req.createdAt }}</span>
+                   <button v-if="req.status === 'pending'" @click="mockJoinRequests.splice(mockJoinRequests.indexOf(req), 1)" class="text-red-500 text-xs font-bold hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-500/30">요청 취소</button>
+                 </div>
+               </div>
+             </div>
+          </div>
+
+          <div v-if="activeMenu === 'submissions'" class="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
              <div v-if="mockMySubmissions.length === 0" class="col-span-full py-12 flex justify-center w-full">
                 <EmptyState size="md" message="제출된 프로젝트 내역이 없습니다." icon="📦" />
              </div>
@@ -298,7 +380,7 @@ const recentTimeline = [
                        <div class="w-10 h-10 shrink-0 rounded-full border-[4px] border-white dark:border-[#181A20] flex items-center justify-center text-[15px] z-10 shadow-sm transition-transform group-hover:scale-110 ml-0 mt-3 mix-blend-normal" :class="act.iconColor">
                          {{ act.icon }}
                        </div>
-                       <div class="flex-1 flex flex-col gap-2 glass-card-hover p-5 rounded-2xl border border-transparent hover:border-sync-border hover:shadow-sm transition-all bg-black/[0.02] dark:bg-white/[0.02]">
+                       <div class="flex-1 flex flex-col gap-2 glass-card-hover p-5 rounded-2xl border border-transparent hover:border-sync-border hover:shadow-sm transition-all duration-300 ease-out bg-transparent hover:bg-black/5 dark:hover:bg-white/5">
                          <div class="flex flex-col sm:flex-row sm:items-center justify-between sm:gap-3">
                             <h4 class="text-base font-bold text-sync-text">{{ act.title }}</h4>
                             <span class="text-[10px] font-bold text-sync-muted mt-1 sm:mt-0 opacity-70 tracking-widest uppercase">{{ act.date }}</span>
@@ -421,8 +503,8 @@ const recentTimeline = [
   animation: fadeIn 0.4s ease-out forwards;
 }
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .custom-scrollbar::-webkit-scrollbar {
   height: 0px;

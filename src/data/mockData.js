@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
 
-export const mockHackathons = [
+export const mockHackathons = reactive([
   {
     id: 1,
     title: "2026 글로벌 AI 해커톤",
@@ -155,7 +155,7 @@ export const mockHackathons = [
     organizer: "한국 핀테크 지원센터",
     contactEmail: "fintech@korea.com"
   }
-];
+]);
 
 export const mockUsers = reactive([
   {
@@ -273,7 +273,7 @@ export const mockUsers = reactive([
   }
 ]);
 
-export const mockTeams = [
+export const mockTeams = reactive([
   {
     id: 1,
     teamName: "Team Nexus",
@@ -286,6 +286,7 @@ export const mockTeams = [
       { name: "프론트엔드", current: 0, total: 1 }
     ],
     members: ["A", "B", "C"],
+    leaderId: 1,
     theme: "from-purple-500 to-indigo-500",
     icon: "✨"
   },
@@ -319,7 +320,7 @@ export const mockTeams = [
     theme: "from-orange-400 to-red-500",
     icon: "🚀"
   }
-];
+]);
 
 export const mockMyHackathons = reactive([
   { id: 1, hackathonId: 1, title: "2026 글로벌 AI 해커톤", role: "프론트엔드", teamName: "Team Nexus", status: "진행 중", appliedDate: "2026.04.15" },
@@ -365,3 +366,12 @@ export const mockMyActivities = [
   { id: 3, type: "team", title: "팀 빌딩 소식", desc: "'차세대 보안 아키텍처 챌린지'의 Sync Guard 팀에 최종 합류가 확정었습니다.", date: "2026.05.20", icon: "🤝", iconColor: "text-teal-500 bg-teal-500/10 border-teal-500/20" },
   { id: 4, type: "submit", title: "프로젝트 제출 인증", desc: "'Sync Web3 넥서스' 최종 결과물을 Github 코드와 함께 제출을 완료했습니다.", date: "2026.03.22", icon: "🚀", iconColor: "text-purple-500 bg-purple-500/10 border-purple-500/20" }
 ];
+
+export const mockGlobalSubmissions = reactive([
+  { id: 1, hackathonId: 1, teamId: 1, teamName: "Team Nexus", projectName: "실무형 AI 챗봇 넥서스", description: "OpenAI API를 활용한 업무 지원 챗봇입니다.", submittedAt: "2026.05.06", links: ["https://github.com/team-nexus/chatbot"], files: [{ name: "아키텍처_설계서.pdf", size: "2.4MB" }] },
+  { id: 2, hackathonId: 1, teamId: 2, teamName: "Sync Guard", projectName: "제로 트러스트 방어벽", description: "클라우드 서비스에 쉽게 부착할 수 있는 보안 스캐너.", submittedAt: "2026.05.07", links: ["https://github.com/sync-guard/scanner"], files: [{ name: "최종_PPT.pdf", size: "5.1MB" }] }
+]);
+
+export const mockJoinRequests = reactive([
+  { id: 1, teamId: 1, userId: 2, nickname: "Alex_Dev", role: "프론트엔드", message: "안녕하세요! Vue3 실무 경험 2년차인 프론트엔드 개발자입니다. 기획하신 AI 챗봇의 UI가 흥미로워서 지원합니다.", status: "pending", createdAt: "2026.04.03" }
+]);

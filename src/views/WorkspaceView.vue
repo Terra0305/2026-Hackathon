@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { mockHackathons, mockTeams, mockUsers } from '../data/mockData'
+import { mockHackathons, mockTeams, mockUsers, mockGlobalSubmissions } from '../data/mockData'
 
 const route = useRoute()
 const router = useRouter()
@@ -103,6 +103,51 @@ const downloadDocument = (docName) => {
   a.download = docName
   a.click()
   window.URL.revokeObjectURL(url)
+}
+
+// Submission state
+const isSubmitModalOpen = ref(false)
+const submitForm = ref({
+  projectName: '',
+  description: '',
+  link: '',
+  selectedDocs: []
+})
+
+const openSubmitModal = () => {
+  submitForm.value = {
+    projectName: '',
+    description: '',
+    link: '',
+    selectedDocs: []
+  }
+  isSubmitModalOpen.value = true
+}
+
+const handleFinalSubmit = () => {
+  if (!submitForm.value.projectName || !submitForm.value.description) {
+    alert('프로젝트 명과 상세 설명을 입력해주세요.')
+    return
+  }
+
+  const selectedFiles = documents.value
+    .filter(d => submitForm.value.selectedDocs.includes(d.id))
+    .map(d => ({ name: d.name, size: '2.5MB' }))
+
+  mockGlobalSubmissions.push({
+    id: Date.now(),
+    hackathonId: hackathon.value.id,
+    teamId: team.value.id,
+    teamName: team.value.teamName,
+    projectName: submitForm.value.projectName,
+    description: submitForm.value.description,
+    submittedAt: new Date().toLocaleDateString('ko-KR').replace(/ /g, ''),
+    links: [submitForm.value.link].filter(Boolean),
+    files: selectedFiles
+  })
+
+  alert('최종 제출이 완료되었습니다!')
+  isSubmitModalOpen.value = false
 }
 </script>
 
@@ -219,6 +264,10 @@ const downloadDocument = (docName) => {
 
           <button @click="isUploadModalOpen = true" class="w-full py-4 rounded-xl border border-dashed border-sync-primary/50 bg-sync-primary/5 text-xs font-bold text-sync-primary hover:bg-sync-primary/10 transition-all mt-6 shadow-sm">
             + 새 문서 추가
+          </button>
+          
+          <button @click="openSubmitModal" class="w-full py-4 mt-3 rounded-xl bg-sync-text text-black dark:text-white dark:bg-[#111111] border border-black/20 dark:border-white/10 text-xs font-bold hover:-translate-y-0.5 transition-all shadow-[0_4px_14px_rgba(0,0,0,0.1)] flex items-center justify-center gap-2">
+            🚀 최종 산출물 제출하기
           </button>
         </div>
 
@@ -342,6 +391,62 @@ const downloadDocument = (docName) => {
                    <p class="text-sync-muted text-center text-xs sm:text-sm leading-relaxed border border-dashed border-sync-border p-5 rounded-2xl bg-black/5 dark:bg-white/5 font-medium">문서 템플릿 임시 미리보기 화면입니다.<br/>실제로 데이터베이스 연동이 이루어진 후, 파일의 종류에 따라<br/>PDF 렌더러 또는 이미지 뷰어가 스트리밍됩니다.</p>
                 </div>
              </div>
+          </div>
+
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Final Submission Modal -->
+    <Teleport to="body">
+      <div v-if="isSubmitModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isSubmitModalOpen = false"></div>
+        <div class="glass-card relative w-full max-w-2xl bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] p-6 sm:p-8 shadow-2xl animate-fade-in flex flex-col max-h-[90vh]">
+          
+          <div class="flex justify-between items-center mb-6 shrink-0 border-b border-sync-border pb-4">
+            <h3 class="text-xl font-bold text-sync-text flex items-center gap-2">🚀 프로젝트 최종 제출</h3>
+            <button @click="isSubmitModalOpen = false" class="text-sync-muted hover:text-sync-text transition-colors">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+
+          <div class="flex-1 overflow-y-auto custom-scrollbar pr-2 flex flex-col gap-6">
+            <p class="text-sm text-sync-muted">해커톤 주관사에게 최종 개발 결과물과 기획서를 제출합니다. 제출 이후에도 마감 기한 내에는 덮어쓰기가 가능합니다.</p>
+            
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold text-sync-muted">프로젝트 명 <span class="text-red-500">*</span></label>
+              <input v-model="submitForm.projectName" type="text" placeholder="예: Decentralized Escrow Protocol" class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3 text-sm text-sync-text outline-none focus:border-sync-primary">
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold text-sync-muted">프로젝트 상세 설명 <span class="text-red-500">*</span></label>
+              <textarea v-model="submitForm.description" rows="4" placeholder="프로젝트에 대한 주요 기능과 혁신성을 설명해주세요." class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3 text-sm text-sync-text outline-none focus:border-sync-primary custom-scrollbar"></textarea>
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-xs font-bold text-sync-muted">저장소 링크 (Github)</label>
+              <input v-model="submitForm.link" type="text" placeholder="https://github.com/..." class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3 text-sm text-sync-text outline-none focus:border-sync-primary">
+            </div>
+
+            <div class="flex flex-col gap-3">
+              <label class="text-xs font-bold text-sync-muted">제출할 첨부 문서 서택 (워크스페이스 문서)</label>
+              <div v-if="documents.length === 0" class="p-4 border border-dashed border-sync-border rounded-xl text-center text-sync-muted text-sm font-bold">
+                업로드된 문서가 없습니다.
+              </div>
+              <div v-else class="flex flex-col gap-2">
+                <label v-for="doc in documents" :key="doc.id" class="flex items-center gap-3 p-3 border border-sync-border rounded-xl hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer transition-colors has-[:checked]:border-sync-primary has-[:checked]:bg-sync-primary/5">
+                  <input type="checkbox" :value="doc.id" v-model="submitForm.selectedDocs" class="w-4 h-4 rounded text-sync-primary bg-black/10 border-sync-border focus:ring-sync-primary focus:ring-offset-0">
+                  <span class="text-2xl">{{ doc.type === '기획서' ? '📄' : (doc.type === '디자인' ? '🎨' : '📦') }}</span>
+                  <span class="text-sm font-bold text-sync-text truncate select-none">{{ doc.name }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-sync-border shrink-0">
+            <button @click="handleFinalSubmit" class="w-full py-3.5 rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-sm font-bold shadow-[0_4px_14px_rgba(50,132,255,0.3)] transition-all">
+              주최사에게 제출하기
+            </button>
           </div>
 
         </div>

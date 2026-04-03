@@ -27,22 +27,37 @@ const isPathActive = (path) => {
       </RouterLink>
 
       <nav class="hidden md:flex items-center gap-8 h-full">
-        <RouterLink to="/" class="h-full flex items-center text-xs font-semibold tracking-wider text-sync-muted hover:text-sync-text transition-colors duration-200 relative" :class="{ 'text-sync-primary': isPathActive('/') }">
-          HOME
-          <span v-if="isPathActive('/')" class="absolute bottom-0 left-0 w-full h-[2px] bg-sync-primary rounded-t-md"></span>
-        </RouterLink>
-        <RouterLink to="/hackathons" class="h-full flex items-center text-xs font-semibold tracking-wider text-sync-muted hover:text-sync-text transition-colors duration-200 relative" :class="{ 'text-sync-primary': isPathActive('/hackathons') }">
-          HACKATHONS
-          <span v-if="isPathActive('/hackathons')" class="absolute bottom-0 left-0 w-full h-[2px] bg-sync-primary rounded-t-md"></span>
-        </RouterLink>
-        <RouterLink to="/camp" class="h-full flex items-center text-xs font-semibold tracking-wider text-sync-muted hover:text-sync-text transition-colors duration-200 relative" :class="{ 'text-sync-primary': isPathActive('/camp') }">
-          CAMP
-          <span v-if="isPathActive('/camp')" class="absolute bottom-0 left-0 w-full h-[2px] bg-sync-primary rounded-t-md"></span>
-        </RouterLink>
-        <RouterLink to="/rankings" class="h-full flex items-center text-xs font-semibold tracking-wider text-sync-muted hover:text-sync-text transition-colors duration-200 relative" :class="{ 'text-sync-primary': isPathActive('/rankings') }">
-          RANKINGS
-          <span v-if="isPathActive('/rankings')" class="absolute bottom-0 left-0 w-full h-[2px] bg-sync-primary rounded-t-md"></span>
-        </RouterLink>
+        <!-- Normal User Navigation -->
+        <template v-if="!authStore.user?.isAdmin">
+          <RouterLink to="/" class="h-full flex items-center text-xs font-semibold tracking-wider text-sync-muted hover:text-sync-text transition-colors duration-200 relative" :class="{ 'text-sync-primary': isPathActive('/') }">
+            HOME
+            <span v-if="isPathActive('/')" class="absolute bottom-0 left-0 w-full h-[2px] bg-sync-primary rounded-t-md"></span>
+          </RouterLink>
+          <RouterLink to="/hackathons" class="h-full flex items-center text-xs font-semibold tracking-wider text-sync-muted hover:text-sync-text transition-colors duration-200 relative" :class="{ 'text-sync-primary': isPathActive('/hackathons') }">
+            HACKATHONS
+            <span v-if="isPathActive('/hackathons')" class="absolute bottom-0 left-0 w-full h-[2px] bg-sync-primary rounded-t-md"></span>
+          </RouterLink>
+          <RouterLink to="/camp" class="h-full flex items-center text-xs font-semibold tracking-wider text-sync-muted hover:text-sync-text transition-colors duration-200 relative" :class="{ 'text-sync-primary': isPathActive('/camp') }">
+            CAMP
+            <span v-if="isPathActive('/camp')" class="absolute bottom-0 left-0 w-full h-[2px] bg-sync-primary rounded-t-md"></span>
+          </RouterLink>
+          <RouterLink to="/rankings" class="h-full flex items-center text-xs font-semibold tracking-wider text-sync-muted hover:text-sync-text transition-colors duration-200 relative" :class="{ 'text-sync-primary': isPathActive('/rankings') }">
+            RANKINGS
+            <span v-if="isPathActive('/rankings')" class="absolute bottom-0 left-0 w-full h-[2px] bg-sync-primary rounded-t-md"></span>
+          </RouterLink>
+        </template>
+        
+        <!-- Admin Navigation -->
+        <template v-else>
+          <RouterLink to="/admin" class="h-full flex items-center text-xs font-bold tracking-wider text-sync-muted hover:text-red-400 transition-colors duration-200 relative" :class="{ 'text-red-400': isPathActive('/admin') && !isPathActive('/admin/users') }">
+            BACKOFFICE
+            <span v-if="isPathActive('/admin') && !isPathActive('/admin/users')" class="absolute bottom-0 left-0 w-full h-[2px] bg-red-500 rounded-t-md"></span>
+          </RouterLink>
+          <RouterLink to="/admin/users" class="h-full flex items-center text-xs font-bold tracking-wider text-sync-muted hover:text-red-400 transition-colors duration-200 relative" :class="{ 'text-red-400': isPathActive('/admin/users') }">
+            USERS
+            <span v-if="isPathActive('/admin/users')" class="absolute bottom-0 left-0 w-full h-[2px] bg-red-500 rounded-t-md"></span>
+          </RouterLink>
+        </template>
       </nav>
 
       <div class="flex items-center gap-4 sm:gap-5 relative">
@@ -77,9 +92,13 @@ const isPathActive = (path) => {
                      <span class="text-[13px] font-bold text-sync-text">{{ authStore.user.nickname }}</span>
                      <span class="text-[10px] text-sync-muted font-bold truncate opacity-80">{{ authStore.user.email || 'builder@sync.com' }}</span>
                   </div>
-                  <RouterLink to="/mypage" class="px-4 py-2.5 text-sm font-bold text-sync-muted hover:text-sync-text hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-2.5 shrink-0" @click="isDropdownOpen = false">
+                  <RouterLink v-if="!authStore.user?.isAdmin" to="/mypage" class="px-4 py-2.5 text-sm font-bold text-sync-muted hover:text-sync-text hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-2.5 shrink-0" @click="isDropdownOpen = false">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     마이페이지
+                  </RouterLink>
+                  <RouterLink v-else to="/admin" class="px-4 py-2.5 text-sm font-bold text-sync-muted hover:text-red-400 hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-2.5 shrink-0" @click="isDropdownOpen = false">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    어드민 설정
                   </RouterLink>
                   <button @click="authStore.logout(); isDropdownOpen = false" class="px-4 py-2.5 text-sm font-bold text-red-500/80 hover:text-red-500 hover:bg-red-500/10 transition-colors flex items-center gap-2.5 w-full text-left shrink-0">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>

@@ -43,7 +43,7 @@
   }
 
   .glass-card {
-    @apply bg-white/80 dark:bg-sync-card backdrop-blur-2xl border border-slate-200/80 dark:border-sync-border rounded-[2rem] transition-all duration-300 shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden;
+    @apply bg-white/80 dark:bg-sync-card backdrop-blur-2xl border border-slate-200/80 dark:border-sync-border rounded-[2rem] transition-all duration-[400ms] ease-out shadow-[0_8px_32px_rgba(0,0,0,0.04)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative overflow-hidden;
   }
   
   .glass-card::before {
@@ -90,7 +90,7 @@
   }
 
   .glow-card {
-    @apply relative rounded-[2rem] overflow-hidden transition-all duration-300 bg-black/5 dark:bg-white/5;
+    @apply relative rounded-[2rem] overflow-hidden transition-all duration-[500ms] ease-out bg-black/5 dark:bg-white/5;
   }
 
   .glow-card::before {
@@ -116,7 +116,7 @@
   }
 
   .glow-card-content {
-    @apply relative z-[2] m-[1px] h-[calc(100%-2px)] w-[calc(100%-2px)] rounded-[inherit] bg-white/90 dark:bg-sync-card backdrop-blur-3xl transition-colors duration-500;
+    @apply relative z-[2] m-[1px] h-[calc(100%-2px)] w-[calc(100%-2px)] rounded-[inherit] bg-white/90 dark:bg-sync-card backdrop-blur-3xl transition-colors duration-[500ms] ease-out;
   }
 
   .glow-card-hover {

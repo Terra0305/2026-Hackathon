@@ -23,14 +23,36 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!user.value)
 
   const login = (email, password) => {
-    // Create a local session linking standard mock data
-    const mockUser = {
-      ...mockUsers[0],
-      email: email
+    let mockUser;
+    if (email === 'admin@sync.com') {
+      mockUser = {
+        id: 999,
+        nickname: "Sync Admin",
+        role: "Global Administrator",
+        email: email,
+        avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Admin",
+        isAdmin: true,
+        points: 0,
+        rank: 0,
+        status: "up",
+        badges: ["👑"],
+        githubConnected: false,
+        techStack: ["DevOps", "Management"],
+        githubCommits: 0
+      }
+    } else {
+      mockUser = {
+        ...mockUsers[0],
+        email: email
+      }
     }
     user.value = mockUser
     localStorage.setItem('sync_user', JSON.stringify(mockUser))
-    router.push('/')
+    if (mockUser.isAdmin) {
+      router.push('/admin')
+    } else {
+      router.push('/')
+    }
   }
 
   const signup = (nickname, email, password) => {

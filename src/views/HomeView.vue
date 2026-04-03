@@ -42,6 +42,7 @@ const handleTouchMove = (e) => {
     <div class="fixed inset-0 z-0 pointer-events-none transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1)"
          :class="{ 'opacity-0 scale-95': isHeroFolded }">
       <spline-viewer class="w-full h-full object-cover" url="https://prod.spline.design/j9a3Ou6jdJcpdLSz/scene.splinecode"></spline-viewer>
+      <div class="absolute inset-0 bg-black/50 z-[1] transition-opacity duration-1000 mix-blend-multiply"></div>
     </div>
 
     <!-- 2. SCREEN 1: Hero (Landing) -->

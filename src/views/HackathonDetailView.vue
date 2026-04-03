@@ -22,7 +22,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-8 pb-32 transition-colors duration-300">
+  <div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col gap-8 pb-32 transition-colors duration-[500ms] ease-out w-full font-sans">
     <!-- Hero Header Component (Redesigned with Flex to prevent overlap) -->
     <div class="w-full flex-1 min-h-[380px] md:min-h-[440px] flex flex-col justify-between rounded-[2.5rem] relative overflow-hidden py-10 md:py-12 px-5 bg-gradient-to-br shadow-[0_16px_48px_rgba(0,0,0,0.1)] group transition-all" :class="hackathon.bgGradient">
       
@@ -77,26 +77,38 @@ onMounted(() => {
             <h2 class="text-2xl font-bold font-outfit">해커톤 상세 소개</h2>
             <p class="text-sync-muted leading-relaxed whitespace-pre-line text-[15px] sm:text-[17px] font-medium">{{ hackathon.description }}</p>
             
-            <!-- Contextual Mock Content -->
-            <div class="w-full aspect-video rounded-[2rem] bg-black/5 dark:bg-white/5 border border-sync-border flex items-center justify-center flex-col gap-4 group cursor-pointer mt-4 hover:border-sync-primary/50 transition-colors shadow-inner overflow-hidden relative">
-              <div class="absolute inset-0 bg-gradient-to-tr from-sync-primary/10 to-transparent mix-blend-overlay"></div>
-              <div class="w-20 h-20 rounded-full bg-white/20 dark:bg-black/30 border border-white/20 backdrop-blur-md flex items-center justify-center text-sync-text shadow-[0_0_30px_rgba(50,132,255,0.2)] group-hover:scale-110 transition-transform z-10">
-                <svg class="w-8 h-8 ml-1" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <!-- Dynamic Hackathon Descriptions & Optional Video Placeholder -->
+            <div class="flex flex-col gap-6 mt-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div class="p-6 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border backdrop-blur-sm transition-all duration-[400ms] ease-out hover:border-sync-primary/30 hover:-translate-y-1 hover:shadow-sm">
+                   <h3 class="text-lg font-bold text-sync-text mb-2">🚀 프로젝트 목표</h3>
+                   <p class="text-sm font-medium text-sync-muted leading-relaxed drop-shadow-sm">전 세계 개발자들과 협력하여 기발한 아이디어를 현실로 구현하세요. 새로운 기술 스택을 도입하고 혁신적인 솔루션을 찾는 것이 목표입니다.</p>
+                 </div>
+                 <div class="p-6 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border backdrop-blur-sm transition-all duration-[400ms] ease-out hover:border-teal-500/30 hover:-translate-y-1 hover:shadow-sm">
+                   <h3 class="text-lg font-bold text-sync-text mb-2">💡 기대 효과</h3>
+                   <p class="text-sm font-medium text-sync-muted leading-relaxed drop-shadow-sm">실제 서비스화할 수 있는 MVP를 제작해 보세요. 이 경험을 바탕으로 실무에서 필요한 협업 능력과 기술을 배양할 수 있습니다.</p>
+                 </div>
               </div>
-              <span class="text-xs font-bold text-sync-muted z-10 uppercase tracking-widest drop-shadow-sm">Play Promotional Video</span>
+              <!-- Optional Promotional Video -->
+              <div class="w-full h-24 md:h-28 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border/50 flex items-center justify-center flex-col gap-3 group cursor-pointer hover:border-sync-primary/40 transition-colors duration-[400ms] ease-out">
+                <div class="flex items-center gap-2 text-sync-muted group-hover:text-sync-primary transition-colors duration-[400ms]">
+                   <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                   <span class="text-xs font-bold uppercase tracking-widest">주최 측 영상 (선택 사항)</span>
+                </div>
+              </div>
             </div>
           </div>
 
           <!-- 2. Timeline -->
           <div v-if="currentTab === 'timeline'" class="flex flex-col gap-8 animate-fade-in">
             <h2 class="text-2xl font-bold font-outfit text-sync-text">진행 일정 (타임라인)</h2>
-            <div class="relative pl-8 flex flex-col gap-10 before:content-[''] before:absolute before:left-3 before:top-3 before:bottom-3 before:w-0.5 before:bg-sync-border">
+            <div class="relative pl-10 flex flex-col gap-6 before:content-[''] before:absolute before:left-[16px] before:top-[46px] before:bottom-[46px] before:w-[2px] before:bg-sync-border dark:before:bg-white/10 before:z-0">
               
-              <div v-for="(item, idx) in hackathon.timeline" :key="idx" class="relative">
-                <div class="absolute -left-[32px] top-1.5 w-4 h-4 rounded-full bg-sync-bg border-[4px] border-sync-primary shadow-[0_0_12px_rgba(50,132,255,0.4)] transition-all"></div>
-                <div class="flex flex-col gap-1 hover:bg-black/10 dark:hover:bg-white/10 p-4 rounded-2xl border border-transparent hover:border-sync-border transition-colors">
+              <div v-for="(item, idx) in hackathon.timeline" :key="idx" class="relative group">
+                <div class="absolute -left-[30px] top-1/2 -translate-y-1/2 w-[14px] h-[14px] rounded-full bg-sync-bg border-[3px] border-sync-primary shadow-[0_0_10px_rgba(50,132,255,0.4)] transition-all duration-[400ms] ease-out group-hover:scale-125 z-10"></div>
+                <div class="flex flex-col gap-1 hover:bg-black/5 dark:hover:bg-white/5 p-6 rounded-2xl border border-transparent hover:border-sync-border transition-colors duration-[400ms] ease-out z-10 relative">
                   <p class="text-[11px] font-bold text-sync-primary tracking-widest uppercase">{{ item.date }}</p>
-                  <h4 class="text-lg font-bold text-sync-text mt-1">{{ item.step }}</h4>
+                  <h4 class="text-[17px] font-bold text-sync-text mt-1">{{ item.step }}</h4>
                 </div>
               </div>
 
@@ -106,19 +118,17 @@ onMounted(() => {
           <!-- 3. Prizes -->
           <div v-if="currentTab === 'prizes'" class="flex flex-col gap-8 animate-fade-in">
              <h2 class="text-2xl font-bold font-outfit text-sync-text">시상 규모 및 상금</h2>
-             <GlowCardContainer class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Golden card logic -->
-                <GlowCard v-for="(prize, idx) in hackathon.prizes" :key="idx" 
-                  class="flex flex-col items-center text-center transition-all hover:-translate-y-2"
-                  contentClass="p-6 md:p-8 rounded-3xl bg-gradient-to-br border shadow-[0_8px_32px_rgba(0,0,0,0.05)] relative overflow-hidden"
-                  :class="idx === 0 ? 'from-amber-200/40 to-amber-50/40 border-amber-300 dark:border-amber-500/30 dark:from-amber-900/40 dark:to-transparent' : idx === 1 ? 'from-slate-200/40 to-slate-50/40 border-slate-300 dark:border-slate-500/30 dark:from-slate-800/50' : 'from-orange-200/40 to-orange-50/40 border-orange-300 dark:border-orange-500/30 dark:from-orange-900/40'"
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div v-for="(prize, idx) in hackathon.prizes" :key="idx" 
+                  class="flex flex-col justify-center p-6 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border transition-colors hover:bg-black/10 dark:hover:bg-white/10 group"
                 >
-                  <div class="absolute -top-10 -right-10 w-32 h-32 bg-white/30 dark:bg-white/10 blur-[20px] rounded-full mix-blend-overlay"></div>
-                  <div class="text-5xl mb-6 relative z-10 drop-shadow-sm">{{ idx === 0 ? '🏆' : idx === 1 ? '🥈' : '🥉' }}</div>
-                  <h4 class="text-[11px] font-bold text-sync-text opacity-70 uppercase tracking-widest mb-2 z-10">{{ prize.rank }}</h4>
-                  <p class="text-xl md:text-2xl font-black text-sync-text tracking-tight z-10">{{ prize.reward }}</p>
-                </GlowCard>
-             </GlowCardContainer>
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xl group-hover:scale-110 transition-transform origin-left">{{ idx === 0 ? '🏆' : idx === 1 ? '🥈' : '🥉' }}</span>
+                    <h4 class="text-[13px] font-bold text-sync-muted uppercase tracking-wider">{{ prize.rank }}</h4>
+                  </div>
+                  <p class="text-[16px] font-bold text-sync-text leading-relaxed break-keep">{{ prize.reward }}</p>
+                </div>
+             </div>
           </div>
 
           <!-- 4. Rules -->
@@ -206,8 +216,8 @@ onMounted(() => {
   animation: fadeIn 0.4s ease-out forwards;
 }
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .custom-scrollbar::-webkit-scrollbar {
   height: 4px;
