@@ -16,6 +16,39 @@ const myIncomingRequests = computed(() => {
   return mockJoinRequests.filter(r => myTeamIds.includes(r.teamId))
 })
 
+const handleAcceptRequest = (req) => {
+  const team = mockTeams.find(t => t.id === req.teamId)
+  if (!team) return
+
+  const role = team.roles.find(r => r.name === req.role)
+  if (!role) return
+
+  if (role.current >= role.total) {
+    alert('해당 역할의 정원이 이미 가득 찼습니다.')
+    return
+  }
+
+  // Update Data
+  role.current++
+  if (!team.members.includes(req.nickname)) {
+    team.members.push(req.nickname)
+  }
+  req.status = 'accepted'
+
+  // Auto-close team if all roles are full
+  if (team.roles.every(r => r.current >= r.total)) {
+    team.status = '마감'
+  }
+
+  alert(`${req.nickname} 님이 팀에 합류했습니다!`)
+}
+
+const handleRejectRequest = (req) => {
+  if (confirm(`'${req.nickname}' 님의 합류 요청을 거절하시겠습니까?`)) {
+    req.status = 'rejected'
+  }
+}
+
 const isPointShopOpen = ref(false)
 const pointShopItems = [
   { id: 1, name: 'CGV 영화 관람권 1인', price: 15000, icon: '🍿', color: 'from-red-500 to-rose-400' },
@@ -286,10 +319,10 @@ const recentTimeline = [
                    </div>
                  </div>
                  <div class="flex lg:flex-col gap-3 shrink-0 lg:w-32 justify-end mt-2 lg:mt-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-sync-border">
-                   <button @click="req.status = 'accepted'" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5">
+                   <button @click="handleAcceptRequest(req)" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5">
                      수락하기
                    </button>
-                   <button @click="req.status = 'rejected'" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 text-xs font-bold rounded-xl transition-all shadow-sm">거절하기</button>
+                   <button @click="handleRejectRequest(req)" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 text-xs font-bold rounded-xl transition-all shadow-sm">거절하기</button>
                    <span v-if="req.status === 'accepted'" class="w-full px-4 py-2.5 bg-teal-500/10 border border-teal-500/30 text-teal-500 text-xs font-bold rounded-xl text-center">수락 완료</span>
                    <span v-if="req.status === 'rejected'" class="w-full px-4 py-2.5 bg-gray-500/10 border border-gray-500/30 text-gray-500 text-xs font-bold rounded-xl text-center">거절 완료</span>
                  </div>

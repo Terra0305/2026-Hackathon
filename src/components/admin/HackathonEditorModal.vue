@@ -189,7 +189,7 @@ const handleSave = () => {
             
             <div class="flex flex-col gap-2">
               <label class="text-xs font-bold text-sync-muted">배경 그라데이션 CSS Class (Tailwind)</label>
-              <input v-model="formData.bgGradient" type="text" placeholder="from-slate-700 to-slate-900" class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all font-mono text-xs">
+              <input v-model="formData.bgGradient" type="text" placeholder="from-slate-700 to-slate-900" class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all font-mono text-xs">
             </div>
           </div>
 

@@ -35,7 +35,8 @@ const handleJoinInit = () => {
     return
   }
   showApplicationForm.value = true
-  joinForm.value = { role: selectedTeam.value.roles?.[0]?.name || '', message: '' }
+  const availableRole = selectedTeam.value.roles?.find(r => r.current < r.total)
+  joinForm.value = { role: availableRole?.name || '', message: '' }
 }
 
 const handleJoinSubmit = () => {
@@ -75,7 +76,8 @@ const handleCardJoinClick = (team) => {
   }
   selectedTeam.value = team
   showApplicationForm.value = true
-  joinForm.value = { role: selectedTeam.value.roles?.[0]?.name || '', message: '' }
+  const availableRole = team.roles?.find(r => r.current < r.total)
+  joinForm.value = { role: availableRole?.name || '', message: '' }
 }
 
 const filteredTeams = computed(() => {
@@ -174,20 +176,22 @@ const filteredTeams = computed(() => {
           </div>
         </div>
         
-        <div class="flex flex-col gap-1.5 z-10 mt-2">
-           <p class="text-[10px] font-bold text-sync-primary uppercase tracking-widest">목표 해커톤</p>
-           <h4 class="text-[13px] font-bold text-sync-text underline decoration-sync-border underline-offset-4">{{ team.hackathonTitle }}</h4>
+        <div class="flex flex-col gap-2 z-10 mt-4">
+           <p class="text-[13px] font-bold text-sync-primary uppercase tracking-widest">목표 해커톤</p>
+           <h4 class="text-xl font-black text-sync-text underline decoration-sync-border underline-offset-[10px] transition-colors tracking-tight">{{ team.hackathonTitle }}</h4>
         </div>
 
-        <p class="text-[13px] text-sync-muted leading-[1.7] line-clamp-3 transition-colors mt-3 z-10">
-          {{ team.description }}
-        </p>
-
-        <div class="flex flex-col gap-3 z-10 mt-4">
+        <div class="flex flex-col gap-3 z-10 mt-6 mb-2">
           <p class="text-[10px] font-bold text-sync-muted uppercase tracking-widest transition-colors">REQUIRED ROLES</p>
           <div class="flex flex-wrap gap-2.5">
-            <span v-for="(role, idx) in team.roles" :key="idx" class="px-3.5 py-2 bg-black/5 dark:bg-white/5 border border-sync-border rounded-lg text-xs font-bold text-sync-text transition-colors">
-               {{ role.name }} <span class="text-sync-muted ml-1 text-[10px]">{{ role.current }}/{{ role.total }}</span>
+            <span v-for="(role, idx) in team.roles" :key="idx" 
+              class="px-3.5 py-2 bg-black/5 dark:bg-white/5 border border-sync-border rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5"
+              :class="role.current >= role.total ? 'text-sync-muted bg-black/10 dark:bg-white/5 opacity-60' : 'text-sync-text'"
+            >
+               {{ role.name }} 
+               <span class="ml-1 text-[10px]" :class="role.current >= role.total ? 'text-red-500/70' : 'text-sync-muted'">
+                 {{ role.current >= role.total ? '마감' : `${role.current}/${role.total}` }}
+               </span>
             </span>
           </div>
         </div>
@@ -198,11 +202,11 @@ const filteredTeams = computed(() => {
           </div>
           <div class="flex gap-2">
              <button
-               v-if="team.status === '마감'"
+               v-if="team.status === '마감' || team.roles.every(r => r.current >= r.total)"
                disabled
                class="px-5 py-2.5 rounded-xl bg-black/10 dark:bg-white/5 border border-sync-border text-sync-muted text-xs font-bold cursor-not-allowed opacity-60"
              >
-               마감되었습니다
+               {{ team.status === '마감' ? '마감되었습니다' : '모집 완료' }}
              </button>
              <button 
                v-else-if="!joinedTeams.has(team.id)"
@@ -258,19 +262,25 @@ const filteredTeams = computed(() => {
         <div class="flex flex-col gap-3 mt-2">
           <p class="text-[12px] font-bold text-sync-muted uppercase tracking-widest">모집 중인 역할</p>
           <div class="flex flex-wrap gap-2">
-            <span v-for="(role, idx) in selectedTeam.roles" :key="idx" class="px-4 py-2.5 bg-black/5 dark:bg-black/40 border border-sync-border rounded-xl text-sm font-bold text-sync-text flex items-center gap-2">
-               {{ role.name }} <span class="bg-black/10 dark:bg-white/10 px-2.5 py-0.5 rounded text-[11px] text-sync-text">{{ role.current }}/{{ role.total }}</span>
+            <span v-for="(role, idx) in selectedTeam.roles" :key="idx" 
+              class="px-4 py-2.5 bg-black/5 dark:bg-black/40 border border-sync-border rounded-xl text-sm font-bold flex items-center gap-2 transition-colors"
+              :class="role.current >= role.total ? 'text-sync-muted opacity-60' : 'text-sync-text'"
+            >
+               {{ role.name }} 
+               <span class="bg-black/10 dark:bg-white/10 px-2.5 py-0.5 rounded text-[11px]" :class="role.current >= role.total ? 'text-red-500/70' : 'text-sync-text'">
+                 {{ role.current >= role.total ? '마감' : `${role.current}/${role.total}` }}
+               </span>
             </span>
           </div>
         </div>
 
         <div v-if="!showApplicationForm" class="mt-4 pt-6 border-t border-sync-border flex justify-end w-full">
            <button
-             v-if="selectedTeam.status === '마감'"
+             v-if="selectedTeam.status === '마감' || selectedTeam.roles.every(r => r.current >= r.total)"
              disabled
              class="w-full md:w-auto px-10 py-4 rounded-xl bg-black/10 dark:bg-white/5 border border-sync-border text-sync-muted text-[15px] font-bold cursor-not-allowed opacity-60"
            >
-             모집이 마감되었습니다
+             {{ selectedTeam.status === '마감' ? '모집이 마감되었습니다' : '모집이 완료되었습니다' }}
            </button>
            <button 
              v-else-if="!joinedTeams.has(selectedTeam.id)"
@@ -291,7 +301,13 @@ const filteredTeams = computed(() => {
            <div class="flex flex-col gap-1.5">
              <label class="text-xs font-bold text-sync-muted uppercase tracking-widest">지원 포지션</label>
              <select v-model="joinForm.role" class="w-full bg-black/5 dark:bg-black/40 border border-sync-border rounded-xl p-3 text-sm text-sync-text outline-none focus:border-sync-primary">
-               <option v-for="(role, idx) in selectedTeam.roles" :key="'role-'+idx" :value="role.name">{{ role.name }} ({{role.current}}/{{role.total}})</option>
+               <option v-for="(role, idx) in selectedTeam.roles" 
+                 :key="'role-'+idx" 
+                 :value="role.name"
+                 :disabled="role.current >= role.total"
+               >
+                 {{ role.name }} {{ role.current >= role.total ? '(마감)' : `(${role.current}/${role.total})` }}
+               </option>
              </select>
            </div>
            <div class="flex flex-col gap-1.5">
