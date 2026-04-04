@@ -373,7 +373,7 @@ const getTimelineStatus = (dateStr) => {
                   <span class="px-2.5 py-1 rounded text-[10px] font-bold border tracking-wider" :class="priorityClass(t.priority)">{{ t.priority }}</span>
                   <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity" @click.stop>
                     <button v-if="STATUSES.indexOf(t.status)>0" @click="moveTaskStatus(t,-1)" class="w-6 h-6 flex items-center justify-center text-sync-muted hover:text-sync-primary text-xs rounded-lg hover:bg-sync-primary/10 transition-colors" title="이전 상태">◀</button>
-                    <button v-if="STATUSES.indexOf(t.status)<STATUSES.length-1" @click="moveTaskStatus(t,1)" class="w-6 h-6 flex items-center justify-center text-sync-muted hover:text-teal-500 text-xs rounded-lg hover:bg-teal-500/10 transition-colors" title="다음 상태">▶</button>
+                    <button v-if="STATUSES.indexOf(t.status) < STATUSES.length - 1" @click="moveTaskStatus(t,1)" class="w-6 h-6 flex items-center justify-center text-sync-muted hover:text-teal-500 text-xs rounded-lg hover:bg-teal-500/10 transition-colors" title="다음 상태">▶</button>
                     <button @click="deleteTask(t.id)" class="w-6 h-6 flex items-center justify-center text-sync-muted hover:text-red-500 text-xs rounded-lg hover:bg-red-500/10 transition-colors" title="삭제">✕</button>
                   </div>
                 </div>
@@ -439,6 +439,8 @@ const getTimelineStatus = (dateStr) => {
               <p class="text-sync-muted text-base font-bold">문서가 없습니다. 새 문서를 작성하거나 파일을 업로드하세요.</p>
             </div>
           </div>
+        </div>
+
     <!-- ── TAB 3: Members ── -->
     <div v-if="activeTab === 'members'" class="animate-fade-in max-w-xl">
       <div class="glass-card p-6 rounded-2xl border border-sync-border">
@@ -458,8 +460,11 @@ const getTimelineStatus = (dateStr) => {
             <svg class="w-4 h-4 text-sync-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </RouterLink>
         </div>
-        <!-- ── TAB 3: GitHub Contributions ── -->
-        <div v-if="activeTab === 'github'" class="animate-fade-in flex flex-col gap-6">
+      </div>
+    </div>
+
+    <!-- ── TAB 4: GitHub Contributions ── -->
+    <div v-if="activeTab === 'github'" class="animate-fade-in flex flex-col gap-6">
           <div class="flex items-center justify-between">
             <p class="text-sm text-sync-muted font-medium">팀원들의 최근 12주 GitHub 커밋 기여 현황입니다.</p>
             <a v-if="githubRepoUrl" :href="githubRepoUrl" target="_blank" class="flex items-center gap-1.5 text-xs font-bold text-sync-primary hover:underline">
@@ -515,13 +520,12 @@ const getTimelineStatus = (dateStr) => {
         </div>
       </div>
     </div>
-
   </div>
 
   <!-- ══ Task Modal ══ -->
   <Teleport to="body">
     <div v-if="isTaskModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isTaskModalOpen=false"/>
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isTaskModalOpen=false"></div>
       <div class="glass-card relative w-full max-w-lg bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] p-8 shadow-2xl animate-fade-in flex flex-col gap-5">
         <div class="flex justify-between items-center">
           <h3 class="text-xl font-bold text-sync-text">{{ editingTask ? '태스크 수정' : '새 태스크 추가' }}</h3>
@@ -537,7 +541,7 @@ const getTimelineStatus = (dateStr) => {
           </div>
           <div class="flex flex-col gap-1.5">
             <label class="text-xs font-bold text-sync-muted uppercase tracking-wider">설명</label>
-            <textarea v-model="taskForm.desc" rows="2" placeholder="상세 설명 (선택)" class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all resize-none custom-scrollbar"/>
+            <textarea v-model="taskForm.desc" rows="2" placeholder="상세 설명 (선택)" class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all resize-none custom-scrollbar"></textarea>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-1.5">
@@ -648,7 +652,7 @@ const getTimelineStatus = (dateStr) => {
             class="flex-1 w-full p-8 text-sm text-sync-text bg-transparent outline-none resize-none font-mono leading-relaxed custom-scrollbar"
             placeholder="내용을 작성하세요. 마크다운 문법을 지원합니다&#10;&#10;예시:&#10;# 제목&#10;## 소제목&#10;**굵게** *기울임*&#10;- 항목1&#10;- 항목2"
             spellcheck="false"
-          />
+          ></textarea>
         </div>
       </div>
     </div>
@@ -657,7 +661,7 @@ const getTimelineStatus = (dateStr) => {
   <!-- ══ New Doc Name Modal ══ -->
   <Teleport to="body">
     <div v-if="isNewDocModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isNewDocModalOpen=false"/>
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isNewDocModalOpen=false"></div>
       <div class="glass-card relative w-full max-w-sm bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] p-8 shadow-2xl animate-fade-in">
         <h3 class="text-xl font-bold text-sync-text mb-5">새 문서 이름 입력</h3>
         <input v-model="newDocName" type="text" placeholder="예: 기능 명세서 v1.0" @keyup.enter="createNewDoc"
@@ -673,7 +677,7 @@ const getTimelineStatus = (dateStr) => {
   <!-- ══ Upload Modal ══ -->
   <Teleport to="body">
     <div v-if="isUploadModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="!isUploading && (isUploadModalOpen=false)"/>
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="!isUploading && (isUploadModalOpen=false)"></div>
       <div class="glass-card relative w-full max-w-md bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] p-8 shadow-2xl animate-fade-in">
         <div class="flex justify-between items-center mb-6">
           <h3 class="text-xl font-bold text-sync-text">파일 업로드</h3>
@@ -694,7 +698,7 @@ const getTimelineStatus = (dateStr) => {
           <div class="w-16 h-16 rounded-full bg-sync-primary/10 border border-sync-primary/20 flex items-center justify-center mb-6 animate-pulse"><span class="text-2xl animate-bounce">📦</span></div>
           <p class="font-bold text-sync-text mb-4">{{ uploadedFile?.name }} 업로드 중...</p>
           <div class="w-full h-3 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden border border-sync-border">
-            <div class="h-full bg-sync-primary rounded-full transition-all duration-150" :style="`width:${uploadProgress}%`"/>
+            <div class="h-full bg-sync-primary rounded-full transition-all duration-150 font-bold text-sync-text" :style="`width:${uploadProgress}%` "></div>
           </div>
           <p class="text-xs font-bold text-sync-primary mt-2">{{ uploadProgress }}%</p>
         </div>
@@ -705,7 +709,7 @@ const getTimelineStatus = (dateStr) => {
   <!-- ══ Final Submit Modal ══ -->
   <Teleport to="body">
     <div v-if="isSubmitModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isSubmitModalOpen=false"/>
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="isSubmitModalOpen=false"></div>
       <div class="glass-card relative w-full max-w-2xl bg-white dark:bg-[#0A0A0A] border border-sync-border rounded-[2rem] p-8 shadow-2xl animate-fade-in flex flex-col max-h-[90vh]">
         <div class="flex justify-between items-center mb-6 border-b border-sync-border pb-4">
           <h3 class="text-xl font-bold text-sync-text">🚀 프로젝트 최종 제출</h3>
