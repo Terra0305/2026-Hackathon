@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, ref, onBeforeUnmount } from 'vue'
+import { useRoute, useRouter, RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { mockHackathons, mockTeams, mockUsers, mockGlobalSubmissions } from '../data/mockData'
 
 const route = useRoute()
@@ -59,6 +59,15 @@ const moveTaskStatus = (task, dir) => {
   const next = STATUSES[idx + dir]
   if (next) task.status = next
 }
+
+// Close all modals before navigating away to prevent Vue Transition crash
+onBeforeRouteLeave(() => {
+  isTaskModalOpen.value = false
+  isEditorOpen.value = false
+  isNewDocModalOpen.value = false
+  isUploadModalOpen.value = false
+  isSubmitModalOpen.value = false
+})
 
 // ─── Documents ─────────────────────────────────────────
 const documents = ref([
@@ -362,6 +371,24 @@ const getTimelineStatus = (dateStr) => {
               <p class="text-sync-muted text-base font-bold">문서가 없습니다. 새 문서를 작성하거나 파일을 업로드하세요.</p>
             </div>
           </div>
+    <!-- ── TAB 3: Members ── -->
+    <div v-if="activeTab === 'members'" class="animate-fade-in max-w-xl">
+      <div class="glass-card p-6 rounded-2xl border border-sync-border">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="text-lg font-bold text-sync-text">팀 멤버 ({{ mockUsers.length }}명)</h2>
+          <span class="text-sync-muted">👥</span>
+        </div>
+        <div class="flex flex-col gap-3">
+          <RouterLink v-for="user in mockUsers" :key="user.id"
+               :to="`/user/${user.id}`"
+               class="flex items-center gap-4 p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border hover:border-sync-primary/40 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer group">
+            <img :src="user.avatar" class="w-11 h-11 rounded-full border border-sync-border bg-white group-hover:scale-105 transition-transform flex-shrink-0" alt=""/>
+            <div class="flex flex-col flex-1 min-w-0">
+              <span class="text-sm font-bold text-sync-text group-hover:text-sync-primary transition-colors truncate">{{ user.nickname }}</span>
+              <span class="text-[11px] text-sync-muted font-medium truncate">{{ user.role }}</span>
+            </div>
+            <svg class="w-4 h-4 text-sync-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+          </RouterLink>
         </div>
       </div>
     </div>

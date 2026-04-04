@@ -6,11 +6,21 @@ import { mockUsers } from '../data/mockData'
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
   
-  // Always start in a logged-out state.
-  // Previous localStorage sessions are cleared on app load.
-  localStorage.removeItem('sync_user')
+  // Version-based session cleanup:
+  // If the stored session version doesn't match, clear it once.
+  // This ensures old dev sessions are wiped on first load after this update,
+  // while allowing normal login sessions to persist across refreshes.
+  const SESSION_VERSION = 'v2'
+  if (localStorage.getItem('sync_session_version') !== SESSION_VERSION) {
+    localStorage.removeItem('sync_user')
+    localStorage.setItem('sync_session_version', SESSION_VERSION)
+  }
   
-  const user = ref(null)
+  // Restore session if user was previously logged in
+  const localSession = localStorage.getItem('sync_user')
+  const parsedUser = localSession ? JSON.parse(localSession) : null
+  
+  const user = ref(parsedUser)
 
   const isAuthenticated = computed(() => !!user.value)
 

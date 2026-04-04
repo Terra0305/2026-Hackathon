@@ -186,6 +186,9 @@ export const mockUsers = reactive([
     badges: ["💻", "🧠"],
     email: "alex.dev@sync.com",
     phone: "010-2345-6789"
+    githubConnected: true,
+    techStack: ["React", "Node.js", "TypeScript"],
+    githubCommits: 287
   },
   {
     id: 3,
@@ -199,6 +202,9 @@ export const mockUsers = reactive([
     badges: ["⛓️", "🛡️"],
     email: "web3ninja@sync.com",
     phone: "010-3456-7890"
+    githubConnected: true,
+    techStack: ["Solidity", "Web3.js", "Rust"],
+    githubCommits: 193
   },
   {
     id: 4,
@@ -212,6 +218,9 @@ export const mockUsers = reactive([
     badges: ["☁️", "🛡️"],
     email: "infragod@sync.com",
     phone: "010-4567-8901"
+    githubConnected: true,
+    techStack: ["Kubernetes", "Terraform", "Go"],
+    githubCommits: 341
   },
   {
     id: 5,
@@ -225,6 +234,9 @@ export const mockUsers = reactive([
     badges: ["✨"],
     email: "design.master@sync.com",
     phone: "010-5678-9012"
+    githubConnected: true,
+    techStack: ["Figma", "Vue.js", "CSS"],
+    githubCommits: 124
   },
   {
     id: 6,
@@ -238,6 +250,9 @@ export const mockUsers = reactive([
     badges: ["🚀", "💻"],
     email: "frontend.wiz@sync.com",
     phone: "010-6789-0123"
+    githubConnected: true,
+    techStack: ["React", "Next.js", "TailwindCSS"],
+    githubCommits: 215
   },
   {
     id: 7,
@@ -251,6 +266,9 @@ export const mockUsers = reactive([
     badges: ["📊", "🧠"],
     email: "data.guru@sync.com",
     phone: "010-7890-1234"
+    githubConnected: true,
+    techStack: ["Python", "PyTorch", "Pandas"],
+    githubCommits: 178
   },
   {
     id: 8,
@@ -264,6 +282,9 @@ export const mockUsers = reactive([
     badges: ["📱"],
     email: "mobile.king@sync.com",
     phone: "010-8901-2345"
+    githubConnected: true,
+    techStack: ["Swift", "Kotlin", "Flutter"],
+    githubCommits: 156
   },
   {
     id: 9,
@@ -274,7 +295,10 @@ export const mockUsers = reactive([
     monthlyPoints: 2600,
     rank: 9,
     status: "up",
-    badges: ["🎮", "🚀"]
+    badges: ["🎮", "🚀"],
+    githubConnected: true,
+    techStack: ["C++", "Unity", "Unreal"],
+    githubCommits: 302
   },
   {
     id: 10,
@@ -285,7 +309,10 @@ export const mockUsers = reactive([
     monthlyPoints: 950,
     rank: 10,
     status: "down",
-    badges: ["🛡️", "🕵️"]
+    badges: ["🛡️", "🕵️"],
+    githubConnected: true,
+    techStack: ["Python", "C", "Assembly"],
+    githubCommits: 89
   }
 ]);
 
