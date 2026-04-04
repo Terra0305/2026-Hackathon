@@ -185,7 +185,7 @@ export const mockUsers = reactive([
     status: "up",
     badges: ["💻", "🧠"],
     email: "alex.dev@sync.com",
-    phone: "010-2345-6789"
+    phone: "010-2345-6789",
     githubConnected: true,
     techStack: ["React", "Node.js", "TypeScript"],
     githubCommits: 287
@@ -201,7 +201,7 @@ export const mockUsers = reactive([
     status: "down",
     badges: ["⛓️", "🛡️"],
     email: "web3ninja@sync.com",
-    phone: "010-3456-7890"
+    phone: "010-3456-7890",
     githubConnected: true,
     techStack: ["Solidity", "Web3.js", "Rust"],
     githubCommits: 193
@@ -217,7 +217,7 @@ export const mockUsers = reactive([
     status: "up",
     badges: ["☁️", "🛡️"],
     email: "infragod@sync.com",
-    phone: "010-4567-8901"
+    phone: "010-4567-8901",
     githubConnected: true,
     techStack: ["Kubernetes", "Terraform", "Go"],
     githubCommits: 341
@@ -233,7 +233,7 @@ export const mockUsers = reactive([
     status: "up",
     badges: ["✨"],
     email: "design.master@sync.com",
-    phone: "010-5678-9012"
+    phone: "010-5678-9012",
     githubConnected: true,
     techStack: ["Figma", "Vue.js", "CSS"],
     githubCommits: 124
@@ -249,7 +249,7 @@ export const mockUsers = reactive([
     status: "down",
     badges: ["🚀", "💻"],
     email: "frontend.wiz@sync.com",
-    phone: "010-6789-0123"
+    phone: "010-6789-0123",
     githubConnected: true,
     techStack: ["React", "Next.js", "TailwindCSS"],
     githubCommits: 215
@@ -265,7 +265,7 @@ export const mockUsers = reactive([
     status: "up",
     badges: ["📊", "🧠"],
     email: "data.guru@sync.com",
-    phone: "010-7890-1234"
+    phone: "010-7890-1234",
     githubConnected: true,
     techStack: ["Python", "PyTorch", "Pandas"],
     githubCommits: 178
@@ -281,7 +281,7 @@ export const mockUsers = reactive([
     status: "down",
     badges: ["📱"],
     email: "mobile.king@sync.com",
-    phone: "010-8901-2345"
+    phone: "010-8901-2345",
     githubConnected: true,
     techStack: ["Swift", "Kotlin", "Flutter"],
     githubCommits: 156
