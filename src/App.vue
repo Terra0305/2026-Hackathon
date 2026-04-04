@@ -1,11 +1,13 @@
 <script setup>
-import { RouterView } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import NavBar from './components/NavBar.vue'
 import { useThemeStore } from './stores/theme'
 import './assets/main.css'
 
 // Initialize Theme
 useThemeStore()
+
+const route = useRoute()
 </script>
 
 <template>
@@ -19,9 +21,7 @@ useThemeStore()
     
     <main class="flex-1 w-full relative z-10">
       <RouterView v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
-          <component :is="Component" />
-        </transition>
+        <component :is="Component" :key="route.fullPath" />
       </RouterView>
     </main>
 
