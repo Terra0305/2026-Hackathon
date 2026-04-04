@@ -6,8 +6,8 @@ import { mockHackathons, mockTeams, mockUsers, mockGlobalSubmissions } from '../
 const route = useRoute()
 const router = useRouter()
 
-const hackathon = computed(() => mockHackathons.find(h => String(h.id) === route.params.slug) || mockHackathons[0])
-const team = computed(() => mockTeams.find(t => t.hackathonId === hackathon.value.id) || mockTeams[0])
+const team = computed(() => mockTeams.find(t => String(t.id) === route.params.slug) || mockTeams[0])
+const hackathon = computed(() => mockHackathons.find(h => h.id === team.value.hackathonId) || mockHackathons[0])
 const teamMembers = computed(() => mockUsers.slice(0, 5))
 
 // ─── GitHub ────────────────────────────────────────────
@@ -348,7 +348,7 @@ const getTimelineStatus = (dateStr) => {
         <div class="flex gap-2 border-b border-sync-border mb-2 overflow-x-auto custom-scrollbar pb-px">
           <button @click="activeTab = 'board'" class="px-6 py-4 text-[15px] font-bold border-b-2 transition-all shrink-0" :class="activeTab==='board' ? 'border-sync-primary text-sync-primary' : 'border-transparent text-sync-muted hover:text-sync-text'">📋 스프린트 보드</button>
           <button @click="activeTab = 'docs'" class="px-6 py-4 text-[15px] font-bold border-b-2 transition-all shrink-0" :class="activeTab==='docs' ? 'border-sync-primary text-sync-primary' : 'border-transparent text-sync-muted hover:text-sync-text'">📄 문서 & 기획서</button>
-          <button @click="activeTab = 'github'" class="px-6 py-4 text-[15px] font-bold border-b-2 transition-all shrink-0" :class="activeTab==='github' ? 'border-sync-primary text-sync-primary' : 'border-transparent text-sync-muted hover:text-sync-text'">🌿 팀원 기여 현황</button>
+          <button @click="activeTab = 'github'" class="px-6 py-4 text-[15px] font-bold border-b-2 transition-all shrink-0" :class="activeTab==='github' ? 'border-sync-primary text-sync-primary' : 'border-transparent text-sync-muted hover:text-sync-text'">🌿 기여 현황</button>
         </div>
 
         <!-- ── TAB 1: Sprint Board ── -->
@@ -423,7 +423,7 @@ const getTimelineStatus = (dateStr) => {
                   </div>
                   <div class="min-w-0">
                     <p class="text-lg font-bold text-sync-text truncate group-hover:text-sync-primary transition-colors leading-tight mb-1">{{ doc.name }}</p>
-                    <p class="text-xs text-sync-muted font-medium flex items-center gap-2"><span class="px-2 py-0.5 rounded bg-black/5 border border-sync-border text-[10px]">{{ doc.type }}</span> {{ doc.updated }} 업데이트</p>
+                    <p class="text-xs text-sync-muted font-medium flex items-center gap-2">{{ doc.updated }} 업데이트</p>
                   </div>
                 </div>
                 <button @click.stop="deleteDocument(doc.id)" class="w-10 h-10 flex-shrink-0 flex items-center justify-center text-sync-muted hover:text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-500/10 rounded-xl transition-all">
@@ -441,27 +441,7 @@ const getTimelineStatus = (dateStr) => {
           </div>
         </div>
 
-    <!-- ── TAB 3: Members ── -->
-    <div v-if="activeTab === 'members'" class="animate-fade-in max-w-xl">
-      <div class="glass-card p-6 rounded-2xl border border-sync-border">
-        <div class="flex justify-between items-center mb-5">
-          <h2 class="text-lg font-bold text-sync-text">팀 멤버 ({{ mockUsers.length }}명)</h2>
-          <span class="text-sync-muted">👥</span>
-        </div>
-        <div class="flex flex-col gap-3">
-          <RouterLink v-for="user in mockUsers" :key="user.id"
-               :to="`/user/${user.id}`"
-               class="flex items-center gap-4 p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border hover:border-sync-primary/40 hover:bg-black/10 dark:hover:bg-white/10 transition-colors cursor-pointer group">
-            <img :src="user.avatar" class="w-11 h-11 rounded-full border border-sync-border bg-white group-hover:scale-105 transition-transform flex-shrink-0" alt=""/>
-            <div class="flex flex-col flex-1 min-w-0">
-              <span class="text-sm font-bold text-sync-text group-hover:text-sync-primary transition-colors truncate">{{ user.nickname }}</span>
-              <span class="text-[11px] text-sync-muted font-medium truncate">{{ user.role }}</span>
-            </div>
-            <svg class="w-4 h-4 text-sync-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-          </RouterLink>
-        </div>
-      </div>
-    </div>
+
 
     <!-- ── TAB 4: GitHub Contributions ── -->
     <div v-if="activeTab === 'github'" class="animate-fade-in flex flex-col gap-6">

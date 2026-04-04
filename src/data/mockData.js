@@ -328,7 +328,7 @@ export const mockTeams = reactive([
       { name: "백엔드", current: 1, total: 2 },
       { name: "프론트엔드", current: 0, total: 1 }
     ],
-    members: ["A", "B", "C"],
+    members: ["건축가_Kim", "A", "B", "C"],
     leaderId: 1,
     theme: "from-purple-500 to-indigo-500",
     icon: "✨"
@@ -367,7 +367,8 @@ export const mockTeams = reactive([
 
 export const mockMyHackathons = reactive([
   { id: 1, hackathonId: 1, title: "2026 글로벌 AI 해커톤", role: "프론트엔드", teamName: "Team Nexus", status: "진행 중", appliedDate: "2026.04.15" },
-  { id: 2, hackathonId: 2, title: "차세대 보안 아키텍처 챌린지", role: "개인 참가 (팀 매칭 대기)", teamName: null, status: "매칭 중", appliedDate: "2026.05.20" }
+  { id: 2, hackathonId: 2, title: "차세대 보안 아키텍처 챌린지", role: "개인 참가 (팀 매칭 대기)", teamName: null, status: "매칭 중", appliedDate: "2026.05.20" },
+  { id: 3, hackathonId: 3, title: "Sync Web3 넥서스", role: "풀스택", teamName: "Fin-Wizard", status: "참여 대기", appliedDate: "2026.03.15" }
 ]);
 
 export const mockMySubmissions = reactive([
