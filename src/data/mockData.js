@@ -170,7 +170,8 @@ export const mockUsers = reactive([
     badges: ["✨", "🚀", "👑"],
     githubConnected: true,
     techStack: ["Vue.js", "Node.js", "PostgreSQL", "TailwindCSS"],
-    githubCommits: 432
+    githubCommits: 432,
+    profileBorder: null
   },
   {
     id: 2,
@@ -184,7 +185,8 @@ export const mockUsers = reactive([
     badges: ["💻", "🧠"],
     githubConnected: true,
     techStack: ["React", "Node.js", "TypeScript"],
-    githubCommits: 287
+    githubCommits: 287,
+    profileBorder: null
   },
   {
     id: 3,
@@ -198,7 +200,9 @@ export const mockUsers = reactive([
     badges: ["⛓️", "🛡️"],
     githubConnected: true,
     techStack: ["Solidity", "Web3.js", "Rust"],
-    githubCommits: 193
+    githubCommits: 193,
+    profileBorder: null,
+    selectedBadges: []
   },
   {
     id: 4,
@@ -212,7 +216,9 @@ export const mockUsers = reactive([
     badges: ["☁️", "🛡️"],
     githubConnected: true,
     techStack: ["Kubernetes", "Terraform", "Go"],
-    githubCommits: 341
+    githubCommits: 341,
+    profileBorder: null,
+    selectedBadges: []
   },
   {
     id: 5,
@@ -226,7 +232,8 @@ export const mockUsers = reactive([
     badges: ["✨"],
     githubConnected: true,
     techStack: ["Figma", "Vue.js", "CSS"],
-    githubCommits: 124
+    githubCommits: 124,
+    profileBorder: null
   },
   {
     id: 6,
@@ -240,7 +247,8 @@ export const mockUsers = reactive([
     badges: ["🚀", "💻"],
     githubConnected: true,
     techStack: ["React", "Next.js", "TailwindCSS"],
-    githubCommits: 215
+    githubCommits: 215,
+    profileBorder: null
   },
   {
     id: 7,
@@ -254,7 +262,8 @@ export const mockUsers = reactive([
     badges: ["📊", "🧠"],
     githubConnected: true,
     techStack: ["Python", "PyTorch", "Pandas"],
-    githubCommits: 178
+    githubCommits: 178,
+    profileBorder: null
   },
   {
     id: 8,
@@ -268,7 +277,8 @@ export const mockUsers = reactive([
     badges: ["📱"],
     githubConnected: true,
     techStack: ["Swift", "Kotlin", "Flutter"],
-    githubCommits: 156
+    githubCommits: 156,
+    profileBorder: null
   },
   {
     id: 9,
@@ -282,7 +292,8 @@ export const mockUsers = reactive([
     badges: ["🎮", "🚀"],
     githubConnected: true,
     techStack: ["C++", "Unity", "Unreal"],
-    githubCommits: 302
+    githubCommits: 302,
+    profileBorder: null
   },
   {
     id: 10,
@@ -296,7 +307,8 @@ export const mockUsers = reactive([
     badges: ["🛡️", "🕵️"],
     githubConnected: true,
     techStack: ["Python", "C", "Assembly"],
-    githubCommits: 89
+    githubCommits: 89,
+    profileBorder: null
   }
 ]);
 

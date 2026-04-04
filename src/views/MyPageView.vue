@@ -75,8 +75,54 @@ const menus = [
   { id: 'participating', name: '참여 해커톤 & 팀' },
   { id: 'applications', name: '팀 합류 관리' },
   { id: 'submissions', name: '제출 내역' },
+  { id: 'decoration', name: '프로필 꾸미기' },
   { id: 'activities', name: '활동 및 랭킹' }
 ]
+
+const decorationItems = [
+  { id: 'neon', name: '네온 시안', description: '세련된 사이버네틱 광채', color: 'from-cyan-400 to-blue-500', class: 'profile-border-neon' },
+  { id: 'gold', name: '로열 골드', description: '최상위 포식자의 황금빛', color: 'from-amber-300 to-orange-500', class: 'profile-border-gold' },
+  { id: 'chroma', name: '크로마 펄스', description: '화려하게 빛나는 RGB', color: 'from-purple-500 via-blue-500 to-teal-400', class: 'profile-border-chroma' }
+]
+
+const availableBadges = [
+  { id: 'badge1', name: 'First Hackathon', icon: '🌱', description: '첫 번째 해커톤 참여 완료' },
+  { id: 'badge2', name: 'Bug Hunter', icon: '🐛', description: '코드 버그 10개 이상 수정' },
+  { id: 'badge3', name: 'Fast Learner', icon: '📚', description: '새로운 스택 3개 이상 학습' },
+  { id: 'badge4', name: 'Night Owl', icon: '🌙', description: '심야 시간에 100회 이상 커밋' },
+  { id: 'badge5', name: 'Team Leader', icon: '👑', description: '프로젝트 리더로 팀 운영' },
+  { id: 'badge6', name: 'Innovation Award', icon: '💡', description: '아이디어 경연대회 입상' }
+]
+
+const selectBorder = (borderId) => {
+  if (authStore.user.profileBorder === borderId) {
+    authStore.user.profileBorder = null
+  } else {
+    authStore.user.profileBorder = borderId
+  }
+  localStorage.setItem('sync_user', JSON.stringify(authStore.user))
+}
+
+const toggleBadge = (badgeId) => {
+  const user = authStore.user
+  if (!user.selectedBadges) user.selectedBadges = []
+  
+  const index = user.selectedBadges.indexOf(badgeId)
+  if (index > -1) {
+    user.selectedBadges.splice(index, 1)
+  } else {
+    if (user.selectedBadges.length >= 3) {
+      alert('배지는 최대 3개까지만 선택할 수 있습니다.')
+      return
+    }
+    user.selectedBadges.push(badgeId)
+  }
+  localStorage.setItem('sync_user', JSON.stringify(authStore.user))
+}
+
+const isBadgeSelected = (badgeId) => {
+  return authStore.user?.selectedBadges?.includes(badgeId) || false
+}
 
 const ongoingProjects = [
   { title: 'AI Web Infrastructure 2024', dDay: 'D-12', progress: 60, colorClass: 'bg-sync-primary/20 text-sync-primary border-sync-primary/30', barClass: 'bg-sync-primary shadow-[0_0_12px_rgba(50,132,255,0.6)]' },
@@ -100,7 +146,10 @@ const recentTimeline = [
       <!-- Profile Header Block -->
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
         <div class="flex items-center gap-6">
-           <div class="relative w-28 h-28 shrink-0">
+           <div class="relative w-28 h-28 shrink-0 flex items-center justify-center">
+             <!-- Profile Border Overlay -->
+             <div v-if="authStore.user.profileBorder" class="absolute inset-0 profile-border-container z-0" :class="`profile-border-${authStore.user.profileBorder}`"></div>
+             
              <div class="w-full h-full rounded-full overflow-hidden border-4 border-sync-bg shadow-[0_8px_32px_rgba(0,0,0,0.15)] bg-slate-200 z-10 relative">
                 <img :src="authStore.user.avatar" class="w-full h-full object-cover" />
              </div>
@@ -114,16 +163,13 @@ const recentTimeline = [
         </div>
 
         <div class="flex gap-4 w-full md:w-auto">
-           <div class="glass-card p-5 px-6 rounded-2xl flex flex-col justify-center gap-1.5 min-w-[140px] flex-1 md:flex-auto shadow-sm border border-slate-200 dark:border-white/5">
+           <div class="flex-1 md:flex-auto p-5 px-6 flex flex-col justify-center gap-1.5 min-w-[140px] glass-card border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm">
              <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase">참여 중인 해커톤</span>
              <span class="text-2xl font-black text-sync-text tracking-tight">{{ mockMyHackathons.length || 0 }}개</span>
            </div>
-           <div @click="isPointShopOpen = true" class="glass-card p-5 px-6 rounded-2xl flex flex-col justify-center gap-1.5 min-w-[140px] flex-1 md:flex-auto shadow-sm border border-slate-200 dark:border-white/5 cursor-pointer hover:border-teal-500/50 hover:bg-teal-500/5 hover:-translate-y-0.5 transition-all group">
-             <div class="flex items-center justify-between">
-                <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase group-hover:text-teal-500 transition-colors">현재 포인트</span>
-                <span class="text-[10px] text-teal-500 bg-teal-500/10 px-1.5 py-0.5 rounded font-bold opacity-0 group-hover:opacity-100 transition-opacity">상점 가기 ➔</span>
-             </div>
-             <span class="text-2xl font-black text-teal-500 dark:text-teal-400 tracking-tight">{{ authStore.user.points.toLocaleString() }}점</span>
+           <div class="flex-1 md:flex-auto p-5 px-6 flex flex-col justify-center gap-1.5 min-w-[140px] glass-card border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm">
+             <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase">현재 포인트</span>
+             <span class="text-2xl font-black text-teal-500 dark:text-teal-400 tracking-tight">{{ authStore.user.points?.toLocaleString() }}점</span>
            </div>
         </div>
       </div>
@@ -143,329 +189,371 @@ const recentTimeline = [
 
       <!-- Dynamic Content Body -->
       <div class="flex-1 w-full animate-fade-in relative z-10">
-         
-         <!-- Dashboard View (Graph heavy) -->
-         <div v-if="activeMenu === 'dashboard'" class="flex flex-col gap-6">
-            <!-- 3 Panel Layout -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-               
-               <!-- Projects Progress -->
-               <div class="glass-card p-8 rounded-[2rem] flex flex-col gap-6 shadow-sm border border-slate-200 dark:border-white/5">
-                 <div class="flex justify-between items-center mb-2">
-                   <h3 class="font-bold text-lg text-sync-text">진행 중인 프로젝트</h3>
-                   <span class="text-teal-500">🚀</span>
-                 </div>
-                 
-                 <div v-for="(proj, idx) in ongoingProjects" :key="idx" class="flex items-center gap-4 group">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border" :class="proj.colorClass">
-                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                    </div>
-                    <div class="flex flex-col w-full gap-2">
-                       <div class="flex justify-between text-sm">
-                          <span class="font-bold text-sync-text">{{ proj.title }}</span>
-                          <span class="text-sync-muted text-xs font-bold font-mono">{{ proj.dDay }}</span>
-                       </div>
-                       <!-- Progress Bar -->
-                       <div class="w-full h-1.5 bg-black/10 dark:bg-white/10 rounded-full overflow-hidden">
-                          <div class="h-full rounded-full transition-all duration-1000 origin-left" :style="{width: proj.progress + '%'}" :class="proj.barClass"></div>
-                       </div>
-                    </div>
-                 </div>
-               </div>
-
-               <!-- Timeline -->
-               <div class="glass-card p-8 rounded-[2rem] shadow-sm border border-slate-200 dark:border-white/5">
-                 <div class="flex justify-between items-center mb-6">
-                   <h3 class="font-bold text-lg text-sync-text">최근 활동</h3>
-                   <span class="text-sync-muted">🕒</span>
-                 </div>
-                 <div class="flex flex-col gap-6 relative before:absolute before:left-[4px] before:top-3 before:bottom-3 before:w-[2px] before:bg-black/10 dark:before:bg-white/10 ml-2">
-                    <div v-for="(act, idx) in recentTimeline" :key="idx" class="flex flex-col gap-1 pl-6 relative justify-center">
-                       <span class="absolute left-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full z-10" :class="act.colorClass"></span>
-                       <span class="text-[13px] font-bold text-sync-text">{{ act.title }}</span>
-                       <span class="text-xs font-bold text-sync-muted mt-0.5 opacity-80">{{ act.time }}</span>
-                    </div>
-                 </div>
-               </div>
-
-               <!-- SVG Ring -->
-               <div class="glass-card p-8 rounded-[2rem] flex flex-col shadow-sm border border-slate-200 dark:border-white/5">
-                 <div class="flex justify-between items-center mb-4">
-                   <h3 class="font-bold text-lg text-sync-text">제출 현황</h3>
-                   <span class="text-sync-muted">📄</span>
-                 </div>
-                 <div class="flex-1 flex flex-col items-center justify-center py-4">
-                    <div class="relative w-32 h-32 flex items-center justify-center">
-                       <svg class="w-full h-full transform -rotate-90 pointer-events-none" viewBox="0 0 100 100">
-                         <circle cx="50" cy="50" r="38" class="stroke-black/5 dark:stroke-white/10" stroke-width="8" fill="none" />
-                         <!-- 1/4 = 25% of 2*pi*38(238.76) => dashoffset 179.07 -->
-                         <circle cx="50" cy="50" r="38" stroke="#3284FF" stroke-width="8" fill="none" stroke-dasharray="238.76" stroke-dashoffset="179.07" stroke-linecap="round" class="drop-shadow-[0_0_12px_rgba(50,132,255,0.4)]" />
-                       </svg>
-                       <span class="absolute text-3xl font-black text-sync-text font-outfit">1<span class="text-sync-muted text-lg font-bold">/4</span></span>
-                    </div>
-                    <p class="text-xs font-bold text-sync-muted mt-6 text-center tracking-wide">완료된 프로젝트 제출</p>
-                 </div>
-               </div>
-
-            </div>
-
-            <!-- GitHub Integration Block -->
-            <div class="glass-card p-8 rounded-[2rem] shadow-sm border border-slate-200 dark:border-white/5 flex flex-col gap-6">
-               <div class="flex justify-between items-center border-b border-sync-border pb-4">
-                 <div class="flex items-center gap-3">
-                   <svg class="w-6 h-6 text-sync-text" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                   <h3 class="font-bold text-lg text-sync-text">GitHub Contributions</h3>
-                 </div>
-                 <div class="flex items-center gap-2">
-                   <span class="text-[10px] font-bold text-sync-muted uppercase tracking-widest border border-sync-border px-2 py-0.5 rounded bg-black/5 dark:bg-white/5">Connected</span>
-                 </div>
-               </div>
-
-               <div class="flex flex-col lg:flex-row gap-8">
-                 <!-- Grass Grid -->
-                 <div class="flex-1 flex flex-col gap-2 overflow-x-auto custom-scrollbar pb-2">
-                    <div class="flex gap-1.5 w-max">
-                      <div v-for="col in 32" :key="col" class="flex flex-col gap-1.5">
-                        <div v-for="row in 7" :key="row" class="w-3 h-3 rounded-sm transition-colors hover:border hover:border-black/20 dark:hover:border-white/20 cursor-help" :class="Math.random() > 0.7 ? (Math.random() > 0.5 ? 'bg-teal-400 dark:bg-teal-500 shadow-[0_0_6px_rgba(45,212,191,0.5)]' : 'bg-teal-300 dark:bg-teal-600') : (Math.random() > 0.8 ? 'bg-teal-200 dark:bg-teal-800' : 'bg-black/5 dark:bg-white/5 border border-sync-border')"></div>
+          <!-- Dashboard View -->
+          <div v-if="activeMenu === 'dashboard'" class="flex flex-col gap-10">
+              <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2 flex flex-col gap-8">
+                   <div class="glass-card p-8 md:p-10 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5rem] relative overflow-hidden group">
+                      <div class="absolute -right-20 -top-20 w-64 h-64 bg-sync-primary/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-sync-primary/20 transition-all duration-1000"></div>
+                      <div class="flex justify-between items-center mb-10">
+                        <h3 class="text-2xl font-black text-sync-text tracking-tight font-outfit">진행 중인 프로젝트</h3>
+                        <RouterLink to="/workspace" class="text-xs font-bold text-sync-primary hover:underline underline-offset-4">워크스페이스로 이동</RouterLink>
                       </div>
-                    </div>
-                    <div class="flex items-center justify-between text-[10px] text-sync-muted font-bold mt-1">
-                      <span>Mon</span><span>Wed</span><span>Fri</span>
-                    </div>
-                 </div>
-                 
-                 <!-- Tech Stack -->
-                 <div class="w-full lg:w-64 lg:border-l border-sync-border lg:pl-8 flex flex-col gap-5 justify-center">
-                    <div class="flex flex-col gap-1">
-                      <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest">Commits in 2026</span>
-                      <span class="text-3xl font-black text-sync-text drop-shadow-sm">{{ authStore.user.githubCommits }}</span>
-                    </div>
-                    <div class="flex flex-col gap-2 mt-2">
-                      <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest">Top Tech Stack</span>
+
+                      <div class="flex flex-col gap-5">
+                         <div v-for="pj in ongoingProjects" :key="pj.title" class="p-6 rounded-3xl bg-black/5 dark:bg-white/5 border border-sync-border hover:border-sync-primary/30 transition-all">
+                            <div class="flex justify-between items-center mb-4">
+                               <div class="flex flex-col gap-1">
+                                  <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">{{ pj.dDay }}</span>
+                                  <h4 class="text-lg font-bold text-sync-text">{{ pj.title }}</h4>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-[10px] font-bold shadow-sm" :class="pj.colorClass">ONGOING</span>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                               <div class="flex justify-between text-[11px] font-bold">
+                                  <span class="text-sync-muted">Progress</span>
+                                  <span class="text-sync-text">{{ pj.progress }}%</span>
+                               </div>
+                               <div class="w-full h-2 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
+                                  <div class="h-full rounded-full transition-all duration-1000" :style="`width: ${pj.progress}%`" :class="pj.barClass"></div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+
+                   <div class="glass-card p-8 md:p-10 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5rem] bg-gradient-to-br from-indigo-500/5 to-transparent relative overflow-hidden group">
+                      <h3 class="text-2xl font-black text-sync-text tracking-tight mb-10 font-outfit">나의 활동 타임라인</h3>
+                      <div class="flex flex-col gap-8 relative pl-6">
+                         <div class="absolute left-[3px] top-2 bottom-2 w-[2px] bg-sync-border"></div>
+                         <div v-for="time in recentTimeline" :key="time.title" class="relative flex flex-col gap-1">
+                            <div class="absolute -left-[27px] top-1.5 w-3 h-3 rounded-full border-2 border-white dark:border-[#181A20]" :class="time.colorClass || 'bg-sync-muted'"></div>
+                            <h4 class="text-base font-bold text-sync-text">{{ time.title }}</h4>
+                            <span class="text-xs font-medium text-sync-muted">{{ time.time }}</span>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                <div class="flex flex-col gap-8">
+                   <div class="glass-card p-8 border border-slate-200 dark:border-white/5 shadow-md rounded-[2.5rem] flex flex-col items-center text-center bg-gradient-to-br from-teal-500/5 via-transparent to-transparent">
+                      <div class="w-20 h-20 bg-teal-500/10 rounded-3xl flex items-center justify-center text-4xl mb-6 shadow-inner border border-teal-500/20">💰</div>
+                      <h3 class="text-xl font-bold text-sync-text mb-2">Sync 포인트</h3>
+                      <p class="text-3xl font-black text-teal-500 dark:text-teal-400 tracking-tighter">{{ authStore.user.points?.toLocaleString() }} <span class="text-[15px] font-bold opacity-70">PTS</span></p>
+                      <p class="text-xs font-medium text-sync-muted mt-3 mb-8 px-4 leading-relaxed">해커톤 참여와 가이드 작성을 통해 모은 포인트로 다양한 리워드와 교환하세요!</p>
+                      <button @click="isPointShopOpen = true" class="w-full py-4 bg-teal-500 hover:bg-teal-600 text-white rounded-2xl font-bold text-sm transition-all shadow-[0_8px_20px_rgba(45,212,191,0.3)] hover:-translate-y-1">포인트 점점 상점 가기</button>
+                   </div>
+
+                   <div class="glass-card p-8 border border-slate-200 dark:border-white/5 shadow-md rounded-[2.5rem] flex flex-col gap-6">
+                      <h4 class="text-lg font-bold text-sync-text border-b border-sync-border pb-4">나의 관심사 태그</h4>
                       <div class="flex flex-wrap gap-2">
-                         <span v-for="tech in authStore.user.techStack" :key="tech" class="px-2.5 py-1 bg-black/5 dark:bg-white/5 border border-sync-border rounded-[0.4rem] text-[11px] font-bold text-sync-text tracking-wide shadow-sm hover:border-sync-primary/50 hover:bg-sync-primary/10 transition-colors">{{ tech }}</span>
+                         <span v-for="tag in ['Web3', 'AI', 'UI/UX', 'Solidity', 'Frontend']" :key="tag" class="px-4 py-1.5 bg-black/5 dark:bg-white/5 border border-sync-border rounded-full text-xs font-bold text-sync-muted hover:text-sync-primary hover:border-sync-primary/30 transition-all cursor-default">{{ tag }}</span>
                       </div>
-                    </div>
-                 </div>
-               </div>
-            </div>
-
-            <!-- Ribbon Metric Block -->
-            <div class="glass-card p-6 px-8 rounded-2xl flex flex-col sm:flex-row justify-between items-center sm:gap-4 gap-6 bg-gradient-to-r from-sync-primary/5 to-transparent border-l-4 border-l-sync-primary border border-slate-200 dark:border-white/5 shadow-sm">
-               <div class="flex items-center gap-5 w-full sm:w-auto">
-                 <div class="w-12 h-12 bg-sync-bg rounded-xl border border-sync-border flex items-center justify-center text-xl shadow-sm">🎖️</div>
-                 <div class="flex flex-col gap-0.5">
-                   <h4 class="font-bold text-sync-text text-base">이번 주 상위 5% 달성</h4>
-                   <p class="text-xs text-sync-muted font-bold">지난주 대비 120 포인트 추가 획득</p>
-                 </div>
-               </div>
-               <RouterLink to="/rankings" class="px-5 py-2.5 w-full sm:w-auto bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-text text-xs font-bold text-center rounded-lg border border-black/10 dark:border-white/10 transition-colors shrink-0 block">랭킹 상세보기</RouterLink>
-            </div>
-         </div>
-
-         <!-- Array Mappings -->
-         <div v-if="activeMenu === 'participating'" class="flex flex-col gap-5 animate-fade-in">
-             <div v-if="mockMyHackathons.length === 0" class="py-12 w-full flex justify-center">
-                <EmptyState size="md" message="참여 중인 해커톤이 없습니다." icon="🏆" />
-             </div>
-             
-             <div v-for="hack in mockMyHackathons" :key="hack.id" class="glass-card p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 group hover:border-sync-primary/40 transition-colors border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl">
-                <div class="flex flex-col gap-2">
-                  <div class="flex items-center gap-3 mb-1">
-                    <span class="px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest border transition-colors shadow-sm" :class="hack.status === '진행 중' ? 'bg-teal-500/10 border-teal-500/20 text-teal-600 dark:text-teal-400' : 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400'">{{ hack.status }}</span>
-                    <span class="text-[11px] text-sync-muted font-bold">지원 일자: {{ hack.appliedDate }}</span>
-                  </div>
-                  <h3 class="text-xl font-bold text-sync-text mt-1">{{ hack.title }}</h3>
-                  <div class="flex items-center gap-2.5 text-sm text-sync-muted mt-1">
-                    <span class="font-bold underline decoration-sync-border underline-offset-4">{{ hack.role }}</span>
-                    <span v-if="hack.teamName" class="w-1.5 h-1.5 rounded-full bg-sync-border"></span>
-                    <span v-if="hack.teamName" class="font-bold text-sync-text">{{ hack.teamName }} 팀 소속</span>
-                  </div>
+                   </div>
                 </div>
-                <div class="flex flex-col sm:flex-row justify-end gap-3 shrink-0 mt-4 lg:mt-0">
-                  <button v-if="hack.status === '심사 중' || hack.status === '매칭 중'" @click="mockMyHackathons.splice(mockMyHackathons.findIndex(h => h.id === hack.id), 1)" class="px-6 py-3 min-w-[130px] shrink-0 text-center rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:text-red-400 hover:bg-red-500/20 text-sm font-bold transition-all shadow-sm">신청 취소</button>
-                  <RouterLink :to="`/hackathons/${hack.hackathonId}`" class="px-6 py-3 min-w-[130px] shrink-0 text-center rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border text-sync-text text-sm font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors">공고 열람</RouterLink>
-                  <RouterLink v-if="hack.status === '진행 중'" :to="`/workspace/${hack.hackathonId}`" class="px-6 py-3 min-w-[130px] shrink-0 text-center rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-sm font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:-translate-y-0.5">작업 공간</RouterLink>
-                </div>
-             </div>
-         </div>
-
-         <div v-if="activeMenu === 'applications'" class="flex flex-col gap-10 animate-fade-in">
-             <!-- Incoming Requests to My Teams -->
-             <div class="flex flex-col gap-5">
-               <h3 class="text-xl font-bold text-sync-text flex items-center gap-2">
-                 📥 내 팀에 들어온 합류 요청 <span class="bg-red-500 text-white rounded-full px-2 py-0.5 text-xs">{{ myIncomingRequests.length }}</span>
-               </h3>
-               
-               <div v-if="myIncomingRequests.length === 0" class="py-8 w-full flex justify-center">
-                 <EmptyState size="sm" message="받은 합류 요청이 없습니다." icon="📮" />
-               </div>
-
-               <div v-for="req in myIncomingRequests" :key="'in-' + req.id" class="glass-card p-6 flex flex-col md:flex-row md:items-start justify-between gap-6 border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl relative overflow-hidden group">
-                 <div class="absolute inset-y-0 left-0 w-1.5 bg-sync-primary"></div>
-                 <div class="flex flex-col gap-3 flex-1 pl-4">
-                   <div class="flex items-center justify-between">
-                     <span class="text-[11px] bg-sync-primary/10 text-sync-primary border border-sync-primary/20 px-2 py-0.5 rounded font-bold uppercase tracking-widest">{{ req.role }} 지원</span>
-                     <span class="text-[11px] text-sync-muted font-bold">{{ req.createdAt }}</span>
-                   </div>
-                   <div class="flex items-center gap-3">
-                     <div class="w-10 h-10 bg-slate-200 rounded-full border border-sync-border overflow-hidden">
-                       <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=${req.nickname}`" class="w-full h-full object-cover"/>
-                     </div>
-                     <span class="text-lg font-bold text-sync-text">{{ req.nickname }}</span>
-                   </div>
-                   <div class="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-sync-border mt-1">
-                     <p class="text-[13px] font-medium text-sync-text whitespace-pre-line leading-relaxed">{{ req.message }}</p>
-                   </div>
-                 </div>
-                 <div class="flex lg:flex-col gap-3 shrink-0 lg:w-32 justify-end mt-2 lg:mt-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-sync-border">
-                   <button @click="handleAcceptRequest(req)" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5">
-                     수락하기
-                   </button>
-                   <button @click="handleRejectRequest(req)" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 text-xs font-bold rounded-xl transition-all shadow-sm">거절하기</button>
-                   <span v-if="req.status === 'accepted'" class="w-full px-4 py-2.5 bg-teal-500/10 border border-teal-500/30 text-teal-500 text-xs font-bold rounded-xl text-center">수락 완료</span>
-                   <span v-if="req.status === 'rejected'" class="w-full px-4 py-2.5 bg-gray-500/10 border border-gray-500/30 text-gray-500 text-xs font-bold rounded-xl text-center">거절 완료</span>
-                 </div>
-               </div>
-             </div>
-
-             <div class="w-full h-px bg-sync-border my-2"></div>
-
-             <!-- My Sent Requests -->
-             <div class="flex flex-col gap-5">
-               <h3 class="text-xl font-bold text-sync-text flex items-center justify-between">
-                 📤 내가 보낸 합류 요청
-               </h3>
-               
-               <div v-if="mySentRequests.length === 0" class="py-12 w-full flex justify-center">
-                 <EmptyState size="sm" message="신청한 내역이 없습니다." icon="✈️" />
-               </div>
-
-               <div v-for="req in mySentRequests" :key="'out-' + req.id" class="glass-card p-6 flex flex-col gap-4 border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl opacity-90 transition-opacity hover:opacity-100">
-                 <div class="flex items-center justify-between border-b border-sync-border pb-3">
-                   <div class="flex items-center gap-2">
-                     <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest border border-sync-border px-1.5 py-0.5 rounded">{{ req.role }}</span>
-                     <span class="text-sm font-bold text-sync-text underline decoration-sync-border underline-offset-4">{{ mockTeams.find(t => t.id === req.teamId)?.teamName }}</span>
-                   </div>
-                   <span class="px-2.5 py-1 rounded flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest border"
-                         :class="req.status === 'pending' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : req.status === 'accepted' ? 'bg-teal-500/10 text-teal-500 border-teal-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'">
-                     <span v-if="req.status === 'pending'" class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
-                     {{ req.status === 'pending' ? '대기 중' : req.status === 'accepted' ? '수락됨' : '거절됨' }}
-                   </span>
-                 </div>
-                 <p class="text-[13px] text-sync-muted leading-relaxed whitespace-pre-line bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-sync-border">"{{ req.message }}"</p>
-                 <div class="flex justify-between items-center mt-1">
-                   <span class="font-bold text-sync-muted text-xs">{{ req.createdAt }}</span>
-                   <button v-if="req.status === 'pending'" @click="mockJoinRequests.splice(mockJoinRequests.indexOf(req), 1)" class="text-red-500 text-xs font-bold hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-500/30">요청 취소</button>
-                 </div>
-               </div>
-             </div>
+              </div>
           </div>
 
+          <!-- Participating View -->
+          <div v-if="activeMenu === 'participating'" class="flex flex-col gap-8 animate-fade-in">
+              <div v-if="mockMyHackathons.length === 0" class="py-20 flex flex-col items-center justify-center text-center gap-4">
+                 <EmptyState size="md" message="참여 중인 프로젝트가 존재하지 않습니다." icon="🚀" />
+                 <RouterLink to="/hackathons" class="text-sm font-bold text-sync-primary hover:underline">첫 해커톤 찾아보기</RouterLink>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                 <div v-for="team in mockTeams.filter(t => t.members.includes(authStore.user?.nickname))" :key="team.id" class="glass-card p-8 border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-sm hover:border-sync-primary/30 transition-all group">
+                    <div class="flex justify-between items-start mb-8">
+                       <div class="flex flex-col gap-1.5">
+                          <span class="text-[10px] font-bold text-sync-primary uppercase tracking-widest">{{ team.hackathonName }}</span>
+                          <h3 class="text-2xl font-black text-sync-text tracking-tight group-hover:text-sync-primary transition-colors">{{ team.teamName }}</h3>
+                       </div>
+                       <span class="px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-500 text-[10px] font-bold uppercase tracking-widest">Active Team</span>
+                    </div>
+                    <div class="flex flex-col gap-4 mb-8">
+                       <p class="text-sm font-medium text-sync-muted line-clamp-2 leading-relaxed">{{ team.description }}</p>
+                    </div>
+                    <div class="flex justify-between items-center pt-6 border-t border-sync-border">
+                       <div class="flex -space-x-3">
+                          <div v-for="i in 3" :key="i" class="w-9 h-9 rounded-full border-2 border-sync-bg bg-slate-200 overflow-hidden shadow-sm">
+                             <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=member${i}`" class="w-full h-full object-cover" />
+                          </div>
+                          <div class="w-9 h-9 rounded-full border-2 border-sync-bg bg-sync-border flex items-center justify-center text-[10px] font-bold text-sync-muted">+{{ team.members.length - 3 }}</div>
+                       </div>
+                       <RouterLink :to="`/workspace/${team.id}`" class="px-6 py-2.5 bg-sync-primary/5 hover:bg-sync-primary/10 border border-sync-primary/20 text-sync-primary rounded-xl text-xs font-bold transition-all hover:scale-105">워크스페이스 입장</RouterLink>
+                    </div>
+                 </div>
+              </div>
+          </div>
+
+          <!-- Applications View -->
+          <div v-if="activeMenu === 'applications'" class="flex flex-col gap-12 animate-fade-in">
+              <!-- Incoming Requests -->
+              <div class="flex flex-col gap-5">
+                <h3 class="text-xl font-bold text-sync-text flex items-center justify-between">
+                  📩 나에게 도착한 합류 요청
+                  <span class="text-xs font-bold text-teal-500 bg-teal-400/10 px-2 py-0.5 rounded">{{ myIncomingRequests.filter(r => r.status === 'pending').length }}건 대기</span>
+                </h3>
+                
+                <div v-if="myIncomingRequests.length === 0" class="py-12 w-full flex justify-center">
+                  <EmptyState size="sm" message="받은 합류 요청이 없습니다." icon="📮" />
+                </div>
+
+                <div v-for="req in myIncomingRequests" :key="'in-' + req.id" class="glass-card p-6 flex flex-col md:flex-row md:items-start justify-between gap-6 border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl relative overflow-hidden group">
+                  <div class="absolute inset-y-0 left-0 w-1.5 bg-sync-primary"></div>
+                  <div class="flex flex-col gap-3 flex-1 pl-4">
+                    <div class="flex items-center justify-between">
+                      <span class="text-[11px] bg-sync-primary/10 text-sync-primary border border-sync-primary/20 px-2 py-0.5 rounded font-bold uppercase tracking-widest">{{ req.role }} 지원</span>
+                      <span class="text-[11px] text-sync-muted font-bold">{{ req.createdAt }}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 bg-slate-200 rounded-full border border-sync-border overflow-hidden">
+                        <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=${req.nickname}`" class="w-full h-full object-cover"/>
+                      </div>
+                      <span class="text-lg font-bold text-sync-text">{{ req.nickname }}</span>
+                    </div>
+                    <div class="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-sync-border mt-1">
+                      <p class="text-[13px] font-medium text-sync-text whitespace-pre-line leading-relaxed">{{ req.message }}</p>
+                    </div>
+                  </div>
+                  <div class="flex lg:flex-col gap-3 shrink-0 lg:w-32 justify-end mt-2 lg:mt-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-sync-border">
+                    <button @click="handleAcceptRequest(req)" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm">수락하기</button>
+                    <button @click="handleRejectRequest(req)" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 text-xs font-bold rounded-xl transition-all shadow-sm">거절하기</button>
+                    <span v-if="req.status === 'accepted'" class="w-full px-4 py-2.5 bg-teal-500/10 border border-teal-500/30 text-teal-500 text-xs font-bold rounded-xl text-center">수락 완료</span>
+                    <span v-if="req.status === 'rejected'" class="w-full px-4 py-2.5 bg-gray-500/10 border border-gray-500/30 text-gray-500 text-xs font-bold rounded-xl text-center">거절 완료</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="w-full h-px bg-sync-border my-2"></div>
+
+              <!-- Sent Requests -->
+              <div class="flex flex-col gap-5">
+                <h3 class="text-xl font-bold text-sync-text">📤 내가 보낸 합류 요청</h3>
+                
+                <div v-if="mySentRequests.length === 0" class="py-12 w-full flex justify-center">
+                  <EmptyState size="sm" message="신청한 내역이 없습니다." icon="✈️" />
+                </div>
+
+                <div v-for="req in mySentRequests" :key="'out-' + req.id" class="glass-card p-6 flex flex-col gap-4 border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl opacity-90 transition-opacity hover:opacity-100">
+                  <div class="flex items-center justify-between border-b border-sync-border pb-3">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest border border-sync-border px-1.5 py-0.5 rounded">{{ req.role }}</span>
+                      <span class="text-sm font-bold text-sync-text underline decoration-sync-border underline-offset-4">{{ mockTeams.find(t => t.id === req.teamId)?.teamName }}</span>
+                    </div>
+                    <span class="px-2.5 py-1 rounded flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest border"
+                          :class="req.status === 'pending' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : req.status === 'accepted' ? 'bg-teal-500/10 text-teal-500 border-teal-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'">
+                      <span v-if="req.status === 'pending'" class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
+                      {{ req.status === 'pending' ? '대기 중' : req.status === 'accepted' ? '수락됨' : '거절됨' }}
+                    </span>
+                  </div>
+                  <p class="text-[13px] text-sync-muted leading-relaxed whitespace-pre-line bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-sync-border">"{{ req.message }}"</p>
+                  <div class="flex justify-between items-center mt-1">
+                    <span class="font-bold text-sync-muted text-xs">{{ req.createdAt }}</span>
+                    <button v-if="req.status === 'pending'" @click="mockJoinRequests.splice(mockJoinRequests.indexOf(req), 1)" class="text-red-500 text-xs font-bold hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-500/30">요청 취소</button>
+                  </div>
+                </div>
+              </div>
+          </div>
+
+          <!-- Submissions View -->
           <div v-if="activeMenu === 'submissions'" class="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
-             <div v-if="mockMySubmissions.length === 0" class="col-span-full py-12 flex justify-center w-full">
-                <EmptyState size="md" message="제출된 프로젝트 내역이 없습니다." icon="📦" />
-             </div>
+              <div v-if="mockMySubmissions.length === 0" class="col-span-full py-12 flex justify-center w-full">
+                 <EmptyState size="md" message="제출된 프로젝트 내역이 없습니다." icon="📦" />
+              </div>
 
-             <div v-for="sub in mockMySubmissions" :key="sub.id" class="glass-card shadow-sm overflow-hidden group hover:-translate-y-1 transition-transform border border-slate-200 dark:border-white/5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)] rounded-3xl">
-                <div class="h-36 bg-gradient-to-br flex items-center justify-center relative shadow-inner overflow-hidden" :class="sub.awardColor">
-                   <div class="absolute inset-0 bg-black/20 mix-blend-overlay"></div>
-                   <div class="absolute -top-10 -right-10 w-24 h-24 bg-white/20 blur-[20px] rounded-full mix-blend-overlay group-hover:scale-150 transition-transform duration-700"></div>
-                   <img :src="sub.thumbnail" class="w-24 h-24 opacity-60 z-10 drop-shadow-md group-hover:scale-110 transition-transform" />
-                   <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm">{{ sub.award }}</div>
-                </div>
-                <div class="p-8 flex flex-col gap-3">
-                  <p class="text-[10px] font-bold text-sync-primary uppercase tracking-widest">{{ sub.hackathonTitle }}</p>
-                  <h3 class="text-xl font-bold text-sync-text leading-tight mt-1">{{ sub.projectName }}</h3>
-                  <p class="text-[13px] text-sync-muted line-clamp-2 leading-relaxed mt-1 font-medium">{{ sub.description }}</p>
-                  
-                  <div v-if="sub.historyDocs && sub.historyDocs.length" class="flex flex-col gap-2 mt-4 p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border transition-colors group-hover:border-sync-primary/20">
-                     <span class="text-[10px] font-bold text-sync-muted uppercase tracking-widest mb-1">Workspace Archive</span>
-                     <div v-for="doc in sub.historyDocs" :key="doc.title" class="flex items-center justify-between text-xs">
-                        <div class="flex items-center gap-2">
-                           <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 text-sync-text font-bold drop-shadow-sm">{{ doc.type }}</span>
-                           <span class="text-sync-text font-medium">{{ doc.title }}</span>
-                        </div>
-                        <span class="text-sync-muted font-bold text-[10px] hidden sm:block">{{ doc.date }}</span>
-                     </div>
-                  </div>
-
-                  <div class="mt-4 pt-5 border-t border-sync-border flex justify-between items-center text-sm">
-                    <span class="font-bold text-sync-muted">{{ sub.date }}</span>
-                    <a :href="sub.link" target="_blank" class="font-bold text-sync-primary hover:text-sync-primaryHover transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sync-primary/10 border border-sync-primary/20 shadow-sm">Source Code <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>
-                  </div>
-                </div>
-             </div>
-         </div>
-
-         <div v-if="activeMenu === 'activities'" class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
-             <div class="lg:col-span-2 glass-card p-6 md:p-10 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem]">
-                 <h3 class="text-xl font-bold text-sync-text mb-8 md:mb-10 font-outfit">최근 활동 내역</h3>
-                 <div class="relative flex flex-col gap-6 sm:gap-8">
-                    
-                    <div v-if="mockMyActivities.length === 0" class="py-8 z-10 relative flex justify-center">
-                       <EmptyState size="sm" message="활동 기록이 존재하지 않습니다." icon="🔔" />
-                    </div>
-
-                    <div v-if="mockMyActivities.length > 0" class="absolute left-[19px] top-4 bottom-4 w-px bg-sync-border pointer-events-none"></div>
-
-                    <div v-for="act in mockMyActivities" :key="act.id" class="relative flex gap-4 sm:gap-6 items-start group">
-                       <div class="w-10 h-10 shrink-0 rounded-full border-[4px] border-white dark:border-[#181A20] flex items-center justify-center text-[15px] z-10 shadow-sm transition-transform group-hover:scale-110 ml-0 mt-3 mix-blend-normal" :class="act.iconColor">
-                         {{ act.icon }}
-                       </div>
-                       <div class="flex-1 flex flex-col gap-2 glass-card-hover p-5 rounded-2xl border border-transparent hover:border-sync-border hover:shadow-sm transition-all duration-300 ease-out bg-transparent hover:bg-black/5 dark:hover:bg-white/5">
-                         <div class="flex flex-col sm:flex-row sm:items-center justify-between sm:gap-3">
-                            <h4 class="text-base font-bold text-sync-text">{{ act.title }}</h4>
-                            <span class="text-[10px] font-bold text-sync-muted mt-1 sm:mt-0 opacity-70 tracking-widest uppercase">{{ act.date }}</span>
+              <div v-for="sub in mockMySubmissions" :key="sub.id" class="glass-card shadow-sm overflow-hidden group hover:-translate-y-1 transition-transform border border-slate-200 dark:border-white/5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)] rounded-3xl">
+                 <div class="h-36 bg-gradient-to-br flex items-center justify-center relative shadow-inner overflow-hidden" :class="sub.awardColor">
+                    <div class="absolute inset-0 bg-black/20 mix-blend-overlay"></div>
+                    <div class="absolute -top-10 -right-10 w-24 h-24 bg-white/20 blur-[20px] rounded-full mix-blend-overlay group-hover:scale-150 transition-transform duration-700"></div>
+                    <img :src="sub.thumbnail" class="w-24 h-24 opacity-60 z-10 drop-shadow-md group-hover:scale-110 transition-transform" />
+                    <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm">{{ sub.award }}</div>
+                 </div>
+                 <div class="p-8 flex flex-col gap-3">
+                   <p class="text-[10px] font-bold text-sync-primary uppercase tracking-widest">{{ sub.hackathonTitle }}</p>
+                   <h3 class="text-xl font-bold text-sync-text leading-tight mt-1">{{ sub.projectName }}</h3>
+                   <p class="text-[13px] text-sync-muted line-clamp-2 leading-relaxed mt-1 font-medium">{{ sub.description }}</p>
+                   
+                   <div v-if="sub.historyDocs && sub.historyDocs.length" class="flex flex-col gap-2 mt-4 p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border transition-colors group-hover:border-sync-primary/20">
+                      <span class="text-[10px] font-bold text-sync-muted uppercase tracking-widest mb-1">Workspace Archive</span>
+                      <div v-for="doc in sub.historyDocs" :key="doc.title" class="flex items-center justify-between text-xs">
+                         <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 text-sync-text font-bold drop-shadow-sm">{{ doc.type }}</span>
+                            <span class="text-sync-text font-medium">{{ doc.title }}</span>
                          </div>
-                         <p class="text-[13.5px] text-sync-muted leading-relaxed font-medium mt-1">{{ act.desc }}</p>
+                         <span class="text-sync-muted font-bold text-[10px] hidden sm:block">{{ doc.date }}</span>
+                      </div>
+                   </div>
+
+                   <div class="mt-4 pt-5 border-t border-sync-border flex justify-between items-center text-sm">
+                     <span class="font-bold text-sync-muted">{{ sub.date }}</span>
+                     <a :href="sub.link" target="_blank" class="font-bold text-sync-primary hover:text-sync-primaryHover transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sync-primary/10 border border-sync-primary/20 shadow-sm">Source Code <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>
+                   </div>
+                 </div>
+              </div>
+          </div>
+
+          <!-- Decoration View -->
+          <div v-if="activeMenu === 'decoration'" class="flex flex-col gap-10 animate-fade-in">
+              <!-- Border Section -->
+              <div class="glass-card p-8 md:p-10 border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-sm">
+                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                    <div class="flex flex-col gap-2">
+                       <h3 class="text-2xl font-black text-sync-text tracking-tight">프로필 테두리 장착</h3>
+                       <p class="text-sm font-bold text-sync-muted">내 프로필을 돋보이게 해줄 특별한 테두리를 선택하세요.</p>
+                    </div>
+                    <div class="bg-black/5 dark:bg-white/5 border border-sync-border p-4 rounded-2xl flex items-center gap-4">
+                       <div class="relative w-14 h-14 flex items-center justify-center">
+                          <div v-if="authStore.user.profileBorder" class="absolute inset-0 profile-border-container scale-110" :class="`profile-border-${authStore.user.profileBorder}`"></div>
+                          <img :src="authStore.user.avatar" class="w-full h-full rounded-full border-2 border-sync-bg relative z-10" />
+                       </div>
+                       <div class="flex flex-col gap-0.5">
+                          <span class="text-[10px] font-bold text-sync-muted uppercase tracking-widest">현재 적용 중</span>
+                          <span class="text-sm font-bold text-sync-text">{{ authStore.user.profileBorder ? decorationItems.find(i => i.id === authStore.user.profileBorder).name : '없음' }}</span>
                        </div>
                     </div>
                  </div>
-             </div>
 
-             <div class="lg:col-span-1 flex flex-col gap-6">
-                 <!-- Ranking Card -->
-                 <div class="glass-card p-8 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem] flex flex-col items-center text-center">
-                    <div class="w-full flex justify-between items-center mb-6">
-                       <h3 class="text-sm font-bold text-sync-muted tracking-widest uppercase">나의 실시간 랭킹</h3>
-                       <button class="text-sync-primary hover:text-sync-primaryHover transition-colors"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></button>
+                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- None Option -->
+                    <div @click="authStore.user.profileBorder = null; localStorage.setItem('sync_user', JSON.stringify(authStore.user))" 
+                         class="glass-card p-6 rounded-[2rem] border border-sync-border cursor-pointer transition-all hover:border-sync-primary/50 flex flex-col items-center justify-center gap-4 group h-full min-h-[200px]"
+                         :class="!authStore.user.profileBorder ? 'bg-sync-primary/5 border-sync-primary shadow-[0_0_20px_rgba(50,132,255,0.1)]' : ''">
+                       <div class="w-16 h-16 rounded-full border-2 border-dashed border-sync-muted flex items-center justify-center text-sync-muted group-hover:scale-110 transition-transform">
+                          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                       </div>
+                       <div class="text-center">
+                          <h4 class="font-bold text-sync-text">기본 프로필</h4>
+                          <p class="text-xs text-sync-muted font-medium mt-1">테두리를 사용하지 않습니다.</p>
+                       </div>
                     </div>
-                    <div class="relative w-28 h-28 mb-4 drop-shadow-md">
-                       <img :src="authStore.user.avatar" class="w-full h-full rounded-full border-[4px] border-sync-primary/30 bg-white/50 dark:bg-black/50" />
-                       <div class="absolute -bottom-1 -right-1 w-11 h-11 bg-gradient-to-br from-amber-300 to-orange-500 rounded-full flex items-center justify-center text-2xl shadow-lg border-2 border-white dark:border-[#181A20] z-10 transform -rotate-12">🏆</div>
+
+                    <!-- Decoration Items -->
+                    <div v-for="item in decorationItems" :key="item.id" 
+                         @click="selectBorder(item.id)"
+                         class="glass-card p-6 rounded-[2rem] border border-sync-border cursor-pointer transition-all hover:border-sync-primary/50 flex flex-col items-center justify-center gap-4 group h-full min-h-[200px] relative overflow-hidden"
+                         :class="authStore.user.profileBorder === item.id ? 'bg-sync-primary/5 border-sync-primary shadow-[0_0_20px_rgba(50,132,255,0.1)]' : ''">
+                       
+                       <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br opacity-10 rounded-bl-full pointer-events-none" :class="item.color"></div>
+                       
+                       <div class="relative w-16 h-16 flex items-center justify-center">
+                          <div class="absolute inset-[-4px] profile-border-container scale-110" :class="item.class"></div>
+                          <div class="w-full h-full rounded-full border-2 border-sync-bg relative z-10 bg-slate-200 overflow-hidden">
+                             <img :src="authStore.user.avatar" class="w-full h-full object-cover" />
+                          </div>
+                       </div>
+                       
+                       <div class="text-center relative z-10">
+                          <h4 class="font-bold text-sync-text">{{ item.name }}</h4>
+                          <p class="text-xs text-sync-muted font-medium mt-1">{{ item.description }}</p>
+                       </div>
+
+                       <div v-if="authStore.user.profileBorder === item.id" class="absolute top-4 right-4 text-sync-primary">
+                          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                       </div>
                     </div>
-                    <div class="flex items-center gap-2 mb-1">
-                      <h2 class="text-4xl font-black text-sync-text tracking-tight">{{ authStore.user.rank }}<span class="text-2xl font-bold text-sync-muted ml-0.5">위</span></h2>
+                 </div>
+              </div>
+
+              <!-- Badges Section -->
+              <div class="glass-card p-8 md:p-10 border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-sm">
+                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10">
+                    <div class="flex flex-col gap-2">
+                       <h3 class="text-2xl font-black text-sync-text tracking-tight">수집한 배지 진열</h3>
+                       <p class="text-sm font-bold text-sync-muted">나의 특별한 업적을 프로필에 표시하세요. (최대 3개)</p>
                     </div>
-                    <p class="text-[11px] font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 border border-teal-500/20 px-3 py-1 rounded-full mt-2">상위 1.2% 진입 (마스터티어)</p>
-                    
-                    <div class="w-full h-px bg-sync-border my-6"></div>
-                    
-                    <div class="flex justify-between w-full items-center mb-3">
-                       <span class="text-sm font-bold text-sync-muted">누적 경험치</span>
-                       <span class="text-[15px] font-black text-sync-text">{{ authStore.user.points.toLocaleString() }} <span class="text-xs font-bold text-sync-primary">XP</span></span>
-                    </div>
-                    <div class="w-full h-2.5 rounded-full bg-black/5 dark:bg-white/5 overflow-hidden shadow-inner flex">
-                       <div class="h-full bg-gradient-to-r from-sync-primary to-blue-400 rounded-full w-[80%] relative"></div>
-                    </div>
-                    <div class="w-full flex justify-between mt-2">
-                       <span class="text-[10px] text-sync-muted font-bold">{{ authStore.user.points.toLocaleString() }}</span>
-                       <span class="text-[10px] text-sync-muted font-bold opacity-50">15,000 XP (다음 랭크 승급)</span>
+                    <div class="bg-black/5 dark:bg-white/5 border border-sync-border p-4 px-6 rounded-2xl flex items-center gap-4">
+                       <div class="flex items-center -space-x-2">
+                          <div v-for="badgeId in authStore.user.selectedBadges || []" :key="badgeId" class="w-10 h-10 rounded-full bg-white dark:bg-[#181A20] border-2 border-sync-bg flex items-center justify-center text-xl shadow-sm z-10">
+                             {{ availableBadges.find(b => b.id === badgeId)?.icon }}
+                          </div>
+                          <div v-if="!authStore.user.selectedBadges?.length" class="text-xs font-bold text-sync-muted">선택된 배지 없음</div>
+                       </div>
                     </div>
                  </div>
 
-                 <!-- Global Leaderboard Widget -->
-                 <RouterLink to="/rankings" class="glass-card p-6 shadow-sm border border-slate-200 dark:border-white/5 rounded-[1.5rem] bg-gradient-to-br from-sync-primary/5 to-transparent hover:border-sync-primary/30 transition-all cursor-pointer group flex items-center gap-4 hover:-translate-y-1">
-                     <div class="w-12 h-12 rounded-xl bg-white dark:bg-[#181A20] shadow-sm border border-sync-border flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📊</div>
-                     <div class="flex flex-col gap-0.5">
-                        <h4 class="font-bold text-[15px] text-sync-text group-hover:text-sync-primary transition-colors">글로벌 랭킹 리더보드</h4>
-                        <p class="text-xs text-sync-muted font-medium">전체 순위와 개발자 티어를 확인하세요.</p>
-                     </div>
-                 </RouterLink>
-             </div>
-         </div>
+                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div v-for="badge in availableBadges" :key="badge.id" 
+                         @click="toggleBadge(badge.id)"
+                         class="glass-card p-5 rounded-2xl border border-sync-border cursor-pointer transition-all flex flex-col items-center gap-3 group relative"
+                         :class="isBadgeSelected(badge.id) ? 'bg-sync-primary/5 border-sync-primary shadow-sm' : 'hover:border-sync-primary/30'">
+                       <div class="text-3xl transition-transform group-hover:scale-110" :class="!isBadgeSelected(badge.id) ? 'grayscale opacity-50' : ''">
+                          {{ badge.icon }}
+                       </div>
+                       <span class="text-[11px] font-bold text-sync-text text-center leading-tight">{{ badge.name }}</span>
+                       <div v-if="isBadgeSelected(badge.id)" class="absolute -top-1 -right-1 w-5 h-5 bg-sync-primary text-white rounded-full flex items-center justify-center text-[10px] shadow-sm">
+                          ✓
+                       </div>
+                    </div>
+                 </div>
+              </div>
+          </div>
 
+          <!-- Activities View -->
+          <div v-if="activeMenu === 'activities'" class="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
+              <div class="lg:col-span-2 glass-card p-6 md:p-10 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2rem]">
+                  <h3 class="text-xl font-bold text-sync-text mb-8 md:mb-10 font-outfit">최근 활동 내역</h3>
+                  <div class="relative flex flex-col gap-6 sm:gap-8">
+                     
+                     <div v-if="mockMyActivities.length === 0" class="py-8 z-10 relative flex justify-center">
+                        <EmptyState size="sm" message="활동 기록이 존재하지 않습니다." icon="🔔" />
+                     </div>
+
+                     <div v-if="mockMyActivities.length > 0" class="absolute left-[19px] top-4 bottom-4 w-px bg-sync-border pointer-events-none"></div>
+
+                     <div v-for="act in mockMyActivities" :key="act.id" class="relative flex gap-4 sm:gap-6 items-start group">
+                        <div class="w-10 h-10 shrink-0 rounded-full border-[4px] border-white dark:border-[#181A20] flex items-center justify-center text-[15px] z-10 shadow-sm transition-transform group-hover:scale-110 ml-0 mt-3 mix-blend-normal" :class="act.iconColor">
+                          {{ act.icon }}
+                        </div>
+                        <div class="flex-1 flex flex-col gap-2 glass-card-hover p-5 rounded-2xl border border-transparent hover:border-sync-border hover:shadow-sm transition-all duration-300 ease-out bg-transparent hover:bg-black/5 dark:hover:bg-white/5">
+                          <div class="flex flex-col sm:flex-row sm:items-center justify-between sm:gap-3">
+                             <h4 class="text-base font-bold text-sync-text">{{ act.title }}</h4>
+                             <span class="text-[10px] font-bold text-sync-muted mt-1 sm:mt-0 opacity-70 tracking-widest uppercase">{{ act.date }}</span>
+                          </div>
+                          <p class="text-[13.5px] text-sync-muted leading-relaxed font-medium mt-1">{{ act.desc }}</p>
+                        </div>
+                     </div>
+                  </div>
+              </div>
+
+              <div class="lg:col-span-1 flex flex-col gap-6">
+                  <div class="glass-card p-8 md:p-10 shadow-sm border border-slate-200 dark:border-white/5 rounded-[2.5rem] bg-gradient-to-br from-sync-primary/5 to-transparent relative overflow-hidden group">
+                     <div class="absolute -top-12 -right-12 w-48 h-48 bg-sync-primary/10 rounded-full blur-3xl pointer-events-none group-hover:bg-sync-primary/20 transition-all duration-700"></div>
+                     
+                     <div class="flex items-center gap-3 mb-8">
+                        <div class="w-10 h-10 rounded-xl bg-sync-primary/20 flex items-center justify-center text-xl shadow-sm">👑</div>
+                        <span class="text-sm font-bold text-sync-primary uppercase tracking-widest">나의 티어 및 랭킹</span>
+                     </div>
+                     <div class="flex items-center gap-2 mb-1">
+                       <h2 class="text-4xl font-black text-sync-text tracking-tight">{{ authStore.user.rank }}<span class="text-2xl font-bold text-sync-muted ml-0.5">위</span></h2>
+                     </div>
+                     <p class="text-[11px] font-bold text-teal-600 dark:text-teal-400 bg-teal-500/10 border border-teal-500/20 px-3 py-1 rounded-full mt-2">상위 1.2% 진입 (마스터티어)</p>
+                     
+                     <div class="w-full h-px bg-sync-border my-6"></div>
+                     
+                     <div class="flex justify-between w-full items-center mb-3">
+                        <span class="text-sm font-bold text-sync-muted">누적 경험치</span>
+                        <span class="text-[15px] font-black text-sync-text">{{ authStore.user.points?.toLocaleString() }} <span class="text-xs font-bold text-sync-primary">XP</span></span>
+                     </div>
+                     <div class="w-full h-2.5 rounded-full bg-black/5 dark:bg-white/5 overflow-hidden shadow-inner flex">
+                        <div class="h-full bg-gradient-to-r from-sync-primary to-blue-400 rounded-full w-[80%] relative"></div>
+                     </div>
+                     <div class="w-full flex justify-between mt-2">
+                        <span class="text-[10px] text-sync-muted font-bold">{{ authStore.user.points?.toLocaleString() }}</span>
+                        <span class="text-[10px] text-sync-muted font-bold opacity-50">15,000 XP (다음 랭크 승급)</span>
+                     </div>
+                  </div>
+
+                  <!-- Global Leaderboard Widget -->
+                  <RouterLink to="/rankings" class="glass-card p-6 shadow-sm border border-slate-200 dark:border-white/5 rounded-[1.5rem] bg-gradient-to-br from-sync-primary/5 to-transparent hover:border-sync-primary/30 transition-all cursor-pointer group flex items-center gap-4 hover:-translate-y-1">
+                      <div class="w-12 h-12 rounded-xl bg-white dark:bg-[#181A20] shadow-sm border border-sync-border flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">📊</div>
+                      <div class="flex flex-col gap-0.5">
+                         <h4 class="font-bold text-[15px] text-sync-text group-hover:text-sync-primary transition-colors">글로벌 랭킹 리더보드</h4>
+                         <p class="text-xs text-sync-muted font-medium">전체 순위와 개발자 티어를 확인하세요.</p>
+                      </div>
+                  </RouterLink>
+              </div>
+          </div>
       </div>
     </div>
     
@@ -477,6 +565,7 @@ const recentTimeline = [
       <p class="text-sm text-sync-muted font-medium mb-4">마이페이지에 접근하려면 먼저 로그인을 해주세요.</p>
       <RouterLink to="/login" class="px-8 py-3 bg-sync-primary hover:bg-sync-primaryHover text-white rounded-xl font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:-translate-y-0.5">로그인 하러 가기</RouterLink>
     </div>
+
     <!-- Point Shop Modal -->
     <Teleport to="body">
       <div v-if="isPointShopOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -498,7 +587,7 @@ const recentTimeline = [
             
             <div class="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-r from-teal-500/10 to-emerald-500/10 border border-teal-500/20 shadow-sm">
                <span class="text-sm font-bold text-sync-text flex items-center gap-2"><span class="text-xl">💰</span>내 보유 포인트</span>
-               <span class="text-3xl font-black text-teal-600 dark:text-teal-400 drop-shadow-sm">{{ authStore.user.points.toLocaleString() }} <span class="text-lg text-teal-500/70">PTS</span></span>
+               <span class="text-3xl font-black text-teal-600 dark:text-teal-400 drop-shadow-sm">{{ authStore.user.points?.toLocaleString() }} <span class="text-lg text-teal-500/70">PTS</span></span>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -527,7 +616,6 @@ const recentTimeline = [
         </div>
       </div>
     </Teleport>
-
   </div>
 </template>
 
@@ -544,5 +632,24 @@ const recentTimeline = [
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
+}
+
+.profile-border-neon {
+  border: 4px solid #22d3ee;
+  box-shadow: 0 0 15px #22d3ee, inset 0 0 15px #22d3ee;
+  border-radius: 50%;
+}
+.profile-border-gold {
+  border: 4px solid #fbbf24;
+  box-shadow: 0 0 15px #fbbf24, inset 0 0 10px #fbbf24;
+  border-radius: 50%;
+}
+.profile-border-chroma {
+  border: 4px solid transparent;
+  background-image: linear-gradient(#181a20, #181a20), linear-gradient(to right, #8b5cf6, #3b82f6, #2dd4bf);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  border-radius: 50%;
 }
 </style>

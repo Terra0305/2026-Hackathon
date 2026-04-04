@@ -1,15 +1,20 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { mockMyHackathons, mockMySubmissions, mockMyActivities, mockUsers } from '../data/mockData'
-import GlowCard from '../components/GlowCard.vue'
-import GlowCardContainer from '../components/GlowCardContainer.vue'
+import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()
+const authStore = useAuthStore()
 const activeMenu = ref('dashboard')
 
 const userProfile = computed(() => {
   const id = Number(route.params.id)
+  
+  // If the profile being viewed is the current logged in user
+  if (authStore.user && authStore.user.id === id) {
+    return authStore.user
+  }
+  
   return mockUsers.find(u => u.id === id) || {
     id: id,
     nickname: `User_${id}`,
@@ -20,7 +25,9 @@ const userProfile = computed(() => {
     status: "up",
     badges: ["🌱"],
     techStack: ["Vue.js", "JavaScript"],
-    githubCommits: 0
+    githubCommits: 0,
+    profileBorder: null,
+    selectedBadges: []
   }
 })
 
@@ -41,6 +48,15 @@ const recentTimeline = [
   { title: '코드 커밋 완료', time: '어제', colorClass: 'bg-blue-400 shadow-[0_0_8px_rgba(50,132,255,0.8)]' },
   { title: '프로필 업데이트', time: '3일 전', colorClass: 'bg-sync-muted' }
 ]
+
+const availableBadges = [
+  { id: 'badge1', name: 'First Hackathon', icon: '🌱' },
+  { id: 'badge2', name: 'Bug Hunter', icon: '🐛' },
+  { id: 'badge3', name: 'Fast Learner', icon: '📚' },
+  { id: 'badge4', name: 'Night Owl', icon: '🌙' },
+  { id: 'badge5', name: 'Team Leader', icon: '👑' },
+  { id: 'badge6', name: 'Innovation Award', icon: '💡' }
+]
 </script>
 
 <template>
@@ -53,7 +69,10 @@ const recentTimeline = [
       <!-- Profile Header Block -->
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
         <div class="flex items-center gap-6">
-           <div class="relative w-28 h-28 shrink-0">
+           <div class="relative w-28 h-28 shrink-0 flex items-center justify-center">
+             <!-- Profile Border Overlay -->
+             <div v-if="userProfile.profileBorder" class="absolute inset-0 profile-border-container z-0" :class="`profile-border-${userProfile.profileBorder}`"></div>
+
              <div class="w-full h-full rounded-full overflow-hidden border-4 border-sync-bg shadow-[0_8px_32px_rgba(0,0,0,0.15)] bg-slate-200 z-10 relative">
                 <img :src="userProfile.avatar" class="w-full h-full object-cover" />
              </div>
@@ -61,7 +80,16 @@ const recentTimeline = [
            </div>
            
            <div class="flex flex-col gap-1.5">
-              <h1 class="text-4xl font-outfit font-black text-sync-text tracking-tight">{{ userProfile.nickname }}</h1>
+              <div class="flex items-center gap-3">
+                <h1 class="text-4xl font-outfit font-black text-sync-text tracking-tight">{{ userProfile.nickname }}</h1>
+                <div v-if="userProfile.selectedBadges && userProfile.selectedBadges.length" class="flex items-center gap-1.5 mt-1">
+                  <div v-for="badgeId in userProfile.selectedBadges" :key="badgeId" 
+                       class="w-8 h-8 rounded-full bg-white dark:bg-[#181A20] border border-sync-border flex items-center justify-center text-lg shadow-sm"
+                       :title="availableBadges.find(b => b.id === badgeId)?.name">
+                    {{ availableBadges.find(b => b.id === badgeId)?.icon }}
+                  </div>
+                </div>
+              </div>
               <p class="text-[15px] font-medium text-sync-muted">{{ userProfile.role }}</p>
            </div>
         </div>
