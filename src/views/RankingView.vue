@@ -40,7 +40,7 @@ const loadMore = () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-12 pb-24 max-w-[1000px] mx-auto w-full transition-colors duration-300">
+  <div class="flex flex-col gap-12 pt-14 pb-24 max-w-[1000px] mx-auto w-full transition-colors duration-300">
     <div class="flex items-end justify-between border-b border-sync-border pb-6 transition-colors duration-300">
       <div class="flex flex-col gap-2">
         <h1 class="text-4xl font-outfit font-bold text-sync-text tracking-tight transition-colors">Top Builders</h1>

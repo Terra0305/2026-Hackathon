@@ -30,7 +30,7 @@ const submissions = computed(() => {
       
       <div v-if="targetHackathon" class="flex flex-col gap-2">
         <span class="px-2.5 py-1 rounded w-max text-[10px] font-bold text-red-500 bg-red-500/10 border border-red-500/20">제출 자료 관리</span>
-        <h1 class="text-3xl lg:text-4xl font-outfit font-black tracking-tight text-white mt-2">{{ targetHackathon.title }}</h1>
+        <h1 class="text-3xl lg:text-4xl font-outfit font-black tracking-tight text-sync-text mt-2">{{ targetHackathon.title }}</h1>
         <p class="text-sync-muted text-sm font-medium mt-1">이 대회에서 최종 개발물을 제출한 팀들의 산출물 내역입니다.</p>
       </div>
       <div v-else class="text-red-500">해당 해커톤을 찾을 수 없습니다.</div>

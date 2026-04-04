@@ -170,7 +170,9 @@ export const mockUsers = reactive([
     badges: ["✨", "🚀", "👑"],
     githubConnected: true,
     techStack: ["Vue.js", "Node.js", "PostgreSQL", "TailwindCSS"],
-    githubCommits: 432
+    githubCommits: 432,
+    email: "architect.kim@sync.com",
+    phone: "010-1234-5678"
   },
   {
     id: 2,
@@ -181,7 +183,9 @@ export const mockUsers = reactive([
     monthlyPoints: 4100,
     rank: 2,
     status: "up",
-    badges: ["💻", "🧠"]
+    badges: ["💻", "🧠"],
+    email: "alex.dev@sync.com",
+    phone: "010-2345-6789"
   },
   {
     id: 3,
@@ -192,7 +196,9 @@ export const mockUsers = reactive([
     monthlyPoints: 2150,
     rank: 3,
     status: "down",
-    badges: ["⛓️", "🛡️"]
+    badges: ["⛓️", "🛡️"],
+    email: "web3ninja@sync.com",
+    phone: "010-3456-7890"
   },
   {
     id: 4,
@@ -203,7 +209,9 @@ export const mockUsers = reactive([
     monthlyPoints: 2800,
     rank: 4,
     status: "up",
-    badges: ["☁️", "🛡️"]
+    badges: ["☁️", "🛡️"],
+    email: "infragod@sync.com",
+    phone: "010-4567-8901"
   },
   {
     id: 5,
@@ -214,7 +222,9 @@ export const mockUsers = reactive([
     monthlyPoints: 3200,
     rank: 5,
     status: "up",
-    badges: ["✨"]
+    badges: ["✨"],
+    email: "design.master@sync.com",
+    phone: "010-5678-9012"
   },
   {
     id: 6,
@@ -225,7 +235,9 @@ export const mockUsers = reactive([
     monthlyPoints: 1950,
     rank: 6,
     status: "down",
-    badges: ["🚀", "💻"]
+    badges: ["🚀", "💻"],
+    email: "frontend.wiz@sync.com",
+    phone: "010-6789-0123"
   },
   {
     id: 7,
@@ -236,7 +248,9 @@ export const mockUsers = reactive([
     monthlyPoints: 2200,
     rank: 7,
     status: "up",
-    badges: ["📊", "🧠"]
+    badges: ["📊", "🧠"],
+    email: "data.guru@sync.com",
+    phone: "010-7890-1234"
   },
   {
     id: 8,
@@ -247,7 +261,9 @@ export const mockUsers = reactive([
     monthlyPoints: 1700,
     rank: 8,
     status: "down",
-    badges: ["📱"]
+    badges: ["📱"],
+    email: "mobile.king@sync.com",
+    phone: "010-8901-2345"
   },
   {
     id: 9,

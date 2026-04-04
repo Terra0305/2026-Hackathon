@@ -94,7 +94,7 @@ const filteredTeams = computed(() => {
 </script>
 
 <template>
-  <div class="max-w-[1240px] w-full mx-auto px-4 sm:px-6 flex flex-col gap-8 pb-32 transition-colors duration-[400ms] ease-out relative pt-4">
+  <div class="max-w-[1240px] w-full mx-auto px-4 sm:px-6 flex flex-col gap-8 pb-32 transition-colors duration-[400ms] ease-out relative pt-14">
     <!-- Ambient Background Effects for this page -->
     <div class="absolute top-0 right-0 w-96 h-96 bg-sync-primary/10 blur-[100px] rounded-full pointer-events-none mix-blend-screen transition-colors duration-1000 -z-10"></div>
     <div class="absolute bottom-0 left-0 w-[40rem] h-[40rem] bg-teal-400/5 blur-[100px] rounded-full pointer-events-none mix-blend-screen transition-colors duration-1000 -z-10"></div>
