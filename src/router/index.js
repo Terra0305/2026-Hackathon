@@ -77,6 +77,12 @@ const router = createRouter({
       name: 'admin-users',
       component: () => import('../views/admin/AdminUsersView.vue'),
       meta: { requiresAdmin: true }
+    },
+    {
+      path: '/admin/users/:id',
+      name: 'admin-user-detail',
+      component: () => import('../views/admin/AdminUserDetailView.vue'),
+      meta: { requiresAdmin: true }
     }
   ],
   scrollBehavior() {

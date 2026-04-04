@@ -16,6 +16,19 @@ const myIncomingRequests = computed(() => {
   return mockJoinRequests.filter(r => myTeamIds.includes(r.teamId))
 })
 
+const myJoinedTeams = computed(() => {
+  return mockTeams.filter(t => 
+    t.members.includes(authStore.user?.nickname) || 
+    t.leaderId === authStore.user?.id
+  )
+})
+
+const hasNewTeamUpdates = computed(() => {
+  return myIncomingRequests.value.some(r => r.status === 'pending')
+})
+
+const selectedRequest = ref(null)
+
 const handleAcceptRequest = (req) => {
   const team = mockTeams.find(t => t.id === req.teamId)
   if (!team) return
@@ -73,7 +86,7 @@ const activeMenu = ref('dashboard')
 const menus = [
   { id: 'dashboard', name: '개요' },
   { id: 'participating', name: '참여 해커톤 & 팀' },
-  { id: 'applications', name: '팀 합류 관리' },
+  { id: 'applications', name: '팀 관리' },
   { id: 'submissions', name: '제출 내역' },
   { id: 'decoration', name: '프로필 꾸미기' },
   { id: 'activities', name: '활동 및 랭킹' }
@@ -180,10 +193,11 @@ const recentTimeline = [
            v-for="menu in menus" 
            :key="menu.id"
            @click="activeMenu = menu.id"
-           class="pb-4 font-bold text-sm transition-colors whitespace-nowrap px-2 outline-none focus:outline-none focus:ring-0"
+           class="pb-4 font-bold text-sm transition-colors flex items-center gap-1.5 whitespace-nowrap px-2 outline-none focus:outline-none focus:ring-0"
            :class="activeMenu === menu.id ? 'text-sync-primary border-b-2 border-sync-primary' : 'text-sync-muted hover:text-sync-text border-b-2 border-transparent'"
          >
            {{ menu.name }}
+           <span v-if="menu.id === 'applications' && hasNewTeamUpdates" class="w-1.5 h-1.5 rounded-full bg-red-500 mb-2"></span>
          </button>
       </div>
 
@@ -241,7 +255,7 @@ const recentTimeline = [
                       <h3 class="text-xl font-bold text-sync-text mb-2">Sync 포인트</h3>
                       <p class="text-3xl font-black text-teal-500 dark:text-teal-400 tracking-tighter">{{ authStore.user.points?.toLocaleString() }} <span class="text-[15px] font-bold opacity-70">PTS</span></p>
                       <p class="text-xs font-medium text-sync-muted mt-3 mb-8 px-4 leading-relaxed">해커톤 참여와 가이드 작성을 통해 모은 포인트로 다양한 리워드와 교환하세요!</p>
-                      <button @click="isPointShopOpen = true" class="w-full py-4 bg-teal-500 hover:bg-teal-600 text-white rounded-2xl font-bold text-sm transition-all shadow-[0_8px_20px_rgba(45,212,191,0.3)] hover:-translate-y-1">포인트 점점 상점 가기</button>
+                      <button @click="isPointShopOpen = true" class="w-full py-4 bg-teal-500 hover:bg-teal-600 text-white rounded-2xl font-bold text-sm transition-all shadow-[0_8px_20px_rgba(45,212,191,0.3)] hover:-translate-y-1">포인트 상점 가기</button>
                    </div>
 
                    <div class="glass-card p-8 border border-slate-200 dark:border-white/5 shadow-md rounded-[2.5rem] flex flex-col gap-6">
@@ -255,140 +269,168 @@ const recentTimeline = [
           </div>
 
           <!-- Participating View -->
-          <div v-if="activeMenu === 'participating'" class="flex flex-col gap-8 animate-fade-in">
-              <div v-if="mockMyHackathons.length === 0" class="py-20 flex flex-col items-center justify-center text-center gap-4">
-                 <EmptyState size="md" message="참여 중인 프로젝트가 존재하지 않습니다." icon="🚀" />
-                 <RouterLink to="/hackathons" class="text-sm font-bold text-sync-primary hover:underline">첫 해커톤 찾아보기</RouterLink>
+          <div v-if="activeMenu === 'participating'" class="flex flex-col gap-10 animate-fade-in">
+              <!-- Participating Teams -->
+              <div class="flex flex-col gap-6">
+                <h3 class="text-xl font-bold text-sync-text px-2">👥 소속 팀</h3>
+                <div v-if="myJoinedTeams.length === 0" class="py-12 flex flex-col items-center justify-center text-center gap-4 border border-dashed border-sync-border rounded-[2.5rem]">
+                   <EmptyState size="sm" message="참여 중인 프로젝트가 존재하지 않습니다." icon="🚀" />
+                   <RouterLink to="/hackathons" class="text-sm font-bold text-sync-primary hover:underline">첫 해커톤 찾아보기</RouterLink>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                   <div v-for="team in myJoinedTeams" :key="team.id" class="glass-card p-8 border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-sm hover:border-sync-primary/30 transition-all group">
+                      <div class="flex justify-between items-start mb-8">
+                         <div class="flex flex-col gap-1.5">
+                            <span class="text-[10px] font-bold text-sync-primary uppercase tracking-widest">{{ team.hackathonName }}</span>
+                            <h3 class="text-2xl font-black text-sync-text tracking-tight group-hover:text-sync-primary transition-colors">{{ team.teamName }}</h3>
+                         </div>
+                         <span class="px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-500 text-[10px] font-bold uppercase tracking-widest">Active Team</span>
+                      </div>
+                      <div class="flex flex-col gap-4 mb-8">
+                         <p class="text-sm font-medium text-sync-muted line-clamp-2 leading-relaxed">{{ team.description }}</p>
+                      </div>
+                      <div class="flex justify-between items-center pt-6 border-t border-sync-border">
+                         <div class="flex -space-x-3">
+                            <div v-for="i in 3" :key="i" class="w-9 h-9 rounded-full border-2 border-sync-bg bg-slate-200 overflow-hidden shadow-sm">
+                               <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=member${i}`" class="w-full h-full object-cover" />
+                            </div>
+                            <div class="w-9 h-9 rounded-full border-2 border-sync-bg bg-sync-border flex items-center justify-center text-[10px] font-bold text-sync-muted">+{{ team.members.length - 3 }}</div>
+                         </div>
+                         <RouterLink :to="`/workspace/${team.id}`" class="px-6 py-2.5 bg-sync-primary/5 hover:bg-sync-primary/10 border border-sync-primary/20 text-sync-primary rounded-xl text-xs font-bold transition-all hover:scale-105">워크스페이스 입장</RouterLink>
+                      </div>
+                   </div>
+                </div>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                 <div v-for="team in mockTeams.filter(t => t.members.includes(authStore.user?.nickname))" :key="team.id" class="glass-card p-8 border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-sm hover:border-sync-primary/30 transition-all group">
-                    <div class="flex justify-between items-start mb-8">
-                       <div class="flex flex-col gap-1.5">
-                          <span class="text-[10px] font-bold text-sync-primary uppercase tracking-widest">{{ team.hackathonName }}</span>
-                          <h3 class="text-2xl font-black text-sync-text tracking-tight group-hover:text-sync-primary transition-colors">{{ team.teamName }}</h3>
-                       </div>
-                       <span class="px-3 py-1.5 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-500 text-[10px] font-bold uppercase tracking-widest">Active Team</span>
+              <!-- My Applied Hackathons -->
+              <div class="flex flex-col gap-6 mt-4">
+                <h3 class="text-xl font-bold text-sync-text px-2">📤 내가 신청한 해커톤</h3>
+                <div v-if="mockMyHackathons.length === 0" class="py-12 w-full flex justify-center border border-dashed border-sync-border rounded-[2.5rem]">
+                  <EmptyState size="sm" message="신청한 해커톤이 없습니다." icon="✈️" />
+                </div>
+                <div v-for="hack in mockMyHackathons" :key="hack.id" class="glass-card p-6 flex flex-col gap-4 border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl opacity-90 transition-opacity hover:opacity-100">
+                  <div class="flex items-center justify-between border-b border-sync-border pb-3">
+                    <div class="flex items-center gap-2">
+                      <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest border border-sync-border px-1.5 py-0.5 rounded">{{ hack.role }}</span>
+                      <span class="text-sm font-bold text-sync-text underline decoration-sync-border underline-offset-4">{{ hack.title }}</span>
                     </div>
-                    <div class="flex flex-col gap-4 mb-8">
-                       <p class="text-sm font-medium text-sync-muted line-clamp-2 leading-relaxed">{{ team.description }}</p>
+                    <span class="px-2.5 py-1 rounded flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest border"
+                          :class="{
+                            'bg-teal-500/10 text-teal-500 border-teal-500/20': hack.status === '진행 중',
+                            'bg-orange-500/10 text-orange-500 border-orange-500/20': hack.status === '매칭 중' || hack.status === '심사 중',
+                            'bg-blue-500/10 text-blue-500 border-blue-500/20': hack.status === '참여 대기'
+                          }">
+                      <span class="w-1.5 h-1.5 rounded-full" 
+                            :class="{
+                              'bg-teal-500': hack.status === '진행 중',
+                              'bg-orange-500 animate-pulse': hack.status === '매칭 중' || hack.status === '심사 중',
+                              'bg-blue-500': hack.status === '참여 대기'
+                            }"></span>
+                      {{ hack.status }}
+                    </span>
+                  </div>
+                  <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <span class="font-bold text-sync-muted text-xs">신청일: {{ hack.appliedDate }}</span>
+                    <div class="flex gap-2">
+                       <button v-if="hack.status === '심사 중' || hack.status === '매칭 중'" @click="mockMyHackathons.splice(mockMyHackathons.indexOf(hack), 1)" class="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold hover:bg-red-500/20 transition-all">신청 취소</button>
+                       <RouterLink :to="`/hackathons/${hack.hackathonId}`" class="px-4 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border text-sync-text text-xs font-bold hover:bg-black/10 transition-colors">상세 보기</RouterLink>
+                       <RouterLink v-if="hack.status === '진행 중'" :to="`/workspace/${mockTeams.find(t => t.hackathonId === hack.hackathonId)?.id || ''}`" class="px-4 py-2 rounded-xl bg-sync-primary text-white text-xs font-bold hover:bg-sync-primaryHover transition-all shadow-sm">워크스페이스</RouterLink>
                     </div>
-                    <div class="flex justify-between items-center pt-6 border-t border-sync-border">
-                       <div class="flex -space-x-3">
-                          <div v-for="i in 3" :key="i" class="w-9 h-9 rounded-full border-2 border-sync-bg bg-slate-200 overflow-hidden shadow-sm">
-                             <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=member${i}`" class="w-full h-full object-cover" />
-                          </div>
-                          <div class="w-9 h-9 rounded-full border-2 border-sync-bg bg-sync-border flex items-center justify-center text-[10px] font-bold text-sync-muted">+{{ team.members.length - 3 }}</div>
-                       </div>
-                       <RouterLink :to="`/workspace/${team.id}`" class="px-6 py-2.5 bg-sync-primary/5 hover:bg-sync-primary/10 border border-sync-primary/20 text-sync-primary rounded-xl text-xs font-bold transition-all hover:scale-105">워크스페이스 입장</RouterLink>
-                    </div>
-                 </div>
+                  </div>
+                </div>
               </div>
           </div>
 
-          <!-- Applications View -->
-          <div v-if="activeMenu === 'applications'" class="flex flex-col gap-12 animate-fade-in">
-              <!-- Incoming Requests -->
-              <div class="flex flex-col gap-5">
-                <h3 class="text-xl font-bold text-sync-text flex items-center justify-between">
-                  📩 나에게 도착한 합류 요청
-                  <span class="text-xs font-bold text-teal-500 bg-teal-400/10 px-2 py-0.5 rounded">{{ myIncomingRequests.filter(r => r.status === 'pending').length }}건 대기</span>
+          <!-- Team Management View -->
+          <div v-if="activeMenu === 'applications'" class="flex flex-col gap-10 animate-fade-in">
+              <!-- Incoming Requests to My Teams -->
+              <div class="flex flex-col gap-4">
+                <h3 class="text-xl font-bold text-sync-text flex items-center gap-2">
+                  📥 팀에 들어온 합류 요청 <span class="bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-[10px] font-bold shadow-[0_2px_8px_rgba(239,68,68,0.4)]">{{ myIncomingRequests.length }}</span>
                 </h3>
                 
-                <div v-if="myIncomingRequests.length === 0" class="py-12 w-full flex justify-center">
-                  <EmptyState size="sm" message="받은 합류 요청이 없습니다." icon="📮" />
-                </div>
+                <EmptyState v-if="myIncomingRequests.length === 0" size="sm" message="받은 합류 요청이 없습니다." icon="📮" />
 
-                <div v-for="req in myIncomingRequests" :key="'in-' + req.id" class="glass-card p-6 flex flex-col md:flex-row md:items-start justify-between gap-6 border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl relative overflow-hidden group">
-                  <div class="absolute inset-y-0 left-0 w-1.5 bg-sync-primary"></div>
-                  <div class="flex flex-col gap-3 flex-1 pl-4">
-                    <div class="flex items-center justify-between">
-                      <span class="text-[11px] bg-sync-primary/10 text-sync-primary border border-sync-primary/20 px-2 py-0.5 rounded font-bold uppercase tracking-widest">{{ req.role }} 지원</span>
-                      <span class="text-[11px] text-sync-muted font-bold">{{ req.createdAt }}</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 bg-slate-200 rounded-full border border-sync-border overflow-hidden">
-                        <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=${req.nickname}`" class="w-full h-full object-cover"/>
+                <div v-else class="flex flex-col gap-3">
+                  <div v-for="req in myIncomingRequests" :key="'in-' + req.id"
+                       class="glass-card flex items-center justify-between p-4 flex-wrap gap-4 px-6 rounded-2xl border border-sync-border hover:border-sync-primary/40 cursor-pointer transition-all shadow-sm group"
+                       @click="selectedRequest = { ...req, isOutgoing: false }">
+                    <div class="flex items-center gap-4 min-w-0">
+                      <div class="w-10 h-10 bg-slate-200 rounded-full overflow-hidden shrink-0 border border-sync-border relative">
+                        <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=${req.nickname}`" class="w-full h-full object-cover group-hover:scale-110 transition-transform"/>
                       </div>
-                      <span class="text-lg font-bold text-sync-text">{{ req.nickname }}</span>
+                      <div class="flex flex-col gap-0.5 min-w-0">
+                        <div class="flex items-center gap-2">
+                          <span class="text-base font-bold text-sync-text leading-none">{{ req.nickname }}</span>
+                          <span class="text-xs text-sync-muted font-medium">{{ req.createdAt }}</span>
+                        </div>
+                        <span class="text-[13px] font-bold text-sync-primary">[{{ mockTeams.find(t => t.id === req.teamId)?.teamName }}] {{ req.role }} 지원</span>
+                      </div>
                     </div>
-                    <div class="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-sync-border mt-1">
-                      <p class="text-[13px] font-medium text-sync-text whitespace-pre-line leading-relaxed">{{ req.message }}</p>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <span v-if="req.status === 'pending'" class="text-[12px] font-bold px-3 py-1.5 bg-sync-primary/10 text-sync-primary rounded-lg border border-sync-primary/20 shadow-[0_2px_10px_rgba(50,132,255,0.1)]">대기 중</span>
+                      <span v-else-if="req.status === 'accepted'" class="text-[12px] font-bold px-3 py-1.5 bg-teal-500/10 text-teal-500 rounded-lg border border-teal-500/20 shadow-[0_2px_10px_rgba(45,212,191,0.1)]">수락 완료</span>
+                      <span v-else class="text-[12px] font-bold px-3 py-1.5 bg-gray-500/10 text-gray-500 rounded-lg border border-gray-500/20">거절됨</span>
                     </div>
-                  </div>
-                  <div class="flex lg:flex-col gap-3 shrink-0 lg:w-32 justify-end mt-2 lg:mt-0 pt-4 lg:pt-0 border-t lg:border-t-0 border-sync-border">
-                    <button @click="handleAcceptRequest(req)" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-teal-500 hover:bg-teal-600 text-white text-xs font-bold rounded-xl transition-all shadow-sm">수락하기</button>
-                    <button @click="handleRejectRequest(req)" v-if="req.status === 'pending'" class="w-full px-4 py-2.5 bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 text-xs font-bold rounded-xl transition-all shadow-sm">거절하기</button>
-                    <span v-if="req.status === 'accepted'" class="w-full px-4 py-2.5 bg-teal-500/10 border border-teal-500/30 text-teal-500 text-xs font-bold rounded-xl text-center">수락 완료</span>
-                    <span v-if="req.status === 'rejected'" class="w-full px-4 py-2.5 bg-gray-500/10 border border-gray-500/30 text-gray-500 text-xs font-bold rounded-xl text-center">거절 완료</span>
                   </div>
                 </div>
               </div>
 
               <div class="w-full h-px bg-sync-border my-2"></div>
 
-              <!-- Sent Requests -->
-              <div class="flex flex-col gap-5">
-                <h3 class="text-xl font-bold text-sync-text">📤 내가 보낸 합류 요청</h3>
+              <!-- My Sent Requests -->
+              <div class="flex flex-col gap-4">
+                <h3 class="text-xl font-bold text-sync-text flex items-center justify-between">
+                  📤 내가 보낸 합류 요청
+                </h3>
                 
-                <div v-if="mySentRequests.length === 0" class="py-12 w-full flex justify-center">
-                  <EmptyState size="sm" message="신청한 내역이 없습니다." icon="✈️" />
-                </div>
+                <EmptyState v-if="mySentRequests.length === 0" size="sm" message="신청한 내역이 없습니다." icon="✈️" />
 
-                <div v-for="req in mySentRequests" :key="'out-' + req.id" class="glass-card p-6 flex flex-col gap-4 border border-slate-200 dark:border-white/5 shadow-sm rounded-3xl opacity-90 transition-opacity hover:opacity-100">
-                  <div class="flex items-center justify-between border-b border-sync-border pb-3">
-                    <div class="flex items-center gap-2">
-                      <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest border border-sync-border px-1.5 py-0.5 rounded">{{ req.role }}</span>
-                      <span class="text-sm font-bold text-sync-text underline decoration-sync-border underline-offset-4">{{ mockTeams.find(t => t.id === req.teamId)?.teamName }}</span>
+                <div v-else class="flex flex-col gap-3">
+                  <div v-for="req in mySentRequests" :key="'out-' + req.id"
+                       class="glass-card flex items-center justify-between p-4 flex-wrap gap-4 px-6 rounded-2xl border border-sync-border hover:border-sync-primary/40 cursor-pointer transition-all shadow-sm group"
+                       @click="selectedRequest = { ...req, isOutgoing: true }">
+                    <div class="flex items-center gap-4 min-w-0">
+                      <div class="flex flex-col gap-0.5 min-w-0">
+                        <span class="text-base font-bold text-sync-primary truncate leading-none">{{ mockTeams.find(t => t.id === req.teamId)?.teamName }}</span>
+                        <div class="flex items-center gap-2">
+                           <span class="text-[13px] font-bold text-sync-primary">{{ req.role }} 지원</span>
+                           <span class="text-xs text-sync-muted font-medium">{{ req.createdAt }}</span>
+                        </div>
+                      </div>
                     </div>
-                    <span class="px-2.5 py-1 rounded flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest border"
-                          :class="req.status === 'pending' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : req.status === 'accepted' ? 'bg-teal-500/10 text-teal-500 border-teal-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'">
-                      <span v-if="req.status === 'pending'" class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>
-                      {{ req.status === 'pending' ? '대기 중' : req.status === 'accepted' ? '수락됨' : '거절됨' }}
-                    </span>
+                    <div class="flex items-center gap-2 shrink-0">
+                      <span v-if="req.status === 'pending'" class="text-[12px] font-bold px-3 py-1.5 flex items-center gap-2 bg-orange-500/10 text-orange-500 border border-orange-500/20 rounded-lg shadow-[0_2px_10px_rgba(249,115,22,0.1)]"><span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"></span>대기 중</span>
+                      <span v-else-if="req.status === 'accepted'" class="text-[12px] font-bold px-3 py-1.5 bg-teal-500/10 text-teal-500 border-teal-500/20 rounded-lg shadow-[0_2px_10px_rgba(45,212,191,0.1)]">수락됨</span>
+                      <span v-else class="text-[12px] font-bold px-3 py-1.5 bg-gray-500/10 text-gray-500 border border-gray-500/20 rounded-lg">거절됨</span>
+                    </div>
                   </div>
-                  <p class="text-[13px] text-sync-muted leading-relaxed whitespace-pre-line bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-sync-border">"{{ req.message }}"</p>
-                  <div class="flex justify-between items-center mt-1">
-                    <span class="font-bold text-sync-muted text-xs">{{ req.createdAt }}</span>
-                    <button v-if="req.status === 'pending'" @click="mockJoinRequests.splice(mockJoinRequests.indexOf(req), 1)" class="text-red-500 text-xs font-bold hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-500/30">요청 취소</button>
-                  </div>
-                </div>
+               </div>
               </div>
           </div>
 
           <!-- Submissions View -->
-          <div v-if="activeMenu === 'submissions'" class="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
-              <div v-if="mockMySubmissions.length === 0" class="col-span-full py-12 flex justify-center w-full">
-                 <EmptyState size="md" message="제출된 프로젝트 내역이 없습니다." icon="📦" />
+          <div v-if="activeMenu === 'submissions'" class="flex flex-col gap-8 animate-fade-in">
+              <div v-if="mockMySubmissions.length === 0" class="py-20 flex flex-col items-center justify-center text-center gap-4 border border-dashed border-sync-border rounded-[2.5rem]">
+                 <EmptyState size="md" message="제출 내역이 존재하지 않습니다." icon="🏆" />
+                 <RouterLink to="/workspace" class="text-sm font-bold text-sync-primary hover:underline">프로젝트 제출하러 가기</RouterLink>
               </div>
 
-              <div v-for="sub in mockMySubmissions" :key="sub.id" class="glass-card shadow-sm overflow-hidden group hover:-translate-y-1 transition-transform border border-slate-200 dark:border-white/5 hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)] rounded-3xl">
-                 <div class="h-36 bg-gradient-to-br flex items-center justify-center relative shadow-inner overflow-hidden" :class="sub.awardColor">
-                    <div class="absolute inset-0 bg-black/20 mix-blend-overlay"></div>
-                    <div class="absolute -top-10 -right-10 w-24 h-24 bg-white/20 blur-[20px] rounded-full mix-blend-overlay group-hover:scale-150 transition-transform duration-700"></div>
-                    <img :src="sub.thumbnail" class="w-24 h-24 opacity-60 z-10 drop-shadow-md group-hover:scale-110 transition-transform" />
-                    <div class="absolute top-4 right-4 bg-white/20 backdrop-blur-md border border-white/30 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm">{{ sub.award }}</div>
+              <div v-for="sub in mockMySubmissions" :key="sub.id" class="glass-card p-8 border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-sm flex flex-col md:flex-row justify-between gap-8 group">
+                 <div class="flex flex-col gap-4 flex-1">
+                    <div class="flex items-center gap-3">
+                       <span class="text-[10px] font-black text-white bg-sync-primary px-3 py-1 rounded-full shadow-sm">{{ sub.hackathonName }}</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-sync-text tracking-tight group-hover:text-sync-primary transition-colors">{{ sub.projectName }}</h3>
+                    <p class="text-sm text-sync-muted font-medium leading-relaxed">{{ sub.description }}</p>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                       <a v-for="link in sub.links" :key="link" :href="link" target="_blank" class="text-xs font-bold text-sync-muted hover:text-sync-primary flex items-center gap-1.5 border border-sync-border px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 transition-all">🔗 GitHub Link</a>
+                    </div>
                  </div>
-                 <div class="p-8 flex flex-col gap-3">
-                   <p class="text-[10px] font-bold text-sync-primary uppercase tracking-widest">{{ sub.hackathonTitle }}</p>
-                   <h3 class="text-xl font-bold text-sync-text leading-tight mt-1">{{ sub.projectName }}</h3>
-                   <p class="text-[13px] text-sync-muted line-clamp-2 leading-relaxed mt-1 font-medium">{{ sub.description }}</p>
-                   
-                   <div v-if="sub.historyDocs && sub.historyDocs.length" class="flex flex-col gap-2 mt-4 p-4 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border transition-colors group-hover:border-sync-primary/20">
-                      <span class="text-[10px] font-bold text-sync-muted uppercase tracking-widest mb-1">Workspace Archive</span>
-                      <div v-for="doc in sub.historyDocs" :key="doc.title" class="flex items-center justify-between text-xs">
-                         <div class="flex items-center gap-2">
-                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 text-sync-text font-bold drop-shadow-sm">{{ doc.type }}</span>
-                            <span class="text-sync-text font-medium">{{ doc.title }}</span>
-                         </div>
-                         <span class="text-sync-muted font-bold text-[10px] hidden sm:block">{{ doc.date }}</span>
-                      </div>
-                   </div>
-
-                   <div class="mt-4 pt-5 border-t border-sync-border flex justify-between items-center text-sm">
-                     <span class="font-bold text-sync-muted">{{ sub.date }}</span>
-                     <a :href="sub.link" target="_blank" class="font-bold text-sync-primary hover:text-sync-primaryHover transition-colors flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sync-primary/10 border border-sync-primary/20 shadow-sm">Source Code <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg></a>
-                   </div>
+                 <div class="flex flex-col justify-between items-end shrink-0">
+                    <span class="text-xs font-bold text-sync-muted">제출일: {{ sub.date }}</span>
+                    <button class="px-6 py-2.5 bg-black/5 dark:bg-white/5 border border-sync-border hover:border-sync-primary/40 text-sync-text rounded-xl text-xs font-bold transition-all">수정하기</button>
                  </div>
               </div>
           </div>
@@ -465,7 +507,7 @@ const recentTimeline = [
                     <div class="bg-black/5 dark:bg-white/5 border border-sync-border p-4 px-6 rounded-2xl flex items-center gap-4">
                        <div class="flex items-center -space-x-2">
                           <div v-for="badgeId in authStore.user.selectedBadges || []" :key="badgeId" class="w-10 h-10 rounded-full bg-white dark:bg-[#181A20] border-2 border-sync-bg flex items-center justify-center text-xl shadow-sm z-10">
-                             {{ availableBadges.find(b => b.id === badgeId)?.icon }}
+                             {{ availableBadges.find(b => b.icon === badgeId)?.icon }}
                           </div>
                           <div v-if="!authStore.user.selectedBadges?.length" class="text-xs font-bold text-sync-muted">선택된 배지 없음</div>
                        </div>
@@ -616,6 +658,50 @@ const recentTimeline = [
         </div>
       </div>
     </Teleport>
+
+    <!-- Application Detail Modal -->
+    <Teleport to="body">
+      <div v-if="selectedRequest" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="selectedRequest = null"></div>
+        <div class="glass-card relative w-full max-w-lg bg-white dark:bg-[#0f1115] border border-sync-border rounded-[2rem] p-8 shadow-2xl animate-fade-in flex flex-col gap-6 max-h-[85vh] overflow-y-auto custom-scrollbar">
+          <div class="flex justify-between items-center border-b border-sync-border pb-4 shrink-0">
+            <h3 class="text-[17px] font-bold text-sync-text flex items-center gap-2">📄 팀 합류 신청서</h3>
+            <button @click="selectedRequest = null" class="text-sync-muted hover:text-sync-text transition-colors">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+          
+          <div class="flex items-center gap-4 mb-2 shrink-0">
+            <img :src="`https://api.dicebear.com/7.x/notionists/svg?seed=${selectedRequest.nickname}`" class="w-14 h-14 bg-slate-200 rounded-full border border-sync-border flex-shrink-0"/>
+            <div class="flex flex-col gap-1 min-w-0">
+              <span class="text-lg font-bold text-sync-text truncate">{{ selectedRequest.nickname }}</span>
+              <span class="text-xs text-sync-muted font-bold truncate">{{ mockTeams.find(t => t.id === selectedRequest.teamId)?.teamName || '프로젝트' }} - {{ selectedRequest.createdAt }} 신청</span>
+            </div>
+          </div>
+          
+          <div class="flex flex-col gap-5 flex-1 min-h-0">
+            <div class="flex flex-col gap-2 shrink-0">
+              <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest">지원 포지션</span>
+              <div class="p-4 bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl text-sm font-bold text-sync-text">{{ selectedRequest.role }}</div>
+            </div>
+            
+            <div class="flex flex-col gap-2 flex-1 min-h-[120px]">
+              <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest">지원 동기 및 코멘트</span>
+              <div class="p-5 bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl text-[14px] text-sync-text leading-relaxed whitespace-pre-wrap">{{ selectedRequest.message || '내용이 없습니다.' }}</div>
+            </div>
+          </div>
+          
+          <div class="mt-2 pt-5 border-t border-sync-border flex justify-end gap-3 shrink-0" v-if="!selectedRequest.isOutgoing && selectedRequest.status === 'pending'">
+             <button @click="handleRejectRequest(mockJoinRequests.find(r => r.id === selectedRequest.id)); selectedRequest = null" class="flex-1 sm:flex-none min-w-[100px] px-8 py-3.5 rounded-xl border border-red-500/30 text-red-500 text-[13px] font-bold hover:bg-red-500/10 transition-colors">거절하기</button>
+             <button @click="handleAcceptRequest(mockJoinRequests.find(r => r.id === selectedRequest.id)); selectedRequest = null" class="flex-1 sm:flex-none min-w-[100px] px-8 py-3.5 rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-[13px] font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:-translate-y-0.5">수락하기</button>
+          </div>
+          <div class="mt-2 pt-5 border-t border-sync-border flex justify-end shrink-0" v-else-if="selectedRequest.isOutgoing && selectedRequest.status === 'pending'">
+             <button @click="mockJoinRequests.splice(mockJoinRequests.findIndex(r => r.id === selectedRequest.id), 1); selectedRequest = null" class="w-full px-6 py-3.5 rounded-xl border border-red-500/30 text-red-500 text-[13px] font-bold hover:bg-red-500/10 transition-colors">지원 취소하기</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
   </div>
 </template>
 

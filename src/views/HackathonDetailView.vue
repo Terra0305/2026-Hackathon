@@ -1,38 +1,39 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, RouterLink } from 'vue-router'
 import { mockHackathons } from '../data/mockData'
+import { ref, computed, onMounted } from 'vue'
 import GlowCard from '../components/GlowCard.vue'
-import GlowCardContainer from '../components/GlowCardContainer.vue'
 
 const route = useRoute()
-const router = useRouter()
+const hackathon = computed(() => {
+  return mockHackathons.find(h => String(h.id) === route.params.slug)
+})
+const hackathonId = computed(() => hackathon.value?.id)
+
 const currentTab = ref('overview')
 const hasApplied = ref(false)
 
-const hackathon = computed(() => {
-  const id = parseInt(route.params.slug) // Properly maps to :slug route
-  return mockHackathons.find(h => h.id === id) || mockHackathons[0]
-})
-
-// Scroll top on mount
+// Check if user has already applied (Simulation)
 onMounted(() => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  const appliedData = localStorage.getItem(`applied_hackathon_${hackathonId.value}`)
+  if (appliedData) {
+    hasApplied.value = true
+  }
 })
 </script>
 
 <template>
-  <div class="max-w-[1240px] mx-auto px-4 sm:px-6 flex flex-col gap-8 pb-32 transition-colors duration-[500ms] ease-out w-full font-sans">
-    <!-- Hero Header Component (Redesigned with Flex to prevent overlap) -->
-    <div class="w-full flex-1 min-h-[380px] md:min-h-[440px] flex flex-col justify-between rounded-[2.5rem] relative overflow-hidden py-10 md:py-12 px-5 bg-gradient-to-br shadow-[0_16px_48px_rgba(0,0,0,0.1)] group transition-all" :class="hackathon.bgGradient">
-      
-      <!-- Ambient effects -->
+  <div v-if="hackathon" class="max-w-[1240px] mx-auto px-4 sm:px-6 py-6 md:py-10 flex flex-col gap-10 pb-32 animate-fade-in transition-all">
+    
+    <!-- Hero Section (Sync Platform Specific Branding) -->
+    <div class="relative w-full h-[320px] md:h-[420px] rounded-[3rem] overflow-hidden flex flex-col items-center justify-center p-8 md:p-12 group transition-all duration-700 shadow-2xl">
+      <div class="absolute inset-0 bg-gradient-to-br transition-transform duration-1000 group-hover:scale-105" :class="hackathon.bgGradient"></div>
       <div class="absolute inset-0 bg-black/20 mix-blend-overlay"></div>
       <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 pointer-events-none"></div>
       <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[50px] rounded-full group-hover:bg-white/30 transition-colors duration-700 pointer-events-none mix-blend-overlay"></div>
       
       <!-- Top Title Block (Fixed centered alignment matching user request) -->
-      <div class="z-10 flex flex-col items-center text-center max-w-4xl gap-4 mx-auto mb-16 md:mb-12">
+      <div class="z-10 flex flex-col items-center text-center max-w-4xl gap-4 mx-auto mb-8 md:mb-6">
         <span class="px-5 py-2 bg-white/10 border border-white/30 rounded-full text-[10px] sm:text-xs font-bold text-white tracking-widest uppercase backdrop-blur-md shadow-sm">{{ hackathon.type }}</span>
         <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-[68px] font-outfit font-black text-white drop-shadow-md leading-tight sm:leading-tight mt-1">{{ hackathon.title }}</h1>
       </div>
@@ -40,18 +41,18 @@ onMounted(() => {
       <!-- Bottom Specifics Block (Inline Flex - Resolving Absolute overlap issues) -->
       <div class="z-10 w-full md:w-[94%] max-w-4xl mx-auto border border-white/20 bg-black/20 md:p-6 p-5 py-6 rounded-[2.5rem] flex flex-wrap md:flex-nowrap items-center justify-around gap-y-6 gap-x-2 text-white text-sm backdrop-blur-3xl shadow-[0_16px_40px_rgba(0,0,0,0.3)] mt-auto border-t border-t-white/30">
         <div class="flex flex-col items-center flex-1 min-w-0 px-2 text-center break-keep">
-          <span class="text-[10px] font-bold text-white/50 tracking-widest uppercase mb-1 drop-shadow-sm">일정</span>
-          <span class="font-bold text-sm md:text-base leading-tight">{{ hackathon.startDate }} - {{ hackathon.endDate }}</span>
+          <span class="text-xs font-bold text-white/50 tracking-widest uppercase mb-1.5 drop-shadow-sm">일정</span>
+          <span class="font-bold text-base md:text-lg leading-tight">{{ hackathon.startDate }} - {{ hackathon.endDate }}</span>
         </div>
         <div class="flex items-center justify-center text-white/40 font-light text-2xl shrink-0">|</div>
         <div class="flex flex-col items-center flex-1 min-w-0 px-2 text-center break-keep">
-          <span class="text-[10px] font-bold text-white/50 tracking-widest uppercase mb-1 drop-shadow-sm">참여 규모</span>
-          <span class="font-bold text-sm md:text-base leading-tight">{{ hackathon.participants.toLocaleString() }}명 참여</span>
+          <span class="text-xs font-bold text-white/50 tracking-widest uppercase mb-1.5 drop-shadow-sm">참여 규모</span>
+          <span class="font-bold text-base md:text-lg leading-tight">{{ hackathon.participants.toLocaleString() }}명 참여</span>
         </div>
         <div class="flex items-center justify-center text-white/40 font-light text-2xl shrink-0">|</div>
         <div class="flex flex-col items-center flex-1 min-w-0 px-2 text-center break-keep w-full md:w-auto mt-2 md:mt-0">
-          <span class="text-[10px] font-bold text-white/50 tracking-widest uppercase mb-1 drop-shadow-sm">주최 기관</span>
-          <span class="font-bold text-sm md:text-base leading-tight">{{ hackathon.organizer || 'Sync 공식' }}</span>
+          <span class="text-xs font-bold text-white/50 tracking-widest uppercase mb-1.5 drop-shadow-sm">주최 기관</span>
+          <span class="font-bold text-base md:text-lg leading-tight">{{ hackathon.organizer || 'Sync 공식' }}</span>
         </div>
       </div>
     </div>
@@ -90,11 +91,17 @@ onMounted(() => {
                  </div>
               </div>
               <!-- Optional Promotional Video -->
-              <div class="w-full h-24 md:h-28 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border/50 flex items-center justify-center flex-col gap-3 group cursor-pointer hover:border-sync-primary/40 transition-colors duration-[400ms] ease-out">
-                <div class="flex items-center gap-2 text-sync-muted group-hover:text-sync-primary transition-colors duration-[400ms]">
-                   <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-                   <span class="text-xs font-bold uppercase tracking-widest">주최 측 영상 (선택 사항)</span>
-                </div>
+              <div v-if="hackathon.videoUrl" class="w-full h-48 md:h-56 rounded-2xl overflow-hidden border border-sync-border/50 bg-black flex items-center justify-center relative group cursor-pointer hover:border-sync-primary/50 transition-all">
+                 <div class="absolute inset-0 bg-black/40 z-10 pointer-events-none"></div>
+                 <div class="absolute inset-0 flex items-center justify-center z-20">
+                    <a :href="hackathon.videoUrl" target="_blank" class="w-16 h-16 rounded-full bg-sync-primary/90 text-white flex items-center justify-center shadow-[0_0_20px_rgba(50,132,255,0.5)] group-hover:scale-110 group-hover:bg-sync-primary transition-all backdrop-blur-sm">
+                      <svg class="w-8 h-8 md:w-10 md:h-10 ml-1 md:ml-1.5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                    </a>
+                 </div>
+                 <div class="absolute bottom-4 left-6 z-20 pointer-events-none">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-sync-primary mb-1 block">주최 측 공식 영상</span>
+                    <span class="text-sm font-medium text-white">클릭하여 영상 시청하기</span>
+                 </div>
               </div>
             </div>
           </div>
@@ -155,14 +162,20 @@ onMounted(() => {
            <div class="flex flex-col gap-3">
              <span class="text-[10px] font-bold text-sync-muted uppercase tracking-widest">신청 및 진행 상태</span>
              <div class="flex items-center gap-3">
-               <span class="relative flex h-4 w-4 shrink-0">
+               <span class="relative flex h-4 w-4 shrink-0 items-center justify-center">
                  <span v-if="hackathon.status === '진행 중'" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                 <span class="relative inline-flex rounded-full h-4 w-4" :class="hackathon.status === '진행 중' ? 'bg-teal-500' : hackathon.status === '예정' ? 'bg-blue-500' : 'bg-gray-400'"></span>
+                 <span class="relative inline-flex rounded-full h-3 w-3" 
+                       :class="{
+                         'bg-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.8)]': hackathon.status === '진행 중',
+                         'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]': hackathon.status === '예정',
+                         'bg-gray-400': hackathon.status === '종료'
+                       }"></span>
                </span>
                <span class="text-3xl font-black text-sync-text tracking-tight">{{ hackathon.status }}</span>
              </div>
-             <p v-if="hackathon.status === '진행 중'" class="text-[13px] text-sync-text font-medium mt-2 p-3 bg-teal-500/10 rounded-xl border border-teal-500/20 text-teal-700 dark:text-teal-400">현재 모집 중인 대회로 참가가 능합니다. 자리가 조기 마감될 수 있습니다.</p>
-             <p v-else-if="hackathon.status === '종료'" class="text-[13px] text-sync-text font-medium mt-2 p-3 bg-gray-500/10 rounded-xl border border-gray-500/20 text-gray-700 dark:text-gray-400">이미 모집이 종료된 해커톤입니다.</p>
+             <p v-if="hackathon.status === '진행 중'" class="text-[13px] text-teal-700 dark:text-teal-400 font-medium mt-2 p-4 bg-teal-500/10 rounded-2xl border border-teal-500/20 leading-relaxed shadow-sm">현재 모집 중인 대회로 참가 신청이 가능합니다. 자리가 조기 마감될 수 있으니 서둘러주세요! 🚀</p>
+             <p v-else-if="hackathon.status === '예정'" class="text-[13px] text-blue-700 dark:text-blue-400 font-medium mt-2 p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20 leading-relaxed shadow-sm">아직 참가 신청 기간이 아닙니다. 모집이 시작되면 알림을 보내드릴게요! 🔔</p>
+             <p v-else-if="hackathon.status === '종료'" class="text-[13px] text-gray-700 dark:text-gray-400 font-medium mt-2 p-4 bg-gray-500/10 rounded-2xl border border-gray-500/20 leading-relaxed">이미 모집 및 대회가 종료된 해커톤입니다.</p>
            </div>
 
            <div class="flex flex-col gap-5 pt-6 border-t border-sync-border">
@@ -180,12 +193,25 @@ onMounted(() => {
               <!-- Application Vue State Logic (Redirect to Form) -->
               <RouterLink
                 v-if="!hasApplied" 
-                :to="hackathon.status === '종료' ? '' : `/hackathons/${hackathon.id}/apply`"
-                class="w-full py-5 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:shadow-[0_6px_20px_rgba(50,132,255,0.4)] hover:-translate-y-1 active:translate-y-0 text-white text-[15px]"
-                :class="hackathon.status === '종료' ? 'bg-gray-400 text-gray-200 cursor-not-allowed pointer-events-none shadow-none' : 'bg-sync-primary hover:bg-sync-primaryHover'"
+                :to="hackathon.status === '진행 중' ? `/hackathons/${hackathon.id}/apply` : ''"
+                class="w-full py-5 rounded-2xl font-bold transition-all flex items-center justify-center gap-3 text-white text-[15px]"
+                :class="{
+                  'bg-sync-primary hover:bg-sync-primaryHover shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:shadow-[0_6px_20px_rgba(50,132,255,0.4)] hover:-translate-y-1 active:translate-y-0': hackathon.status === '진행 중',
+                  'bg-blue-500/20 text-blue-500 border border-blue-500/30 cursor-not-allowed pointer-events-none opacity-80': hackathon.status === '예정',
+                  'bg-gray-500/40 text-gray-200 border border-sync-border cursor-not-allowed pointer-events-none shadow-none': hackathon.status === '종료'
+                }"
               >
-                {{ hackathon.status === '종료' ? '마감된 해커톤' : '대회 참가 신청하기' }}
-                <svg v-if="hackathon.status !== '종료'" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <template v-if="hackathon.status === '진행 중'">
+                   대회 참가 신청하기
+                   <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </template>
+                <template v-else-if="hackathon.status === '예정'">
+                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                   모집 예정인 해커톤
+                </template>
+                <template v-else>
+                   마감된 해커톤
+                </template>
               </RouterLink>
               
               <div v-else class="w-full py-5 rounded-2xl border-2 border-teal-500 bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold transition-all flex items-center justify-center gap-2 shadow-[0_8px_20px_rgba(20,184,166,0.2)]">

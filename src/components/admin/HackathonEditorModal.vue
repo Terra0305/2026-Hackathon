@@ -171,25 +171,43 @@ const handleSave = () => {
             </div>
 
             <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-sync-muted">상세 설명 내용</label>
+              <label class="text-xs font-bold text-sync-muted uppercase tracking-widest">상세 설명 내용 (Markdown 지원 예정)</label>
               <textarea v-model="formData.description" rows="5" placeholder="해커톤에 대한 자세한 설명을 적어주세요." class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all custom-scrollbar"></textarea>
             </div>
 
-            <h4 class="text-sm font-bold text-sync-text mt-4">비주얼 요소 렌더링</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-               <div class="flex flex-col gap-2 w-full">
-                 <label class="text-xs font-bold text-sync-muted">상단 메인 텍스트 (Hero Text)</label>
-                 <input v-model="formData.heroText" type="text" placeholder="GLOBAL HACKATHON" class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all">
-               </div>
-               <div class="flex flex-col gap-2 w-full">
-                 <label class="text-xs font-bold text-sync-muted">상단 서브 텍스트 (Sub Text)</label>
-                 <input v-model="formData.subText" type="text" placeholder="Build the future" class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all">
-               </div>
+            <div class="flex flex-col gap-2 mt-2">
+              <label class="text-xs font-bold text-sync-muted uppercase tracking-widest">주최 측 홍보 영상 URL (선택사항)</label>
+              <input v-model="formData.videoUrl" type="url" placeholder="예: https://youtube.com/..." class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all">
             </div>
-            
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-sync-muted">배경 그라데이션 CSS Class (Tailwind)</label>
-              <input v-model="formData.bgGradient" type="text" placeholder="from-slate-700 to-slate-900" class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all font-mono text-xs">
+
+            <h4 class="text-sm font-bold text-sync-text mt-4 flex items-center gap-2">
+              <svg class="w-4 h-4 text-sync-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h14a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              카드 배경 테마 선택
+            </h4>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <button 
+                v-for="bg in [
+                  { label: 'Teal Mist', value: 'from-[#77B5AE] to-[#609993]' },
+                  { label: 'Deep Forest', value: 'from-[#215E65] to-[#12363A]' },
+                  { label: 'Midnight Blue', value: 'from-[#1F2C3D] to-[#111A24]' },
+                  { label: 'Royal Purple', value: 'from-[#4F46E5] to-[#3730A3]' },
+                  { label: 'Crimson Night', value: 'from-[#991B1B] to-[#7F1D1D]' },
+                  { label: 'Cyber Ink', value: 'from-[#1E293B] to-[#0F172A]' }
+                ]" 
+                :key="bg.value"
+                @click="formData.bgGradient = bg.value"
+                class="relative h-20 rounded-xl border-2 transition-all p-3 flex items-end overflow-hidden group bg-gradient-to-br"
+                :class="[
+                  bg.value,
+                  formData.bgGradient === bg.value ? 'border-sync-primary ring-2 ring-sync-primary/20 scale-[1.02]' : 'border-sync-border hover:border-sync-primary/40'
+                ]"
+              >
+                <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
+                <span class="relative z-10 text-[10px] font-bold text-white uppercase tracking-tighter">{{ bg.label }}</span>
+                <div v-if="formData.bgGradient === bg.value" class="absolute top-1.5 right-1.5 w-4 h-4 bg-sync-primary rounded-full flex items-center justify-center shadow-lg">
+                  <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+              </button>
             </div>
           </div>
 

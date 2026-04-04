@@ -12,6 +12,7 @@ const route = useRoute()
 const authStore = useAuthStore()
 const currentRole = ref('all')
 const searchQuery = ref('')
+const sortBy = ref('latest')
 const joinedTeams = ref(new Set()) // Local mockup tracking
 const isLoading = ref(true)
 const selectedTeam = ref(null)
@@ -83,18 +84,26 @@ const handleCardJoinClick = (team) => {
 const filteredTeams = computed(() => {
   const queryHackId = route.query.hackathonId ? parseInt(route.query.hackathonId) : null
   
-  return mockTeams.filter(team => {
+  let list = mockTeams.filter(team => {
     const matchRole = currentRole.value === 'all' || team.roles.some(r => r.name.includes(currentRole.value) || currentRole.value.includes(r.name))
     const matchQuery = !searchQuery.value || team.teamName.toLowerCase().includes(searchQuery.value.toLowerCase()) || team.hackathonTitle.toLowerCase().includes(searchQuery.value.toLowerCase())
     const matchHackathon = queryHackId ? team.hackathonId === queryHackId : true
-    
     return matchRole && matchQuery && matchHackathon
   })
+
+  if (sortBy.value === 'latest') list.sort((a, b) => b.id - a.id)
+  else if (sortBy.value === 'oldest') list.sort((a, b) => a.id - b.id)
+  else if (sortBy.value === 'open') list.sort((a, b) => {
+    const aOpen = a.roles?.some(r => r.current < r.total) ? 0 : 1
+    const bOpen = b.roles?.some(r => r.current < r.total) ? 0 : 1
+    return aOpen - bOpen
+  })
+  return list
 })
 </script>
 
 <template>
-  <div class="max-w-[1240px] w-full mx-auto px-4 sm:px-6 flex flex-col gap-8 pb-32 transition-colors duration-[400ms] ease-out relative pt-4">
+  <div class="max-w-[1240px] w-full mx-auto px-4 sm:px-6 flex flex-col gap-8 pb-32 transition-colors duration-[400ms] ease-out relative pt-14">
     <!-- Ambient Background Effects for this page -->
     <div class="absolute top-0 right-0 w-96 h-96 bg-sync-primary/10 blur-[100px] rounded-full pointer-events-none mix-blend-screen transition-colors duration-1000 -z-10"></div>
     <div class="absolute bottom-0 left-0 w-[40rem] h-[40rem] bg-teal-400/5 blur-[100px] rounded-full pointer-events-none mix-blend-screen transition-colors duration-1000 -z-10"></div>
@@ -134,12 +143,23 @@ const filteredTeams = computed(() => {
         <input v-model="searchQuery" type="text" placeholder="팀명, 해커톤 이름 검색" class="w-full bg-white/50 dark:bg-black/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-sync-text placeholder-sync-muted focus:outline-none focus:border-sync-primary transition-colors shadow-sm">
       </div>
       
-      <div class="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 custom-scrollbar">
-        <button @click="currentRole = 'all'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap shadow-sm transition-colors border" :class="currentRole === 'all' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">전체 역할</button>
-        <button @click="currentRole = '기획자'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border" :class="currentRole === '기획자' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">기획자</button>
-        <button @click="currentRole = '디자이너'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border" :class="currentRole === '디자이너' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">디자이너</button>
-        <button @click="currentRole = '프론트엔드'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border" :class="currentRole === '프론트엔드' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">프론트엔드</button>
-        <button @click="currentRole = '백엔드'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border" :class="currentRole === '백엔드' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">백엔드</button>
+      <div class="flex items-center gap-2 flex-wrap w-full md:w-auto">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
+          <button @click="currentRole = 'all'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap shadow-sm transition-colors border" :class="currentRole === 'all' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">전체 역할</button>
+          <button @click="currentRole = '기획자'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border" :class="currentRole === '기획자' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">기획자</button>
+          <button @click="currentRole = '디자이너'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border" :class="currentRole === '디자이너' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">디자이너</button>
+          <button @click="currentRole = '프론트엔드'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border" :class="currentRole === '프론트엔드' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">프론트엔드</button>
+          <button @click="currentRole = '백엔드'" class="px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border" :class="currentRole === '백엔드' ? 'bg-sync-primary border-sync-primary text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 border-sync-border text-sync-muted hover:text-sync-text'">백엔드</button>
+        </div>
+        <!-- Sort Dropdown -->
+        <div class="relative shrink-0 ml-auto">
+          <select v-model="sortBy" class="appearance-none pl-3 pr-8 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border text-[13px] font-bold text-sync-text outline-none focus:border-sync-primary cursor-pointer hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+            <option value="latest">최신순</option>
+            <option value="oldest">오래된 순</option>
+            <option value="open">모집 중 우선</option>
+          </select>
+          <svg class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-sync-muted pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
       </div>
     </div>
 

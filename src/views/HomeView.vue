@@ -73,7 +73,7 @@ const handleTouchMove = (e) => {
          class="absolute inset-0 z-20 w-full h-full overflow-y-auto overflow-x-hidden transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1) bg-[#0a0b12] content-scrollbar"
          :style="{ transform: isHeroFolded ? 'translateY(0)' : 'translateY(105%)' }">
       
-      <div class="max-w-[1240px] mx-auto py-20 px-4 sm:px-6 flex flex-col gap-24">
+      <div class="max-w-[1240px] mx-auto pt-14 pb-20 px-4 sm:px-6 flex flex-col gap-24">
         
         <!-- Section: My Hackathons -->
         <section class="flex flex-col gap-12">

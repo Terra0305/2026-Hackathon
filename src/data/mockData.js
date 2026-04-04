@@ -171,7 +171,8 @@ export const mockUsers = reactive([
     githubConnected: true,
     techStack: ["Vue.js", "Node.js", "PostgreSQL", "TailwindCSS"],
     githubCommits: 432,
-    profileBorder: null
+    email: "architect.kim@sync.com",
+    phone: "010-1234-5678"
   },
   {
     id: 2,
@@ -183,10 +184,11 @@ export const mockUsers = reactive([
     rank: 2,
     status: "up",
     badges: ["💻", "🧠"],
+    email: "alex.dev@sync.com",
+    phone: "010-2345-6789",
     githubConnected: true,
     techStack: ["React", "Node.js", "TypeScript"],
-    githubCommits: 287,
-    profileBorder: null
+    githubCommits: 287
   },
   {
     id: 3,
@@ -198,11 +200,11 @@ export const mockUsers = reactive([
     rank: 3,
     status: "down",
     badges: ["⛓️", "🛡️"],
+    email: "web3ninja@sync.com",
+    phone: "010-3456-7890",
     githubConnected: true,
     techStack: ["Solidity", "Web3.js", "Rust"],
-    githubCommits: 193,
-    profileBorder: null,
-    selectedBadges: []
+    githubCommits: 193
   },
   {
     id: 4,
@@ -214,11 +216,11 @@ export const mockUsers = reactive([
     rank: 4,
     status: "up",
     badges: ["☁️", "🛡️"],
+    email: "infragod@sync.com",
+    phone: "010-4567-8901",
     githubConnected: true,
     techStack: ["Kubernetes", "Terraform", "Go"],
-    githubCommits: 341,
-    profileBorder: null,
-    selectedBadges: []
+    githubCommits: 341
   },
   {
     id: 5,
@@ -230,10 +232,11 @@ export const mockUsers = reactive([
     rank: 5,
     status: "up",
     badges: ["✨"],
+    email: "design.master@sync.com",
+    phone: "010-5678-9012",
     githubConnected: true,
     techStack: ["Figma", "Vue.js", "CSS"],
-    githubCommits: 124,
-    profileBorder: null
+    githubCommits: 124
   },
   {
     id: 6,
@@ -245,10 +248,11 @@ export const mockUsers = reactive([
     rank: 6,
     status: "down",
     badges: ["🚀", "💻"],
+    email: "frontend.wiz@sync.com",
+    phone: "010-6789-0123",
     githubConnected: true,
     techStack: ["React", "Next.js", "TailwindCSS"],
-    githubCommits: 215,
-    profileBorder: null
+    githubCommits: 215
   },
   {
     id: 7,
@@ -260,10 +264,11 @@ export const mockUsers = reactive([
     rank: 7,
     status: "up",
     badges: ["📊", "🧠"],
+    email: "data.guru@sync.com",
+    phone: "010-7890-1234",
     githubConnected: true,
     techStack: ["Python", "PyTorch", "Pandas"],
-    githubCommits: 178,
-    profileBorder: null
+    githubCommits: 178
   },
   {
     id: 8,
@@ -275,10 +280,11 @@ export const mockUsers = reactive([
     rank: 8,
     status: "down",
     badges: ["📱"],
+    email: "mobile.king@sync.com",
+    phone: "010-8901-2345",
     githubConnected: true,
     techStack: ["Swift", "Kotlin", "Flutter"],
-    githubCommits: 156,
-    profileBorder: null
+    githubCommits: 156
   },
   {
     id: 9,
@@ -292,8 +298,7 @@ export const mockUsers = reactive([
     badges: ["🎮", "🚀"],
     githubConnected: true,
     techStack: ["C++", "Unity", "Unreal"],
-    githubCommits: 302,
-    profileBorder: null
+    githubCommits: 302
   },
   {
     id: 10,
@@ -307,8 +312,7 @@ export const mockUsers = reactive([
     badges: ["🛡️", "🕵️"],
     githubConnected: true,
     techStack: ["Python", "C", "Assembly"],
-    githubCommits: 89,
-    profileBorder: null
+    githubCommits: 89
   }
 ]);
 
@@ -324,7 +328,7 @@ export const mockTeams = reactive([
       { name: "백엔드", current: 1, total: 2 },
       { name: "프론트엔드", current: 0, total: 1 }
     ],
-    members: ["A", "B", "C"],
+    members: ["건축가_Kim", "A", "B", "C"],
     leaderId: 1,
     theme: "from-purple-500 to-indigo-500",
     icon: "✨"
@@ -363,7 +367,8 @@ export const mockTeams = reactive([
 
 export const mockMyHackathons = reactive([
   { id: 1, hackathonId: 1, title: "2026 글로벌 AI 해커톤", role: "프론트엔드", teamName: "Team Nexus", status: "진행 중", appliedDate: "2026.04.15" },
-  { id: 2, hackathonId: 2, title: "차세대 보안 아키텍처 챌린지", role: "개인 참가 (팀 매칭 대기)", teamName: null, status: "매칭 중", appliedDate: "2026.05.20" }
+  { id: 2, hackathonId: 2, title: "차세대 보안 아키텍처 챌린지", role: "개인 참가 (팀 매칭 대기)", teamName: null, status: "매칭 중", appliedDate: "2026.05.20" },
+  { id: 3, hackathonId: 3, title: "Sync Web3 넥서스", role: "풀스택", teamName: "Fin-Wizard", status: "참여 대기", appliedDate: "2026.03.15" }
 ]);
 
 export const mockMySubmissions = reactive([
@@ -407,8 +412,66 @@ export const mockMyActivities = [
 ];
 
 export const mockGlobalSubmissions = reactive([
-  { id: 1, hackathonId: 1, teamId: 1, teamName: "Team Nexus", projectName: "실무형 AI 챗봇 넥서스", description: "OpenAI API를 활용한 업무 지원 챗봇입니다.", submittedAt: "2026.05.06", links: ["https://github.com/team-nexus/chatbot"], files: [{ name: "아키텍처_설계서.pdf", size: "2.4MB" }] },
-  { id: 2, hackathonId: 1, teamId: 2, teamName: "Sync Guard", projectName: "제로 트러스트 방어벽", description: "클라우드 서비스에 쉽게 부착할 수 있는 보안 스캐너.", submittedAt: "2026.05.07", links: ["https://github.com/sync-guard/scanner"], files: [{ name: "최종_PPT.pdf", size: "5.1MB" }] }
+  {
+    id: 1,
+    hackathonId: 1,
+    teamId: 1,
+    teamName: "Team Nexus",
+    projectName: "실무형 AI 챗봇 넥서스",
+    description: "OpenAI API를 활용한 업무 지원 챗봇입니다. 사내 문서 기반 RAG 파이프라인과 슬랙/노션 연동까지 구현하여 실제 업무 흐름에 매끄럽게 통합됩니다.",
+    submittedAt: "2026.05.06",
+    status: "심사 중",
+    score: null,
+    review: null,
+    links: ["https://github.com/team-nexus/chatbot"],
+    files: [
+      { name: "아키텍처_설계서.pdf", size: "2.4MB", type: "기획서" },
+      { name: "최종_발표자료.pptx", size: "8.1MB", type: "발표자료" },
+      { name: "데모_영상_링크.txt", size: "1KB", type: "영상" }
+    ],
+    members: [
+      { nickname: "Alex_Dev", role: "팀장 / 백엔드", avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Alex" },
+      { nickname: "건축가_Kim", role: "프론트엔드", avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Kim" },
+      { nickname: "Web3_Ninja", role: "AI 엔지니어", avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Ninja" }
+    ],
+    tasks: [
+      { title: "웹소켓 통신 인터페이스 구축", status: "Done", assignee: "Alex_Dev", priority: "High" },
+      { title: "컴포넌트 구조 설계서 작성", status: "Done", assignee: "건축가_Kim", priority: "High" },
+      { title: "메인 랜딩페이지 퍼블리싱", status: "Done", assignee: "Web3_Ninja", priority: "Medium" }
+    ],
+    documents: [
+      { name: "서비스 기획 및 요구사항 정의서", type: "기획서", updated: "2026.05.04" },
+      { name: "최종 아키텍처 설계 문서", type: "디자인", updated: "2026.05.05" }
+    ]
+  },
+  {
+    id: 2,
+    hackathonId: 1,
+    teamId: 2,
+    teamName: "Sync Guard",
+    projectName: "제로 트러스트 방어벽",
+    description: "클라우드 서비스에 쉽게 부착할 수 있는 보안 스캐너. Kubernetes 환경에서 컨테이너 간 통신을 실시간으로 모니터링하고 이상 트래픽을 즉시 차단합니다.",
+    submittedAt: "2026.05.07",
+    status: "심사 완료",
+    score: 91,
+    review: "기술적 완성도가 매우 높습니다. 실제 클라우드 환경 적용 가능성이 인상적이며, 발표 자료도 명확합니다.",
+    links: ["https://github.com/sync-guard/scanner"],
+    files: [
+      { name: "최종_PPT.pdf", size: "5.1MB", type: "발표자료" },
+      { name: "보안_설계서.pdf", size: "3.2MB", type: "기획서" }
+    ],
+    members: [
+      { nickname: "Security_Ninja", role: "팀장 / 보안 엔지니어", avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Ivy" },
+      { nickname: "Mobile_King", role: "DevOps", avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Mia" }
+    ],
+    tasks: [
+      { title: "컨테이너 트래픽 모니터링 모듈", status: "Done", assignee: "Security_Ninja", priority: "High" },
+      { title: "관리자 대시보드 UI 구현", status: "Done", assignee: "Mobile_King", priority: "Medium" }
+    ],
+    documents: [
+      { name: "제로 트러스트 아키텍처 설계", type: "기획서", updated: "2026.05.06" }
+    ]
+  }
 ]);
 
 export const mockJoinRequests = reactive([
