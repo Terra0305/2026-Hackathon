@@ -122,4 +122,39 @@
   .glow-card-hover {
     @apply hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)];
   }
+
+  /* Profile Decoration Borders */
+  .profile-border-container {
+    @apply relative rounded-full p-[4px] transition-all duration-500 flex items-center justify-center;
+    background: transparent;
+  }
+
+  .profile-border-neon {
+    background: conic-gradient(from var(--border-angle, 0deg), #00f2fe, #4facfe, #00f2fe);
+    box-shadow: 0 0 15px rgba(79, 172, 254, 0.4);
+    animation: rotateBorderAngle 3s linear infinite;
+  }
+
+  .profile-border-gold {
+    background: conic-gradient(from var(--border-angle, 0deg), #f6d365, #fda085, #f6d365);
+    box-shadow: 0 0 15px rgba(253, 160, 133, 0.4);
+    animation: rotateBorderAngle 5s linear infinite;
+  }
+
+  .profile-border-chroma {
+    background: conic-gradient(from var(--border-angle, 0deg), #ff00cc, #3333ff, #00d2ff, #ff00cc);
+    box-shadow: 0 0 15px rgba(255, 0, 204, 0.4);
+    animation: rotateBorderAngle 4s linear infinite;
+  }
+
+  @property --border-angle {
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+  }
+
+  @keyframes rotateBorderAngle {
+    to { --border-angle: 360deg; }
+  }
 }
+
