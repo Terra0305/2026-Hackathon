@@ -24,6 +24,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!user.value)
 
+  const allBadges = [
+    { id: '1', name: 'First Commit', icon: '🌱' },
+    { id: '2', name: 'Bug Hunter', icon: '🐛' },
+    { id: '3', name: 'Top Contributor', icon: '🏆' },
+    { id: '4', name: 'Night Owl', icon: '🌙' }
+  ]
+
+  const getEarnedBadges = computed(() => {
+    if (!user.value?.selectedBadges) return []
+    return allBadges.filter(b => user.value.selectedBadges.includes(b.id))
+  })
+
   const login = (email, password) => {
     let mockUser;
     if (email === 'admin@sync.com') {
@@ -40,12 +52,15 @@ export const useAuthStore = defineStore('auth', () => {
         badges: ["👑"],
         githubConnected: false,
         techStack: ["DevOps", "Management"],
-        githubCommits: 0
+        githubCommits: 0,
+        profileBorder: null,
+        selectedBadges: []
       }
     } else {
       mockUser = {
         ...mockUsers[0],
-        email: email
+        email: email,
+        profileBorder: mockUsers[0].profileBorder || null
       }
     }
     user.value = mockUser
@@ -71,7 +86,8 @@ export const useAuthStore = defineStore('auth', () => {
       badges: ['🌱', '🚀'],
       githubConnected: true,
       techStack: ["React", "JavaScript", "HTML/CSS"],
-      githubCommits: 28
+      githubCommits: 28,
+      profileBorder: null
     }
     user.value = mockUser
     localStorage.setItem('sync_user', JSON.stringify(mockUser))
