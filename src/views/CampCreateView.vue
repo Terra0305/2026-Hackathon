@@ -36,14 +36,14 @@ const submitTeam = () => {
         <!-- Team Name -->
         <div class="flex flex-col gap-2">
           <label class="text-sm font-bold text-sync-text">팀 이름</label>
-          <input v-model="teamName" type="text" placeholder="예: 로켓 추진팀" required class="w-full bg-white/50 dark:bg-black/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl py-3 px-4 text-sm text-sync-text placeholder-sync-muted focus:outline-none focus:border-sync-primary focus:ring-2 focus:ring-sync-primary/20 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+          <input v-model="teamName" type="text" placeholder="예: 로켓 추진팀" required class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text placeholder-sync-muted outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all">
         </div>
 
         <!-- Target Hackathon -->
         <div class="flex flex-col gap-2">
           <label class="text-sm font-bold text-sync-text">목표 참가 해커톤</label>
           <div class="relative">
-             <select v-model="hackathonId" required class="w-full bg-white/50 dark:bg-black/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl py-3 px-4 text-sm text-sync-text placeholder-sync-muted focus:outline-none focus:border-sync-primary focus:ring-2 focus:ring-sync-primary/20 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] appearance-none cursor-pointer">
+             <select v-model="hackathonId" required class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all appearance-none cursor-pointer">
                <option value="" disabled>분류/해커톤 콘테스트를 선택하세요</option>
                <option v-for="h in mockHackathons" :value="h.id" :key="h.id">{{ h.type }} | {{ h.title }}</option>
              </select>
@@ -56,7 +56,7 @@ const submitTeam = () => {
         <!-- Description -->
         <div class="flex flex-col gap-2">
           <label class="text-sm font-bold text-sync-text">프로젝트 아이디어 및 본인/팀 소개</label>
-          <textarea v-model="description" required rows="6" placeholder="우주 탐사용 AI 챗봇을 기획 중입니다. 함께 아이디어를 발산하고 프로토타입을 만들어갈 우주에 관심이 많은 디자이너, 프론트엔드를 찾습니다! 연락처: 카카오톡 오픈채팅방 ..." class="w-full bg-white/50 dark:bg-black/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl py-3 px-4 text-sm text-sync-text placeholder-sync-muted focus:outline-none focus:border-sync-primary focus:ring-2 focus:ring-sync-primary/20 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] resize-none"></textarea>
+          <textarea v-model="description" required rows="6" placeholder="우주 탐사용 AI 챗봇을 기획 중입니다. 함께 아이디어를 발산하고 프로토타입을 만들어갈 우주에 관심이 많은 디자이너, 프론트엔드를 찾습니다! 연락처: 카카오톡 오픈채팅방 ..." class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text placeholder-sync-muted outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all resize-none custom-scrollbar"></textarea>
         </div>
 
         <!-- Roles required -->
@@ -70,7 +70,7 @@ const submitTeam = () => {
           
           <div v-for="(role, index) in rolesRequired" :key="index" class="flex flex-col sm:flex-row items-center gap-3">
             <div class="relative flex-1 w-full sm:w-auto">
-               <select v-model="role.name" required class="w-full bg-white/50 dark:bg-black/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl py-3 px-4 text-sm text-sync-text focus:outline-none focus:border-sync-primary focus:ring-2 focus:ring-sync-primary/20 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] appearance-none cursor-pointer">
+               <select v-model="role.name" required class="w-full bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all appearance-none cursor-pointer">
                   <option value="" disabled>어떤 역할이 필요하신가요?</option>
                   <option value="프론트엔드">프론트엔드</option>
                   <option value="백엔드">백엔드</option>
@@ -85,7 +85,7 @@ const submitTeam = () => {
             </div>
             
             <div class="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0">
-               <input v-model.number="role.count" type="number" min="1" max="10" required class="w-24 bg-white/50 dark:bg-black/40 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl py-3 px-4 text-sm text-sync-text text-center focus:outline-none focus:border-sync-primary focus:ring-2 focus:ring-sync-primary/20 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+               <input v-model.number="role.count" type="number" min="1" max="10" required class="w-24 bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl p-3.5 text-sm text-sync-text text-center outline-none focus:border-sync-primary focus:ring-1 focus:ring-sync-primary transition-all">
                <span class="text-sync-text font-bold text-sm shrink-0 w-8">명</span>
                
                <button v-if="rolesRequired.length > 1" type="button" @click="removeRole(index)" class="w-10 h-10 flex items-center justify-center shrink-0 text-red-500 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 rounded-xl transition-colors ml-2" title="삭제하기">
@@ -97,8 +97,8 @@ const submitTeam = () => {
 
         <!-- Buttons -->
         <div class="pt-8 border-t border-sync-border mt-4 flex flex-col sm:flex-row justify-end gap-3 w-full">
-          <button type="button" @click="router.back()" class="w-full sm:w-auto px-6 py-4 rounded-xl border border-sync-border bg-white/50 dark:bg-black/20 hover:bg-black/5 dark:hover:bg-white/5 text-sync-muted hover:text-sync-text text-sm font-bold transition-all shadow-sm">취소</button>
-          <button type="submit" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-sm font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:shadow-[0_6px_20px_rgba(50,132,255,0.4)] hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
+          <button type="button" @click="router.back()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-sync-border text-sync-muted hover:text-sync-text text-sm font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-colors">취소</button>
+          <button type="submit" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-sm font-bold transition-all shadow-[0_4px_14px_rgba(50,132,255,0.3)] hover:shadow-[0_6px_20px_rgba(50,132,255,0.4)] hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
             팀원 공고 등록하기 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
           </button>
         </div>

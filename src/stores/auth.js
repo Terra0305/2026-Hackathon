@@ -6,19 +6,11 @@ import { mockUsers } from '../data/mockData'
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
   
-  // Initialize with dummy data if present in localStorage
-  const localSession = localStorage.getItem('sync_user')
-  let parsedUser = localSession ? JSON.parse(localSession) : null
+  // Always start in a logged-out state.
+  // Previous localStorage sessions are cleared on app load.
+  localStorage.removeItem('sync_user')
   
-  // Implicit Migration: Populate GitHub data if missing from older session signatures
-  if (parsedUser && !parsedUser.techStack) {
-    parsedUser.techStack = ["Vue.js", "React", "Node.js"]
-    parsedUser.githubCommits = 142
-    parsedUser.githubConnected = true
-    localStorage.setItem('sync_user', JSON.stringify(parsedUser))
-  }
-  
-  const user = ref(parsedUser)
+  const user = ref(null)
 
   const isAuthenticated = computed(() => !!user.value)
 
