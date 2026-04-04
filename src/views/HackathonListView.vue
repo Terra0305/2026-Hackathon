@@ -8,20 +8,27 @@ import SkeletonLoader from '../components/SkeletonLoader.vue'
 import EmptyState from '../components/EmptyState.vue'
 
 const currentTab = ref('all')
+const sortBy = ref('latest')
 const isLoading = ref(true)
 
 onMounted(() => {
   setTimeout(() => {
     isLoading.value = false
-  }, 1200) // Simulate network delay fulfilling Daker UI specifications
+  }, 1200)
 })
 
+const statusOrder = { '진행 중': 0, '모집 중': 1, '예정': 2, '종료': 3, '마감': 3 }
+
 const filteredHackathons = computed(() => {
-  if (currentTab.value === 'all') return mockHackathons;
-  if (currentTab.value === 'on') return mockHackathons.filter(h => h.status === '진행 중');
-  if (currentTab.value === 'pre') return mockHackathons.filter(h => h.status === '예정' || h.status === '모집 중');
-  if (currentTab.value === 'end') return mockHackathons.filter(h => h.status === '종료' || h.status === '마감');
-  return mockHackathons;
+  let list = [...mockHackathons]
+  if (currentTab.value === 'on') list = list.filter(h => h.status === '진행 중')
+  else if (currentTab.value === 'pre') list = list.filter(h => h.status === '예정' || h.status === '모집 중')
+  else if (currentTab.value === 'end') list = list.filter(h => h.status === '종료' || h.status === '마감')
+
+  if (sortBy.value === 'latest') list.sort((a, b) => b.id - a.id)
+  else if (sortBy.value === 'deadline') list.sort((a, b) => statusOrder[a.status] - statusOrder[b.status])
+  else if (sortBy.value === 'popular') list.sort((a, b) => b.participants - a.participants)
+  return list
 })
 </script>
 
@@ -33,11 +40,23 @@ const filteredHackathons = computed(() => {
         <h1 class="text-4xl font-outfit font-bold text-sync-text tracking-tight transition-colors">Hackathons</h1>
         <p class="text-sync-muted transition-colors">전 세계의 뛰어난 사람들과 함께 아이디어를 실현하세요.</p>
       </div>
-      <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 custom-scrollbar">
-        <button @click="currentTab = 'all'" class="px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors" :class="currentTab === 'all' ? 'bg-sync-primary text-white shadow-[0_4px_14px_rgba(50,132,255,0.3)]' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text'">All</button>
-        <button @click="currentTab = 'on'" class="px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors" :class="currentTab === 'on' ? 'bg-sync-primary text-white shadow-[0_4px_14px_rgba(50,132,255,0.3)]' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text'">진행 중</button>
-        <button @click="currentTab = 'pre'" class="px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors" :class="currentTab === 'pre' ? 'bg-sync-primary text-white shadow-[0_4px_14px_rgba(50,132,255,0.3)]' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text'">모집 중/예정</button>
-        <button @click="currentTab = 'end'" class="px-6 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors" :class="currentTab === 'end' ? 'bg-sync-primary text-white shadow-[0_4px_14px_rgba(50,132,255,0.3)]' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text'">종료</button>
+      <!-- Filter Tabs + Sort -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 custom-scrollbar">
+          <button @click="currentTab = 'all'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors" :class="currentTab === 'all' ? 'bg-sync-primary text-white shadow-[0_4px_14px_rgba(50,132,255,0.3)]' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text'">All</button>
+          <button @click="currentTab = 'on'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors" :class="currentTab === 'on' ? 'bg-teal-500 text-white shadow-[0_4px_14px_rgba(20,184,166,0.3)]' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text'">진행 중</button>
+          <button @click="currentTab = 'pre'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors" :class="currentTab === 'pre' ? 'bg-blue-500 text-white shadow-[0_4px_14px_rgba(59,130,246,0.3)]' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text'">모집 중 / 예정</button>
+          <button @click="currentTab = 'end'" class="px-5 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors" :class="currentTab === 'end' ? 'bg-slate-500 text-white' : 'bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-sync-muted hover:text-sync-text'">종료</button>
+        </div>
+        <!-- Sort Dropdown -->
+        <div class="relative shrink-0">
+          <select v-model="sortBy" class="appearance-none pl-3 pr-8 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border text-[13px] font-bold text-sync-text outline-none focus:border-sync-primary cursor-pointer hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+            <option value="latest">최신순</option>
+            <option value="deadline">마감 임박순</option>
+            <option value="popular">인기순</option>
+          </select>
+          <svg class="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 text-sync-muted pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+        </div>
       </div>
     </div>
 

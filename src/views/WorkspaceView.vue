@@ -10,6 +10,40 @@ const hackathon = computed(() => mockHackathons.find(h => String(h.id) === route
 const team = computed(() => mockTeams.find(t => t.hackathonId === hackathon.value.id) || mockTeams[0])
 const teamMembers = computed(() => mockUsers.slice(0, 5))
 
+// ─── GitHub ────────────────────────────────────────────
+const githubRepoUrl = ref(team.value?.githubUrl || '')
+const githubRepoInput = ref('')
+const showGithubInput = ref(false)
+
+const saveGithubRepo = () => {
+  if (githubRepoInput.value.trim()) {
+    githubRepoUrl.value = githubRepoInput.value.trim()
+    showGithubInput.value = false
+  }
+}
+
+// Mock contribution data generator
+const generateContribs = (seed) => {
+  const weeks = 12, days = 7
+  const result = []
+  for (let w = 0; w < weeks; w++) {
+    const week = []
+    for (let d = 0; d < days; d++) {
+      const rand = ((seed * (w * 7 + d + 1)) % 7)
+      week.push(rand)
+    }
+    result.push(week)
+  }
+  return result
+}
+
+const contribColor = (val) => {
+  if (val === 0) return 'bg-black/10 dark:bg-white/10'
+  if (val <= 2) return 'bg-teal-300/50 dark:bg-teal-700/60'
+  if (val <= 4) return 'bg-teal-400/70 dark:bg-teal-500/80'
+  return 'bg-teal-500 dark:bg-teal-400'
+}
+
 // ─── Tab ───────────────────────────────────────────────
 const activeTab = ref('board')
 
@@ -246,7 +280,16 @@ const getTimelineStatus = (dateStr) => {
                <div class="flex flex-col gap-1.5">
                  <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest">{{ item.date }}</span>
                  <h4 class="text-[15px] font-bold text-sync-text">{{ item.step }}</h4>
-                 <span class="text-[10px] w-max font-bold mt-1" :class="getTimelineStatus(item.date).color.replace('bg-', 'text-').replace('border-', '')">{{ getTimelineStatus(item.date).label }}</span>
+                 <span class="inline-flex items-center gap-1.5 w-max px-2.5 py-1 rounded-full text-[10px] font-bold border mt-0.5"
+                       :class="{
+                         'text-teal-600 dark:text-teal-400 bg-teal-500/10 border-teal-500/20': getTimelineStatus(item.date).label === '진행 중',
+                         'text-amber-500 bg-amber-500/10 border-amber-500/20': getTimelineStatus(item.date).label === '곧 마감됨',
+                         'text-blue-500 bg-blue-500/10 border-blue-500/20': getTimelineStatus(item.date).label === '예정',
+                         'text-gray-400 bg-gray-500/10 border-gray-500/20': getTimelineStatus(item.date).label === '마감됨'
+                       }">
+                   <span v-if="getTimelineStatus(item.date).label === '진행 중'" class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+                   {{ getTimelineStatus(item.date).label }}
+                 </span>
                </div>
              </div>
              <div v-if="!hackathon.timeline?.length" class="text-sync-muted text-sm font-bold">등록된 상세 일정이 없습니다.</div>
@@ -271,7 +314,31 @@ const getTimelineStatus = (dateStr) => {
              </div>
            </div>
          </div>
-         
+         <!-- GitHub Repo Card -->
+         <div class="glass-card p-6 md:p-7 rounded-[2rem] border border-sync-border flex flex-col gap-4 shadow-sm">
+           <div class="flex items-center justify-between">
+             <div class="flex items-center gap-2">
+               <svg class="w-5 h-5 text-sync-text" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+               <h2 class="text-base font-bold text-sync-text">GitHub 레포지토리</h2>
+             </div>
+             <button @click="showGithubInput = !showGithubInput" class="text-xs font-bold text-sync-primary hover:underline">{{ githubRepoUrl ? '변경' : '+ 연결' }}</button>
+           </div>
+
+           <!-- URL Input -->
+           <div v-if="showGithubInput" class="flex gap-2">
+             <input v-model="githubRepoInput" type="url" placeholder="https://github.com/..." class="flex-1 bg-black/5 dark:bg-white/5 border border-sync-border rounded-xl px-3 py-2 text-sm text-sync-text outline-none focus:border-sync-primary">
+             <button @click="saveGithubRepo" class="px-4 py-2 bg-sync-primary text-white text-xs font-bold rounded-xl hover:bg-sync-primaryHover transition-colors">저장</button>
+           </div>
+
+           <!-- Repo Link Display -->
+           <a v-if="githubRepoUrl && !showGithubInput" :href="githubRepoUrl" target="_blank"
+              class="flex items-center gap-2 px-4 py-3 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border hover:border-sync-primary/40 transition-colors text-sm font-bold text-sync-text hover:text-sync-primary truncate">
+             <svg class="w-4 h-4 shrink-0 text-sync-muted" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+             <span class="truncate">{{ githubRepoUrl.replace('https://', '') }}</span>
+           </a>
+           <p v-else-if="!githubRepoUrl && !showGithubInput" class="text-xs text-sync-muted">팀 GitHub 레포지토리를 연결하여 팀원들과 코드를 공유하세요.</p>
+         </div>
+
       </div>
 
       <!-- RIGHT MAIN CONTENT -->
@@ -281,6 +348,7 @@ const getTimelineStatus = (dateStr) => {
         <div class="flex gap-2 border-b border-sync-border mb-2 overflow-x-auto custom-scrollbar pb-px">
           <button @click="activeTab = 'board'" class="px-6 py-4 text-[15px] font-bold border-b-2 transition-all shrink-0" :class="activeTab==='board' ? 'border-sync-primary text-sync-primary' : 'border-transparent text-sync-muted hover:text-sync-text'">📋 스프린트 보드</button>
           <button @click="activeTab = 'docs'" class="px-6 py-4 text-[15px] font-bold border-b-2 transition-all shrink-0" :class="activeTab==='docs' ? 'border-sync-primary text-sync-primary' : 'border-transparent text-sync-muted hover:text-sync-text'">📄 문서 & 기획서</button>
+          <button @click="activeTab = 'github'" class="px-6 py-4 text-[15px] font-bold border-b-2 transition-all shrink-0" :class="activeTab==='github' ? 'border-sync-primary text-sync-primary' : 'border-transparent text-sync-muted hover:text-sync-text'">🌿 팀원 기여 현황</button>
         </div>
 
         <!-- ── TAB 1: Sprint Board ── -->
@@ -389,6 +457,61 @@ const getTimelineStatus = (dateStr) => {
             </div>
             <svg class="w-4 h-4 text-sync-muted opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
           </RouterLink>
+        </div>
+        <!-- ── TAB 3: GitHub Contributions ── -->
+        <div v-if="activeTab === 'github'" class="animate-fade-in flex flex-col gap-6">
+          <div class="flex items-center justify-between">
+            <p class="text-sm text-sync-muted font-medium">팀원들의 최근 12주 GitHub 커밋 기여 현황입니다.</p>
+            <a v-if="githubRepoUrl" :href="githubRepoUrl" target="_blank" class="flex items-center gap-1.5 text-xs font-bold text-sync-primary hover:underline">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+              레포지토리 열기
+            </a>
+          </div>
+
+          <div class="flex flex-col gap-5">
+            <div v-for="user in teamMembers" :key="user.id"
+                 class="glass-card p-6 rounded-[2rem] border border-sync-border shadow-sm">
+              <div class="flex items-center gap-4 mb-5">
+                <img :src="user.avatar" class="w-11 h-11 rounded-full border-2 border-white dark:border-[#181A20] shadow-sm shrink-0" />
+                <div class="flex-1 min-w-0">
+                  <p class="text-base font-bold text-sync-text truncate">{{ user.nickname }}</p>
+                  <p class="text-xs text-sync-muted">{{ user.role }}</p>
+                </div>
+                <div class="text-right shrink-0">
+                  <p class="text-xl font-black text-sync-text">{{ generateContribs(user.id).flat().reduce((a,b) => a+b, 0) }}</p>
+                  <p class="text-[10px] text-sync-muted">총 커밋 (12주)</p>
+                </div>
+              </div>
+              <!-- Contribution grid -->
+              <div class="flex gap-1 overflow-x-auto pb-1">
+                <div v-for="(week, wi) in generateContribs(user.id)" :key="wi" class="flex flex-col gap-1">
+                  <div v-for="(day, di) in week" :key="di"
+                       class="w-3 h-3 rounded-sm transition-all hover:scale-125 cursor-default"
+                       :class="contribColor(day)"
+                       :title="day + ' commits'">
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between mt-3">
+                <span class="text-[10px] text-sync-muted">12주 전</span>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] text-sync-muted">적음</span>
+                  <div class="flex gap-0.5">
+                    <div class="w-2.5 h-2.5 rounded-sm bg-black/10 dark:bg-white/10"></div>
+                    <div class="w-2.5 h-2.5 rounded-sm bg-teal-300/50 dark:bg-teal-700/60"></div>
+                    <div class="w-2.5 h-2.5 rounded-sm bg-teal-400/70"></div>
+                    <div class="w-2.5 h-2.5 rounded-sm bg-teal-500"></div>
+                  </div>
+                  <span class="text-[10px] text-sync-muted">많음</span>
+                </div>
+                <span class="text-[10px] text-sync-muted">이번 주</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="!githubRepoUrl" class="p-6 rounded-2xl border-2 border-dashed border-sync-border text-center">
+            <p class="text-sm text-sync-muted font-bold mb-3">사이드바에서 GitHub 레포지토리를 연결하면 실제 기여 현황을 볼 수 있습니다.</p>
+          </div>
         </div>
       </div>
     </div>
