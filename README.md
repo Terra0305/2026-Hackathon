@@ -1,38 +1,128 @@
-# hackathon-platform
+# Sync
 
-This template should help get you started developing with Vue 3 in Vite.
+해커톤의 시작부터 제출 이후 운영까지 한 흐름으로 묶어주는 해커톤 플랫폼 프론트엔드 프로젝트입니다. 참가자는 해커톤을 탐색하고, 팀을 구하고, 작업 공간에서 협업하고, 마이페이지에서 활동과 포인트를 관리할 수 있고, 운영자는 관리자 화면에서 해커톤과 제출 현황을 함께 관리할 수 있습니다.
 
-## Recommended IDE Setup
+현재 프로젝트는 Vue 3 + Vite 기반의 프로토타입이며, 주요 화면과 사용자 흐름은 구현되어 있고 데이터는 `src/data/mockData.js`를 중심으로 동작합니다.
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 왜 만들었나
 
-## Recommended Browser Setup
+기존 해커톤 경험은 보통 공고 확인, 팀 빌딩, 커뮤니케이션, 제출, 운영 관리를 여러 채널에 나눠서 처리해야 했습니다. Sync는 이 과정을 하나의 제품 경험으로 연결해, 참가자와 운영자 모두가 덜 흩어지고 더 빠르게 움직일 수 있도록 설계된 서비스입니다.
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## 핵심 기능
 
-## Customize configuration
+### 참가자 경험
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+- 해커톤 목록 조회 및 상세 정보 확인
+- 해커톤 참가 신청 플로우
+- 캠프 게시판 기반 팀 모집 및 합류 관리
+- 팀 단위 워크스페이스 진입
+- 워크스페이스 내 팀원 정보, 제출 상태, 채팅 UI 확인
+- 마이페이지에서 참여 해커톤, 제출 내역, 포인트, 프로필 꾸미기 관리
+- 랭킹과 유저 프로필 기반 활동 가시화
 
-## Project Setup
+### 운영자 경험
 
-```sh
+- 관리자 전용 대시보드
+- 해커톤 생성, 수정, 삭제
+- 제출물 검토 화면
+- 유저 목록 및 상세 정보 확인
+
+## 주요 화면
+
+- `/` : 랜딩과 참여 중인 해커톤 진입
+- `/hackathons` : 해커톤 목록
+- `/hackathons/:slug` : 해커톤 상세
+- `/hackathons/:slug/apply` : 참가 신청
+- `/camp` : 팀 모집 게시판
+- `/workspace/:slug` : 팀 워크스페이스
+- `/mypage` : 개인 활동 관리
+- `/rankings` : 랭킹 보드
+- `/admin` : 관리자 대시보드
+
+## 기술 스택
+
+- Vue 3
+- Vite
+- Vue Router
+- Pinia
+- Tailwind CSS
+- Vercel 배포 설정
+
+## 프로젝트 구조
+
+```text
+.
+├── src/
+│   ├── components/     # 공통 UI 컴포넌트
+│   ├── data/           # 목업 데이터
+│   ├── stores/         # 인증, 테마 등 상태 관리
+│   ├── utils/          # 제출 보상 계산 등 유틸리티
+│   └── views/          # 페이지 단위 화면
+├── schema.sql          # 서비스 확장을 위한 DB 스키마 초안
+├── requirements.md     # 기능 기획 문서
+└── vercel.json         # SPA 라우팅 배포 설정
+```
+
+## 시작하기
+
+### 요구 사항
+
+- Node.js 20.19.0 이상
+- npm
+
+### 설치
+
+```bash
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+### 개발 서버 실행
 
-```sh
+```bash
 npm run dev
 ```
 
-### Compile and Minify for Production
+### 프로덕션 빌드
 
-```sh
+```bash
 npm run build
 ```
+
+### 빌드 결과 미리보기
+
+```bash
+npm run preview
+```
+
+## 데모 사용 방법
+
+일반 로그인은 어떤 이메일과 비밀번호를 넣어도 로컬 세션 기준으로 동작합니다. 관리자 화면은 아래 데모 계정으로 바로 진입할 수 있습니다.
+
+- Admin: `admin@sync.com`
+- Password: `admin`
+
+또는 로그인 화면의 `Admin Demo` 버튼을 사용하면 됩니다.
+
+## 데이터와 현재 구현 범위
+
+- 현재 앱의 핵심 데이터는 `src/data/mockData.js` 기반으로 동작합니다.
+- 인증은 실제 서버 연동이 아니라 클라이언트 세션 시뮬레이션 방식입니다.
+- `schema.sql`은 향후 백엔드 확장을 고려한 데이터베이스 스키마 초안입니다.
+- 따라서 이 저장소는 완성형 운영 서비스라기보다, 해커톤 플랫폼 UX와 주요 플로우를 빠르게 검증하기 위한 프론트엔드 중심 MVP에 가깝습니다.
+
+## 배포
+
+`vercel.json`에 SPA rewrite 설정이 포함되어 있어 Vercel 환경에서 클라이언트 라우팅을 안정적으로 처리할 수 있습니다.
+
+## 팀에 도움이 될 문서
+
+- 기획 문서: [`requirements.md`](/Users/parksungmin/Workspace/2026-Hackathon/requirements.md)
+- DB 스키마 초안: [`schema.sql`](/Users/parksungmin/Workspace/2026-Hackathon/schema.sql)
+
+## 앞으로 확장해볼 수 있는 방향
+
+- 실제 인증 및 사용자 권한 관리 연동
+- 실시간 채팅 백엔드 연결
+- 제출 파일 업로드와 심사 워크플로우 고도화
+- 포인트, 배지, 랭킹 데이터의 서버 영속화
+- 관리자 분석 지표 및 운영 로그 추가
