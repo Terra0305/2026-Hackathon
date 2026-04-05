@@ -7,6 +7,7 @@ import { onMounted } from 'vue'
 import GlowCard from '../components/GlowCard.vue'
 import SkeletonLoader from '../components/SkeletonLoader.vue'
 import EmptyState from '../components/EmptyState.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -56,9 +57,17 @@ const loadMore = () => {
     <section v-if="authStore.isAuthenticated && authStore.user">
       <GlowCard contentClass="p-4 flex items-center justify-between border border-sync-primary/20 shadow-sm" :hoverable="false">
         <div class="flex items-center gap-4">
-          <div class="w-10 h-10 rounded-full bg-sync-card border border-sync-border overflow-hidden">
-            <img :src="authStore.user.avatar" class="w-full h-full object-cover" alt="My Profile"/>
-          </div>
+          <UserAvatar
+            :user="authStore.user"
+            size-class="w-10 h-10"
+            avatar-class="border border-sync-border"
+            alt="My Profile"
+            show-badge-overlay
+            :badge-ids="authStore.user.selectedBadges || []"
+            :badge-limit="2"
+            badge-size="xs"
+            badge-position-class="-bottom-2 -right-2"
+          />
           <div class="flex flex-col">
             <span class="text-sm font-bold text-sync-text">나의 랭킹 현황</span>
             <span class="text-xs text-sync-muted">{{ authStore.user.nickname }}</span>
@@ -93,9 +102,18 @@ const loadMore = () => {
       <!-- 2nd Place -->
       <div v-if="top3[1]" @click="router.push(`/user/${top3[1].id}`)" class="cursor-pointer flex flex-col items-center justify-end h-full w-[120px] sm:w-[160px] relative group hover:-translate-y-2 transition-transform">
         <div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/5 dark:bg-white/10 text-sync-text text-[10px] font-bold px-3 py-1.5 border border-sync-border rounded-full backdrop-blur-md z-20">{{ top3[1].role }}</div>
-        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-[#C0C0C0] shadow-[0_0_20px_rgba(192,192,192,0.3)] bg-blue-200 relative z-10 overflow-hidden bg-cover bg-center text-center flex items-center justify-center font-bold text-xl text-blue-800">
-          <img :src="top3[1].avatar" class="w-full h-full object-cover" alt="avatar"/>
-        </div>
+        <UserAvatar
+          :user="top3[1]"
+          size-class="w-20 h-20 sm:w-24 sm:h-24"
+          avatar-class="border-4 border-[#C0C0C0] shadow-[0_0_20px_rgba(192,192,192,0.3)]"
+          border-scale-class="scale-[1.12]"
+          alt="avatar"
+          show-badge-overlay
+          :badge-ids="top3[1].selectedBadges || []"
+          badge-size="sm"
+          badge-position-class="-bottom-3 -right-4"
+          badge-container-class="px-2 py-1"
+        />
         <div class="mt-4 flex flex-col items-center gap-1 z-10">
           <span class="text-lg font-bold text-sync-text truncate w-full text-center px-2">{{ top3[1].nickname }}</span>
           <span class="text-xs font-bold text-[#C0C0C0]">{{ filterType === 'all-time' ? top3[1].points.toLocaleString() : top3[1].monthlyPoints.toLocaleString() }} PTS</span>
@@ -111,9 +129,18 @@ const loadMore = () => {
           <svg class="w-8 h-8 text-[#FFD700] drop-shadow-[0_0_10px_rgba(255,215,0,0.8)]" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
         </div>
         <div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/5 dark:bg-white/10 text-sync-text text-[10px] font-bold px-3 py-1.5 border border-sync-border rounded-full backdrop-blur-md z-20">{{ top3[0].role }}</div>
-        <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-[#FFD700] shadow-[0_0_30px_rgba(255,215,0,0.4)] bg-amber-200 relative z-10 overflow-hidden bg-cover bg-center text-center flex items-center justify-center font-bold text-xl text-amber-800">
-          <img :src="top3[0].avatar" class="w-full h-full object-cover" alt="avatar" />
-        </div>
+        <UserAvatar
+          :user="top3[0]"
+          size-class="w-24 h-24 sm:w-32 sm:h-32"
+          avatar-class="border-4 border-[#FFD700] shadow-[0_0_30px_rgba(255,215,0,0.4)]"
+          border-scale-class="scale-[1.12]"
+          alt="avatar"
+          show-badge-overlay
+          :badge-ids="top3[0].selectedBadges || []"
+          badge-size="sm"
+          badge-position-class="-bottom-3 -right-4"
+          badge-container-class="px-2 py-1"
+        />
         <div class="mt-4 flex flex-col items-center gap-1 z-10">
           <span class="text-xl font-bold text-sync-text drop-shadow-md truncate w-full text-center px-2">{{ top3[0].nickname }}</span>
           <span class="text-sm font-black text-[#FFD700] mt-1">{{ filterType === 'all-time' ? top3[0].points.toLocaleString() : top3[0].monthlyPoints.toLocaleString() }} PTS</span>
@@ -126,9 +153,18 @@ const loadMore = () => {
       <!-- 3rd Place -->
       <div v-if="top3[2]" @click="router.push(`/user/${top3[2].id}`)" class="cursor-pointer flex flex-col items-center justify-end h-full w-[120px] sm:w-[160px] relative group hover:-translate-y-2 transition-transform">
          <div class="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black/5 dark:bg-white/10 text-sync-text text-[10px] font-bold px-3 py-1.5 border border-sync-border rounded-full backdrop-blur-md z-20">{{ top3[2].role }}</div>
-        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-[#CD7F32] shadow-[0_0_20px_rgba(205,127,50,0.3)] bg-orange-200 relative z-10 overflow-hidden bg-cover bg-center text-center flex items-center justify-center font-bold text-xl text-orange-800">
-          <img :src="top3[2].avatar" class="w-full h-full object-cover" alt="avatar" />
-        </div>
+        <UserAvatar
+          :user="top3[2]"
+          size-class="w-20 h-20 sm:w-24 sm:h-24"
+          avatar-class="border-4 border-[#CD7F32] shadow-[0_0_20px_rgba(205,127,50,0.3)]"
+          border-scale-class="scale-[1.12]"
+          alt="avatar"
+          show-badge-overlay
+          :badge-ids="top3[2].selectedBadges || []"
+          badge-size="sm"
+          badge-position-class="-bottom-3 -right-4"
+          badge-container-class="px-2 py-1"
+        />
         <div class="mt-4 flex flex-col items-center gap-1 z-10">
           <span class="text-sm sm:text-lg font-bold text-sync-text truncate w-full text-center px-2">{{ top3[2].nickname }}</span>
           <span class="text-xs font-bold text-[#CD7F32]">{{ filterType === 'all-time' ? top3[2].points.toLocaleString() : top3[2].monthlyPoints.toLocaleString() }} PTS</span>
@@ -147,7 +183,7 @@ const loadMore = () => {
             <tr class="border-b border-sync-border text-xs font-bold text-sync-muted uppercase tracking-widest transition-colors">
               <th class="py-4 px-4 sm:px-6 w-16 text-center">Rank</th>
               <th class="py-4 px-4 sm:px-6">Builder</th>
-              <th class="py-4 px-4 sm:px-6">Badges</th>
+              <th class="py-4 px-4 sm:px-6">Tech Stack</th>
               <th class="py-4 px-4 sm:px-6 text-right">Points</th>
               <th class="py-4 px-4 sm:px-6 w-24 text-center">Status</th>
             </tr>
@@ -159,14 +195,24 @@ const loadMore = () => {
               <td class="py-5 px-4 sm:px-6 text-center font-bold text-sync-muted">{{ index + 4 }}</td>
               <td class="py-5 px-4 sm:px-6">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full overflow-hidden text-center flex justify-center items-center relative bg-sync-card border border-sync-border">
-                    <img :src="user.avatar" class="w-full h-full object-cover">
-                  </div>
+                  <UserAvatar
+                    :user="user"
+                    size-class="w-8 h-8"
+                    avatar-class="border border-sync-border"
+                  />
                   <span class="font-bold text-sync-text group-hover:text-sync-primary transition-colors">{{ user.nickname }}</span>
                 </div>
               </td>
-              <td class="py-5 px-4 sm:px-6 flex gap-2">
-                <span v-for="(badge, bIdx) in user.badges" :key="bIdx" class="w-6 h-6 rounded bg-black/5 dark:bg-white/5 flex items-center justify-center text-xs border border-sync-border transition-colors">{{ badge }}</span>
+              <td class="py-5 px-4 sm:px-6">
+                <div class="flex flex-wrap gap-1.5">
+                  <span
+                    v-for="tech in (user.techStack || []).slice(0, 3)"
+                    :key="tech"
+                    class="rounded-full border border-sync-border bg-black/5 px-2.5 py-1 text-[10px] font-bold text-sync-muted dark:bg-white/10"
+                  >
+                    {{ tech }}
+                  </span>
+                </div>
               </td>
               <td class="py-5 px-4 sm:px-6 text-right font-outfit font-bold text-sync-text">
                 {{ filterType === 'all-time' ? user.points.toLocaleString() : user.monthlyPoints.toLocaleString() }}

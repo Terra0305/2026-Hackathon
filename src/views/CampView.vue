@@ -1,12 +1,13 @@
 <script setup>
 import { RouterLink, useRoute } from 'vue-router'
-import { mockTeams, mockHackathons, mockJoinRequests } from '../data/mockData'
+import { mockTeams, mockHackathons, mockJoinRequests, mockUsers } from '../data/mockData'
 import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import GlowCard from '../components/GlowCard.vue'
 import GlowCardContainer from '../components/GlowCardContainer.vue'
 import SkeletonLoader from '../components/SkeletonLoader.vue'
 import EmptyState from '../components/EmptyState.vue'
+import UserAvatar from '../components/UserAvatar.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -79,6 +80,66 @@ const handleCardJoinClick = (team) => {
   showApplicationForm.value = true
   const availableRole = team.roles?.find(r => r.current < r.total)
   joinForm.value = { role: availableRole?.name || '', message: '' }
+}
+
+const syncedUsers = computed(() => {
+  const users = [...mockUsers]
+
+  if (authStore.user) {
+    const idx = users.findIndex((user) => user.id === authStore.user.id)
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], ...authStore.user }
+    } else {
+      users.unshift(authStore.user)
+    }
+  }
+
+  return users
+})
+
+const syncedUsersByNickname = computed(() => {
+  return new Map(syncedUsers.value.map((user) => [user.nickname, user]))
+})
+
+const createFallbackMember = (nickname, index) => {
+  return {
+    id: `fallback-${nickname}-${index}`,
+    nickname,
+    avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(nickname)}`,
+    profileBorder: null,
+    selectedBadges: []
+  }
+}
+
+const getTeamMemberProfiles = (team) => {
+  return (team.members || []).map((nickname, index) => {
+    return syncedUsersByNickname.value.get(nickname) || createFallbackMember(nickname, index)
+  })
+}
+
+const getPreviewMembers = (team, limit = 3) => {
+  return getTeamMemberProfiles(team).slice(0, limit)
+}
+
+const getExtraMemberCount = (team, limit = 3) => {
+  return Math.max((team.members || []).length - limit, 0)
+}
+
+const getTeamMemberSummary = (team) => {
+  const profiles = getTeamMemberProfiles(team)
+
+  if (!profiles.length) {
+    return '아직 등록된 팀원이 없습니다.'
+  }
+
+  const visibleNames = profiles.slice(0, 2).map((member) => member.nickname)
+  const extraCount = profiles.length - visibleNames.length
+
+  if (extraCount > 0) {
+    return `${visibleNames.join(', ')} 외 ${extraCount}명`
+  }
+
+  return visibleNames.join(', ')
 }
 
 const filteredTeams = computed(() => {
@@ -216,28 +277,50 @@ const filteredTeams = computed(() => {
           </div>
         </div>
 
-        <div class="mt-auto pt-8 flex items-center justify-between border-t border-sync-border transition-colors z-10 w-full">
-          <div class="flex -space-x-3">
-            <div v-for="(member, mIdx) in team.members" :key="mIdx" class="w-8 h-8 rounded-full border-2 border-white dark:border-[#181A20] overflow-hidden bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-800" :style="{ zIndex: 10 - mIdx }">{{ member }}</div>
+        <div class="mt-auto pt-6 flex flex-col gap-4 border-t border-sync-border transition-colors z-10 w-full sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex min-w-0 items-center gap-3">
+            <div class="flex items-center -space-x-2.5 shrink-0">
+              <UserAvatar
+                v-for="(member, mIdx) in getPreviewMembers(team)"
+                :key="member.id"
+                :user="member"
+                size-class="w-10 h-10"
+                wrapper-class="rounded-full ring-2 ring-white dark:ring-[#181A20]"
+                avatar-class="border border-slate-200 dark:border-[#0f1115] bg-slate-100 shadow-sm"
+                :style="{ zIndex: 10 - mIdx }"
+              />
+              <div
+                v-if="getExtraMemberCount(team) > 0"
+                class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-black/5 text-[11px] font-black text-sync-muted shadow-sm dark:border-[#181A20] dark:bg-white/10"
+              >
+                +{{ getExtraMemberCount(team) }}
+              </div>
+            </div>
+
+            <div class="min-w-0 flex-1">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">팀 멤버</p>
+              <p class="truncate text-sm font-bold text-sync-text">{{ getTeamMemberSummary(team) }}</p>
+            </div>
           </div>
-          <div class="flex gap-2">
+
+          <div class="flex w-full gap-2 sm:w-auto sm:justify-end">
              <button
                v-if="team.status === '마감' || team.roles.every(r => r.current >= r.total)"
                disabled
-               class="px-5 py-2.5 rounded-xl bg-black/10 dark:bg-white/5 border border-sync-border text-sync-muted text-xs font-bold cursor-not-allowed opacity-60"
+               class="w-full px-5 py-2.5 rounded-xl bg-black/10 dark:bg-white/5 border border-sync-border text-sync-muted text-xs font-bold cursor-not-allowed opacity-60 sm:w-auto"
              >
                {{ team.status === '마감' ? '마감되었습니다' : '모집 완료' }}
              </button>
              <button 
                v-else-if="!joinedTeams.has(team.id)"
                @click.stop="handleCardJoinClick(team)"
-               class="px-5 py-2.5 rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-xs font-bold transition-all shadow-[0_4px_10px_rgba(50,132,255,0.3)] hover:-translate-y-0.5">
+               class="w-full px-5 py-2.5 rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-xs font-bold transition-all shadow-[0_4px_10px_rgba(50,132,255,0.3)] hover:-translate-y-0.5 sm:w-auto">
                팀 합류하기
              </button>
              <button
                v-else
                @click.stop="joinedTeams.delete(team.id)"
-               class="px-5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer"
+               class="w-full px-5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer sm:w-auto"
              >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 합류 요청 취소

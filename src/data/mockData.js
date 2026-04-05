@@ -1,5 +1,17 @@
 import { reactive } from 'vue';
 
+export const availableBadges = [
+  { id: 'badge1', name: 'First Commit', icon: '🌱', description: '첫 번째 커밋을 완료했습니다.' },
+  { id: 'badge2', name: 'Bug Hunter', icon: '🐛', description: '버그를 5개 이상 해결했습니다.' },
+  { id: 'badge3', name: 'Top Builder', icon: '🏆', description: '랭킹 Top 10에 진입했습니다.' },
+  { id: 'badge4', name: 'Night Owl', icon: '🌙', description: '새벽 시간에 기여 활동을 했습니다.' },
+  { id: 'badge5', name: 'Swift Master', icon: '🍎', description: 'iOS 앱 개발 분야 전문가' },
+  { id: 'badge6', name: 'Web Architect', icon: '🏗️', description: '복잡한 웹 아키텍처 설계' },
+  { id: 'badge7', name: 'AI Researcher', icon: '🧠', description: 'LLM 및 딥러닝 모델 연구' },
+  { id: 'badge8', name: 'Security Expert', icon: '🛡️', description: '시스템 보안 인프라 구축' },
+  { id: 'badge_premium', name: 'Premium Builder', icon: '💎', description: '포인트 상점에서 획득한 프리미엄 배지' }
+]
+
 export const mockHackathons = reactive([
   {
     id: 1,
@@ -175,15 +187,24 @@ export const mockUsers = reactive([
     role: "Digital Craftsman & Full-stack Architect",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Kim",
     points: 11250,
+    walletPoints: 11250,
     monthlyPoints: 3400,
     rank: 1,
     status: "up",
-    badges: ["✨", "🚀", "👑"],
+    selectedBadges: ["badge1", "badge5", "badge6"],
     githubConnected: true,
     techStack: ["Vue.js", "Node.js", "PostgreSQL", "TailwindCSS"],
     githubCommits: 432,
+    isTimelinePublic: true,
     email: "architect.kim@sync.com",
-    phone: "010-1234-5678"
+    phone: "010-1234-5678",
+    ownedItems: ["neon"],
+    pointHistory: [
+      { id: 1, type: "earn", amount: 5000, detail: "해커톤 기획 가이드 작성 보상", date: "2026.04.01" },
+      { id: 2, type: "earn", amount: 2000, detail: "데일리 출석 체크 (7일 연속)", date: "2026.04.02" },
+      { id: 3, type: "spend", amount: 2000, detail: "상점 구매: 네온 시안 테두리", date: "2026.04.03" },
+      { id: 4, type: "earn", amount: 4250, detail: "오픈소스 프로젝트 기여 보너스", date: "2026.04.04" }
+    ]
   },
   {
     id: 2,
@@ -192,15 +213,22 @@ export const mockUsers = reactive([
     role: "Full-stack Dev",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Oliver",
     points: 8420,
+    walletPoints: 8420,
     monthlyPoints: 4100,
     rank: 2,
     status: "up",
-    badges: ["💻", "🧠"],
     email: "alex.dev@sync.com",
     phone: "010-2345-6789",
     githubConnected: true,
     techStack: ["React", "Node.js", "TypeScript"],
-    githubCommits: 287
+    githubCommits: 452,
+    profileBorder: "gold",
+    selectedBadges: ["badge3", "badge1", "badge6"],
+    isTimelinePublic: true,
+    ownedItems: ["gold"],
+    pointHistory: [
+      { id: 1, type: "earn", amount: 4100, detail: "월간 우수 활동가 보상", date: "2026.04.01" }
+    ]
   },
   {
     id: 3,
@@ -208,15 +236,22 @@ export const mockUsers = reactive([
     role: "Smart Contract Eng",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Mia",
     points: 7890,
+    walletPoints: 7890,
     monthlyPoints: 2150,
     rank: 3,
     status: "down",
-    badges: ["⛓️", "🛡️"],
+    selectedBadges: ["badge4"],
     email: "web3ninja@sync.com",
     phone: "010-3456-7890",
     githubConnected: true,
     techStack: ["Solidity", "Web3.js", "Rust"],
-    githubCommits: 193
+    githubCommits: 193,
+    isTimelinePublic: false,
+    ownedItems: ["chroma"],
+    pointHistory: [
+      { id: 1, type: "earn", amount: 5000, detail: "Web3 보안 컨설팅 기여", date: "2026.03.20" },
+      { id: 2, type: "spend", amount: 3500, detail: "상점 구매: 크로마 펄스 테두리", date: "2026.03.21" }
+    ]
   },
   {
     id: 4,
@@ -224,15 +259,19 @@ export const mockUsers = reactive([
     role: "DevOps Engineer",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Leo",
     points: 7120,
+    walletPoints: 7120,
     monthlyPoints: 2800,
     rank: 4,
     status: "up",
-    badges: ["☁️", "🛡️"],
+    selectedBadges: ["badge5"],
     email: "infragod@sync.com",
     phone: "010-4567-8901",
     githubConnected: true,
     techStack: ["Kubernetes", "Terraform", "Go"],
-    githubCommits: 341
+    githubCommits: 341,
+    isTimelinePublic: true,
+    ownedItems: [],
+    pointHistory: []
   },
   {
     id: 5,
@@ -240,15 +279,19 @@ export const mockUsers = reactive([
     role: "UX/UI Designer & Developer",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Nora",
     points: 6850,
+    walletPoints: 6850,
     monthlyPoints: 3200,
     rank: 5,
     status: "up",
-    badges: ["✨"],
+    selectedBadges: ["badge6"],
     email: "design.master@sync.com",
     phone: "010-5678-9012",
     githubConnected: true,
     techStack: ["Figma", "Vue.js", "CSS"],
-    githubCommits: 124
+    githubCommits: 124,
+    isTimelinePublic: true,
+    ownedItems: [],
+    pointHistory: []
   },
   {
     id: 6,
@@ -256,15 +299,18 @@ export const mockUsers = reactive([
     role: "Frontend Developer",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Rudy",
     points: 6400,
+    walletPoints: 6400,
     monthlyPoints: 1950,
     rank: 6,
     status: "down",
-    badges: ["🚀", "💻"],
+    selectedBadges: ["badge1", "badge3"],
     email: "frontend.wiz@sync.com",
     phone: "010-6789-0123",
     githubConnected: true,
     techStack: ["React", "Next.js", "TailwindCSS"],
-    githubCommits: 215
+    githubCommits: 215,
+    ownedItems: [],
+    pointHistory: []
   },
   {
     id: 7,
@@ -272,15 +318,18 @@ export const mockUsers = reactive([
     role: "Data Scientist",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Finn",
     points: 5900,
+    walletPoints: 5900,
     monthlyPoints: 2200,
     rank: 7,
     status: "up",
-    badges: ["📊", "🧠"],
+    selectedBadges: ["badge2", "badge3"],
     email: "data.guru@sync.com",
     phone: "010-7890-1234",
     githubConnected: true,
     techStack: ["Python", "PyTorch", "Pandas"],
-    githubCommits: 178
+    githubCommits: 178,
+    ownedItems: [],
+    pointHistory: []
   },
   {
     id: 8,
@@ -288,15 +337,18 @@ export const mockUsers = reactive([
     role: "iOS/Android Developer",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Chloe",
     points: 5400,
+    walletPoints: 5400,
     monthlyPoints: 1700,
     rank: 8,
     status: "down",
-    badges: ["📱"],
+    selectedBadges: ["badge4"],
     email: "mobile.king@sync.com",
     phone: "010-8901-2345",
     githubConnected: true,
     techStack: ["Swift", "Kotlin", "Flutter"],
-    githubCommits: 156
+    githubCommits: 156,
+    ownedItems: [],
+    pointHistory: []
   },
   {
     id: 9,
@@ -304,13 +356,16 @@ export const mockUsers = reactive([
     role: "Game Engine Developer",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Oscar",
     points: 4800,
+    walletPoints: 4800,
     monthlyPoints: 2600,
     rank: 9,
     status: "up",
-    badges: ["🎮", "🚀"],
+    selectedBadges: ["badge1", "badge2"],
     githubConnected: true,
     techStack: ["C++", "Unity", "Unreal"],
-    githubCommits: 302
+    githubCommits: 302,
+    ownedItems: [],
+    pointHistory: []
   },
   {
     id: 10,
@@ -319,15 +374,35 @@ export const mockUsers = reactive([
     role: "Security Researcher",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Ivy",
     points: 4200,
+    walletPoints: 4200,
     monthlyPoints: 950,
     rank: 10,
     status: "down",
-    badges: ["🛡️", "🕵️"],
+    selectedBadges: ["badge4", "badge5"],
     githubConnected: true,
     techStack: ["Python", "C", "Assembly"],
-    githubCommits: 89
+    githubCommits: 89,
+    isTimelinePublic: true,
+    ownedItems: [],
+    pointHistory: []
   }
 ]);
+
+export const mockShopItems = {
+  gifticons: [
+    { id: 1, name: 'CGV 영화 관람권 1인', price: 15000, icon: '🍿', color: 'from-red-500 to-rose-400', brand: 'CGV' },
+    { id: 2, name: '스타벅스 아메리카노 L', price: 4500, icon: '☕', color: 'from-green-500 to-emerald-400', brand: 'Starbucks' },
+    { id: 3, name: 'BHC 후라이드 + 콜라', price: 22000, icon: '🍗', color: 'from-yellow-500 to-orange-400', brand: 'BHC' },
+    { id: 4, name: 'CU 5,000원 상품권', price: 5000, icon: '🏪', color: 'from-purple-500 to-indigo-400', brand: 'CU' },
+    { id: 5, name: '구글 기프트카드 1만원', price: 10000, icon: '🃏', color: 'from-blue-500 to-cyan-400', brand: 'Google' }
+  ],
+  decorations: [
+    { id: 'neon', name: '네온 시안 테두리', price: 2000, icon: '✨', color: 'from-cyan-400 to-blue-500', class: 'profile-border-neon', type: 'border' },
+    { id: 'gold', name: '로열 골드 테두리', price: 5000, icon: '🏆', color: 'from-amber-300 to-orange-500', class: 'profile-border-gold', type: 'border' },
+    { id: 'chroma', name: '크로마 펄스 테두리', price: 3500, icon: '🌈', color: 'from-purple-500 via-blue-500 to-teal-400', class: 'profile-border-chroma', type: 'border' },
+    { id: 'badge_premium', name: 'Premium Builder 뱃지', price: 1000, icon: '💎', color: 'from-blue-400 to-indigo-500', type: 'badge' }
+  ]
+};
 
 export const mockTeams = reactive([
   {

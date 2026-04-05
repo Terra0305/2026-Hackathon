@@ -5,13 +5,18 @@ import { useAuthStore } from '../stores/auth'
 import { mockUsers, mockMyHackathons, mockMySubmissions, mockMyActivities } from '../data/mockData'
 import GlowCard from '../components/GlowCard.vue'
 import GlowCardContainer from '../components/GlowCardContainer.vue'
+import UserAvatar from '../components/UserAvatar.vue'
+import { getAvailablePoints } from '../utils/userDecorations'
 
 const route = useRoute()
 const authStore = useAuthStore()
 const activeMenu = ref('dashboard')
 
+const userProfileId = computed(() => Number(route.params.id))
+const isOwnProfile = computed(() => authStore.user?.id === userProfileId.value)
+
 const userProfile = computed(() => {
-  const id = Number(route.params.id)
+  const id = userProfileId.value
   
   // If the profile being viewed is the current logged in user
   if (authStore.user && authStore.user.id === id) {
@@ -24,6 +29,7 @@ const userProfile = computed(() => {
     role: "New Builder",
     avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=user${id}`,
     points: 0,
+    walletPoints: 0,
     rank: 999,
     status: "up",
     badges: ["🌱"],
@@ -34,12 +40,28 @@ const userProfile = computed(() => {
   }
 })
 
-const menus = [
-  { id: 'dashboard', name: '개요' },
-  { id: 'participating', name: '참여 해커톤 & 팀' },
-  { id: 'submissions', name: '제출 내역' },
-  { id: 'activities', name: '활동 및 랭킹' }
-]
+const filteredMenus = computed(() => {
+  const allMenus = [
+    { id: 'dashboard', name: '개요' },
+    { id: 'participating', name: '참여 해커톤 & 팀' },
+    { id: 'submissions', name: '제출 내역' },
+    { id: 'activities', name: '활동 및 랭킹' }
+  ]
+  
+  if (isOwnProfile.value) return allMenus
+  
+  // Restricted menus for others
+  const publicMenus = [allMenus.find(m => m.id === 'dashboard')]
+  if (userProfile.value.isTimelinePublic !== false) {
+    publicMenus.push(allMenus.find(m => m.id === 'activities'))
+  }
+  return publicMenus
+})
+
+const displayCurrentPoints = computed(() => {
+  if (!userProfile.value) return 0
+  return isOwnProfile.value ? getAvailablePoints(userProfile.value) : (userProfile.value.points || 0)
+})
 
 const ongoingProjects = [
   { title: 'AI Web Infrastructure 2024', dDay: 'D-12', progress: 60, colorClass: 'bg-sync-primary/20 text-sync-primary border-sync-primary/30', barClass: 'bg-sync-primary shadow-[0_0_12px_rgba(50,132,255,0.6)]' },
@@ -50,15 +72,6 @@ const recentTimeline = [
   { title: '새로운 팀 합류', time: '2시간 전', colorClass: 'bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]' },
   { title: '코드 커밋 완료', time: '어제', colorClass: 'bg-blue-400 shadow-[0_0_8px_rgba(50,132,255,0.8)]' },
   { title: '프로필 업데이트', time: '3일 전', colorClass: 'bg-sync-muted' }
-]
-
-const availableBadges = [
-  { id: 'badge1', name: 'First Hackathon', icon: '🌱' },
-  { id: 'badge2', name: 'Bug Hunter', icon: '🐛' },
-  { id: 'badge3', name: 'Fast Learner', icon: '📚' },
-  { id: 'badge4', name: 'Night Owl', icon: '🌙' },
-  { id: 'badge5', name: 'Team Leader', icon: '👑' },
-  { id: 'badge6', name: 'Innovation Award', icon: '💡' }
 ]
 </script>
 
@@ -72,26 +85,20 @@ const availableBadges = [
       <!-- Profile Header Block -->
       <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
         <div class="flex items-center gap-6">
-           <div class="relative w-28 h-28 shrink-0 flex items-center justify-center">
-             <!-- Profile Border Overlay -->
-             <div v-if="userProfile.profileBorder" class="absolute inset-0 profile-border-container z-0" :class="`profile-border-${userProfile.profileBorder}`"></div>
-
-             <div class="w-full h-full rounded-full overflow-hidden border-4 border-sync-bg shadow-[0_8px_32px_rgba(0,0,0,0.15)] bg-slate-200 z-10 relative">
-                <img :src="userProfile.avatar" class="w-full h-full object-cover" />
-             </div>
-             <div class="absolute bottom-1 right-1 w-6 h-6 rounded-full border-[3px] border-sync-bg z-20 flex items-center justify-center shadow-sm" :class="userProfile.status === 'up' ? 'bg-teal-400' : 'bg-orange-400'"></div>
-           </div>
+           <UserAvatar
+             :user="userProfile"
+             size-class="w-28 h-28"
+             avatar-class="border-4 border-sync-bg shadow-[0_8px_32px_rgba(0,0,0,0.15)]"
+             show-badge-overlay
+             :badge-ids="userProfile.selectedBadges || []"
+             badge-size="sm"
+             badge-position-class="-bottom-2 -right-3"
+             badge-container-class="px-2 py-1"
+           />
            
            <div class="flex flex-col gap-1.5">
               <div class="flex items-center gap-3">
                 <h1 class="text-4xl font-outfit font-black text-sync-text tracking-tight">{{ userProfile.nickname }}</h1>
-                <div v-if="userProfile.selectedBadges && userProfile.selectedBadges.length" class="flex items-center gap-1.5 mt-1">
-                  <div v-for="badgeId in userProfile.selectedBadges" :key="badgeId" 
-                       class="w-8 h-8 rounded-full bg-white dark:bg-[#181A20] border border-sync-border flex items-center justify-center text-lg shadow-sm"
-                       :title="availableBadges.find(b => b.id === badgeId)?.name">
-                    {{ availableBadges.find(b => b.id === badgeId)?.icon }}
-                  </div>
-                </div>
               </div>
               <p class="text-[15px] font-medium text-sync-muted">{{ userProfile.role }}</p>
            </div>
@@ -104,7 +111,7 @@ const availableBadges = [
            </GlowCard>
            <GlowCard contentClass="p-5 px-6 flex flex-col justify-center gap-1.5 min-w-[140px]" class="flex-1 md:flex-auto shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
              <span class="text-[10px] text-sync-muted font-bold tracking-widest uppercase">현재 포인트</span>
-             <span class="text-2xl font-black text-teal-500 dark:text-teal-400 tracking-tight">{{ userProfile.points.toLocaleString() }}점</span>
+             <span class="text-2xl font-black text-teal-500 dark:text-teal-400 tracking-tight">{{ displayCurrentPoints.toLocaleString() }}점</span>
            </GlowCard>
         </GlowCardContainer>
       </div>
@@ -112,7 +119,7 @@ const availableBadges = [
       <!-- Horizontal Tabs -->
       <div class="flex items-center gap-2 sm:gap-8 border-b border-black/10 dark:border-white/5 mb-8 overflow-x-auto custom-scrollbar">
          <button 
-           v-for="menu in menus" 
+           v-for="menu in filteredMenus" 
            :key="menu.id"
            @click="activeMenu = menu.id"
            class="pb-4 font-bold text-sm transition-colors whitespace-nowrap px-2 outline-none focus:outline-none focus:ring-0"
@@ -130,8 +137,8 @@ const availableBadges = [
             <!-- 3 Panel Layout -->
             <GlowCardContainer class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                
-               <!-- Projects Progress -->
-               <GlowCard contentClass="p-8 flex flex-col gap-6" class="shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
+               <!-- Projects Progress (ONLY OWN PROFILE) -->
+               <GlowCard v-if="isOwnProfile" contentClass="p-8 flex flex-col gap-6" class="shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
                  <div class="flex justify-between items-center mb-2">
                    <h3 class="font-bold text-lg text-sync-text">진행 중인 프로젝트</h3>
                    <span class="text-teal-500">🚀</span>
@@ -155,7 +162,7 @@ const availableBadges = [
                </GlowCard>
 
                <!-- Timeline -->
-               <GlowCard contentClass="p-8" class="shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
+               <GlowCard v-if="isOwnProfile" contentClass="p-8" class="shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
                  <div class="flex justify-between items-center mb-6">
                    <h3 class="font-bold text-lg text-sync-text">최근 활동</h3>
                    <span class="text-sync-muted">🕒</span>
@@ -170,7 +177,7 @@ const availableBadges = [
                </GlowCard>
 
                <!-- SVG Ring -->
-               <GlowCard contentClass="p-8 flex flex-col" class="shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
+               <GlowCard v-if="isOwnProfile" contentClass="p-8 flex flex-col" class="shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
                  <div class="flex justify-between items-center mb-4">
                    <h3 class="font-bold text-lg text-sync-text">제출 현황</h3>
                    <span class="text-sync-muted">📄</span>
@@ -185,6 +192,15 @@ const availableBadges = [
                        <span class="absolute text-3xl font-black text-sync-text font-outfit">1<span class="text-sync-muted text-lg font-bold">/4</span></span>
                     </div>
                     <p class="text-xs font-bold text-sync-muted mt-6 text-center tracking-wide">완료된 프로젝트 제출</p>
+                 </div>
+               </GlowCard>
+
+               <!-- Placeholder for others when panels are missing -->
+               <GlowCard v-if="!isOwnProfile" contentClass="p-8 flex flex-col items-center justify-center text-center gap-4" class="lg:col-span-1 shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
+                 <div class="w-16 h-16 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border flex items-center justify-center text-2xl">✨</div>
+                 <div class="flex flex-col gap-1">
+                   <p class="text-sm font-bold text-sync-text">프로필 공개 설정</p>
+                   <p class="text-xs text-sync-muted font-medium">상세 활동 내역은 본인에게만 공개됩니다.</p>
                  </div>
                </GlowCard>
 
@@ -232,7 +248,7 @@ const availableBadges = [
             </GlowCard>
 
             <!-- Ribbon Metric Block -->
-             <GlowCard contentClass="p-6 px-8 flex flex-col sm:flex-row justify-between items-center sm:gap-4 gap-6 bg-gradient-to-r from-sync-primary/5 to-transparent border-l-4 border-l-sync-primary" class="shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
+             <GlowCard v-if="isOwnProfile" contentClass="p-6 px-8 flex flex-col sm:flex-row justify-between items-center sm:gap-4 gap-6 bg-gradient-to-r from-sync-primary/5 to-transparent border-l-4 border-l-sync-primary" class="shadow-sm border border-slate-200 dark:border-white/5" :hoverable="false">
                 <div class="flex items-center gap-5 w-full sm:w-auto">
                   <div class="w-12 h-12 bg-sync-bg rounded-xl border border-sync-border flex items-center justify-center text-xl shadow-sm">🎖️</div>
                   <div class="flex flex-col gap-0.5">
@@ -244,8 +260,8 @@ const availableBadges = [
             </GlowCard>
          </div>
 
-         <!-- Array Mappings -->
-         <GlowCardContainer v-if="activeMenu === 'participating'" class="flex flex-col gap-5 animate-fade-in">
+         <!-- Array Mappings (ONLY OWN PROFILE) -->
+         <GlowCardContainer v-if="activeMenu === 'participating' && isOwnProfile" class="flex flex-col gap-5 animate-fade-in">
              <div v-if="mockMyHackathons.length === 0" class="py-16 text-center text-sync-muted border border-dashed border-sync-border rounded-2xl bg-black/5 dark:bg-white/5">아직 참여 중인 해커톤이 없습니다.</div>
              
              <GlowCard v-for="hack in mockMyHackathons" :key="hack.id" class="group border border-slate-200 dark:border-white/5 shadow-sm" contentClass="p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6 hover:border-sync-primary/40 transition-colors rounded-3xl">
@@ -269,7 +285,7 @@ const availableBadges = [
              </GlowCard>
          </GlowCardContainer>
 
-         <GlowCardContainer v-if="activeMenu === 'submissions'" class="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
+         <GlowCardContainer v-if="activeMenu === 'submissions' && isOwnProfile" class="grid grid-cols-1 xl:grid-cols-2 gap-6 animate-fade-in">
              <div v-if="mockMySubmissions.length === 0" class="col-span-full py-16 text-center text-sync-muted border border-dashed border-sync-border rounded-2xl bg-black/5 dark:bg-white/5">제출된 프로젝트 내역이 없습니다.</div>
 
              <GlowCard v-for="sub in mockMySubmissions" :key="sub.id" class="shadow-sm border border-slate-200 dark:border-white/5 group transition-all hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)]" contentClass="overflow-hidden rounded-3xl">

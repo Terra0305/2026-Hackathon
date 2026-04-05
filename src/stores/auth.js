@@ -1,10 +1,39 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { mockUsers } from '../data/mockData'
+import { mockJoinRequests, mockTeams, mockUsers } from '../data/mockData'
+import { normalizeUserDecorations } from '../utils/userDecorations'
 
 export const useAuthStore = defineStore('auth', () => {
   const router = useRouter()
+
+  const syncNicknameReferences = (previousNickname, nextUser) => {
+    if (!previousNickname || !nextUser?.nickname || previousNickname === nextUser.nickname) return
+
+    mockTeams.forEach((team) => {
+      const memberIndex = team.members.findIndex((member) => member === previousNickname)
+      if (memberIndex !== -1) {
+        team.members[memberIndex] = nextUser.nickname
+      }
+    })
+
+    mockJoinRequests.forEach((request) => {
+      if (request.userId === nextUser.id || request.nickname === previousNickname) {
+        request.nickname = nextUser.nickname
+      }
+    })
+  }
+
+  const syncSessionUserToMockData = (sessionUser) => {
+    if (!sessionUser?.id) return
+
+    const idx = mockUsers.findIndex((mockUser) => mockUser.id === sessionUser.id)
+    if (idx === -1) return
+
+    const previousNickname = mockUsers[idx].nickname
+    mockUsers[idx] = normalizeUserDecorations({ ...mockUsers[idx], ...sessionUser })
+    syncNicknameReferences(previousNickname, mockUsers[idx])
+  }
   
   // Version-based session cleanup:
   // If the stored session version doesn't match, clear it once.
@@ -18,28 +47,20 @@ export const useAuthStore = defineStore('auth', () => {
   
   // Restore session if user was previously logged in
   const localSession = localStorage.getItem('sync_user')
-  const parsedUser = localSession ? JSON.parse(localSession) : null
+  const parsedUser = localSession ? normalizeUserDecorations(JSON.parse(localSession)) : null
+  if (parsedUser) {
+    syncSessionUserToMockData(parsedUser)
+    localStorage.setItem('sync_user', JSON.stringify(parsedUser))
+  }
   
   const user = ref(parsedUser)
 
   const isAuthenticated = computed(() => !!user.value)
 
-  const allBadges = [
-    { id: '1', name: 'First Commit', icon: '🌱' },
-    { id: '2', name: 'Bug Hunter', icon: '🐛' },
-    { id: '3', name: 'Top Contributor', icon: '🏆' },
-    { id: '4', name: 'Night Owl', icon: '🌙' }
-  ]
-
-  const getEarnedBadges = computed(() => {
-    if (!user.value?.selectedBadges) return []
-    return allBadges.filter(b => user.value.selectedBadges.includes(b.id))
-  })
-
   const login = (email, password) => {
     let mockUser;
     if (email === 'admin@sync.com') {
-      mockUser = {
+      mockUser = normalizeUserDecorations({
         id: 999,
         nickname: "Sync Admin",
         role: "Global Administrator",
@@ -47,6 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
         avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Admin",
         isAdmin: true,
         points: 0,
+        walletPoints: 0,
         rank: 0,
         status: "up",
         badges: ["👑"],
@@ -54,14 +76,15 @@ export const useAuthStore = defineStore('auth', () => {
         techStack: ["DevOps", "Management"],
         githubCommits: 0,
         profileBorder: null,
-        selectedBadges: []
-      }
+        selectedBadges: [],
+        ownedItems: [],
+        pointHistory: []
+      })
     } else {
-      mockUser = {
+      mockUser = normalizeUserDecorations({
         ...mockUsers[0],
-        email: email,
-        profileBorder: mockUsers[0].profileBorder || null
-      }
+        email: email
+      })
     }
     user.value = mockUser
     localStorage.setItem('sync_user', JSON.stringify(mockUser))
@@ -74,7 +97,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const signup = (nickname, realName, email, password) => {
     // Create an entirely new mock session object
-    const mockUser = {
+    const mockUser = normalizeUserDecorations({
       id: Date.now(),
       nickname: nickname,
       realName: realName,
@@ -86,10 +109,15 @@ export const useAuthStore = defineStore('auth', () => {
       status: 'up',
       badges: ['🌱', '🚀'],
       githubConnected: true,
+      walletPoints: 0,
       techStack: ["React", "JavaScript", "HTML/CSS"],
       githubCommits: 28,
-      profileBorder: null
-    }
+      profileBorder: null,
+      selectedBadges: [],
+      ownedItems: [],
+      pointHistory: [],
+      isTimelinePublic: true
+    })
     user.value = mockUser
     localStorage.setItem('sync_user', JSON.stringify(mockUser))
     router.push('/')
@@ -97,15 +125,18 @@ export const useAuthStore = defineStore('auth', () => {
 
   const updateProfile = (data) => {
     if (!user.value) return
-    const updatedUser = { ...user.value, ...data }
+    const previousNickname = user.value.nickname
+    const updatedUser = normalizeUserDecorations({ ...user.value, ...data })
     user.value = updatedUser
     localStorage.setItem('sync_user', JSON.stringify(updatedUser))
     
     // Also update mockUsers if it's one of them
     const idx = mockUsers.findIndex(u => u.id === updatedUser.id)
     if (idx !== -1) {
-      mockUsers[idx] = { ...mockUsers[idx], ...data }
+      mockUsers[idx] = normalizeUserDecorations({ ...mockUsers[idx], ...updatedUser })
     }
+
+    syncNicknameReferences(previousNickname, updatedUser)
   }
 
   const logout = () => {
