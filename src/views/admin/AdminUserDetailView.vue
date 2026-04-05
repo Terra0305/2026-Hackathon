@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { mockUsers } from '../../data/mockData'
 import { useAuthStore } from '../../stores/auth'
+import { getAvailablePoints } from '../../utils/userDecorations'
 
 const route = useRoute()
 const router = useRouter()
@@ -24,6 +25,7 @@ const pointAmount = ref(0)
 
 const addPoints = () => {
   if (pointAmount.value > 0) {
+    targetUser.value.walletPoints = getAvailablePoints(targetUser.value) + pointAmount.value
     targetUser.value.points += pointAmount.value
     alert(`${pointAmount.value} 포인트가 지급되었습니다.`)
     pointAmount.value = 0
@@ -32,7 +34,8 @@ const addPoints = () => {
 
 const subtractPoints = () => {
   if (pointAmount.value > 0) {
-    if (targetUser.value.points >= pointAmount.value) {
+    if (targetUser.value.points >= pointAmount.value && getAvailablePoints(targetUser.value) >= pointAmount.value) {
+      targetUser.value.walletPoints = getAvailablePoints(targetUser.value) - pointAmount.value
       targetUser.value.points -= pointAmount.value
       alert(`${pointAmount.value} 포인트가 차감되었습니다.`)
     } else {

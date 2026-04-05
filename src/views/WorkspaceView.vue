@@ -1,17 +1,50 @@
 <script setup>
 import { computed, ref, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter, RouterLink, onBeforeRouteLeave } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 import { mockHackathons, mockTeams, mockUsers, mockGlobalSubmissions } from '../data/mockData'
+import UserAvatar from '../components/UserAvatar.vue'
+import UserBadgeStrip from '../components/UserBadgeStrip.vue'
 
 const route = useRoute()
 const router = useRouter()
 
 const team = computed(() => mockTeams.find(t => String(t.id) === route.params.slug) || mockTeams[0])
 const hackathon = computed(() => mockHackathons.find(h => h.id === team.value.hackathonId) || mockHackathons[0])
+const authStore = useAuthStore()
+
+const syncedUsers = computed(() => {
+  const users = [...mockUsers]
+
+  if (authStore.user) {
+    const idx = users.findIndex((user) => user.id === authStore.user.id)
+    if (idx !== -1) {
+      users[idx] = { ...users[idx], ...authStore.user }
+    } else {
+      users.unshift(authStore.user)
+    }
+  }
+
+  return users
+})
+
 const teamMembers = computed(() => {
   if (!team.value) return []
-  return mockUsers.filter(u => team.value.members.includes(u.nickname))
+  const memberNames = team.value.members || []
+  const members = memberNames
+    .map((memberName) => syncedUsers.value.find((user) => user.nickname === memberName))
+    .filter(Boolean)
+
+  if (authStore.user && team.value.leaderId === authStore.user.id && !members.some((user) => user.id === authStore.user.id)) {
+    members.unshift(authStore.user)
+  }
+
+  return members
 })
+
+const isCurrentUser = (user) => {
+  return !!authStore.user && user.id === authStore.user.id
+}
 
 // ─── GitHub ────────────────────────────────────────────
 const githubRepoUrl = ref(team.value?.githubUrl || '')
@@ -27,12 +60,12 @@ const saveGithubRepo = () => {
 
 // Mock contribution data generator
 const generateContribs = (seed) => {
-  const weeks = 12, days = 7
+  const weeks = 10, days = 7
   const result = []
   for (let w = 0; w < weeks; w++) {
     const week = []
     for (let d = 0; d < days; d++) {
-      const rand = ((seed * (w * 7 + d + 1)) % 7)
+      const rand = ((seed * (w * 7 + d + 1)) % 5)
       week.push(rand)
     }
     result.push(week)
@@ -41,10 +74,11 @@ const generateContribs = (seed) => {
 }
 
 const contribColor = (val) => {
-  if (val === 0) return 'bg-black/10 dark:bg-white/10'
-  if (val <= 2) return 'bg-teal-300/50 dark:bg-teal-700/60'
-  if (val <= 4) return 'bg-teal-400/70 dark:bg-teal-500/80'
-  return 'bg-teal-500 dark:bg-teal-400'
+  if (val === 0) return 'bg-black/5 dark:bg-white/5 border border-sync-border'
+  if (val <= 1) return 'bg-teal-500/20 dark:bg-teal-900/30 border border-teal-500/10'
+  if (val <= 2) return 'bg-teal-500/40 dark:bg-teal-700/40 border border-teal-500/20'
+  if (val <= 3) return 'bg-teal-500/70 dark:bg-teal-500/60'
+  return 'bg-teal-500 dark:bg-teal-400 shadow-[0_0_8px_rgba(20,184,166,0.4)]'
 }
 
 // ─── Tab ───────────────────────────────────────────────
@@ -309,9 +343,22 @@ const getTimelineStatus = (dateStr) => {
              <div v-for="user in teamMembers" :key="user.id"
                   class="flex items-center gap-4 p-3.5 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border hover:border-sync-primary/40 hover:bg-black/10 transition-colors cursor-pointer group"
                   @click="router.push(`/user/${user.id}`)">
-               <img :src="user.avatar" class="w-12 h-12 rounded-full border-2 border-white dark:border-[#181A20] group-hover:scale-105 transition-transform shrink-0 shadow-sm" alt=""/>
+               <UserAvatar
+                 :user="user"
+                 size-class="w-12 h-12"
+                 avatar-class="border-2 border-white dark:border-[#181A20] shadow-sm"
+                 image-class="group-hover:scale-105 transition-transform"
+               />
                <div class="flex flex-col flex-1 min-w-0">
-                 <span class="text-[15px] font-bold text-sync-text group-hover:text-sync-primary transition-colors truncate">{{ user.nickname }}</span>
+                 <div class="flex items-center gap-2 min-w-0">
+                   <span class="text-[15px] font-bold text-sync-text group-hover:text-sync-primary transition-colors truncate">{{ user.nickname }}</span>
+                   <span v-if="isCurrentUser(user)" class="shrink-0 rounded-full bg-sync-primary/10 px-2 py-0.5 text-[10px] font-black text-sync-primary border border-sync-primary/20">나</span>
+                 </div>
+                 <UserBadgeStrip
+                   :badge-ids="user.selectedBadges || []"
+                   size="xs"
+                   badge-class="bg-black/5 dark:bg-white/10 border-sync-border"
+                 />
                  <span class="text-[12px] text-sync-muted font-medium truncate mt-0.5">{{ user.role }}</span>
                </div>
              </div>
@@ -456,44 +503,95 @@ const getTimelineStatus = (dateStr) => {
             </a>
           </div>
 
-          <div class="flex flex-col gap-5">
-            <div v-for="user in teamMembers" :key="user.id"
-                 class="glass-card p-6 rounded-[2rem] border border-sync-border shadow-sm">
-              <div class="flex items-center gap-4 mb-5">
-                <img :src="user.avatar" class="w-11 h-11 rounded-full border-2 border-white dark:border-[#181A20] shadow-sm shrink-0" />
-                <div class="flex-1 min-w-0">
-                  <p class="text-base font-bold text-sync-text truncate">{{ user.nickname }}</p>
-                  <p class="text-xs text-sync-muted">{{ user.role }}</p>
-                </div>
-                <div class="text-right shrink-0">
-                  <p class="text-xl font-black text-sync-text">{{ generateContribs(user.id).flat().reduce((a,b) => a+b, 0) }}</p>
-                  <p class="text-[10px] text-sync-muted">총 커밋 (12주)</p>
-                </div>
-              </div>
-              <!-- Contribution grid -->
-              <div class="flex gap-1 overflow-x-auto pb-1">
-                <div v-for="(week, wi) in generateContribs(user.id)" :key="wi" class="flex flex-col gap-1">
-                  <div v-for="(day, di) in week" :key="di"
-                       class="w-3 h-3 rounded-sm transition-all hover:scale-125 cursor-default"
-                       :class="contribColor(day)"
-                       :title="day + ' commits'">
+          <div class="flex flex-col gap-8">
+            <div class="glass-card p-10 border border-slate-200 dark:border-white/5 rounded-[3rem] shadow-sm relative overflow-hidden group">
+               <div class="absolute -right-24 -top-24 w-80 h-80 bg-sync-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:bg-sync-primary/20 transition-all duration-1000"></div>
+               
+               <div class="flex justify-between items-center mb-10 border-b border-sync-border pb-6">
+                  <div class="flex items-center gap-4">
+                     <div class="w-12 h-12 rounded-2xl bg-black/5 dark:bg-white/5 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-sync-text" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                     </div>
+                     <div class="flex flex-col gap-1">
+                        <h3 class="text-2xl font-black text-sync-text tracking-tight font-outfit">Team Contributions</h3>
+                        <p class="text-sm font-bold text-sync-muted">팀원들의 현재 기여도 현황</p>
+                     </div>
                   </div>
-                </div>
-              </div>
-              <div class="flex items-center justify-between mt-3">
-                <span class="text-[10px] text-sync-muted">12주 전</span>
-                <div class="flex items-center gap-1.5">
-                  <span class="text-[10px] text-sync-muted">적음</span>
-                  <div class="flex gap-0.5">
-                    <div class="w-2.5 h-2.5 rounded-sm bg-black/10 dark:bg-white/10"></div>
-                    <div class="w-2.5 h-2.5 rounded-sm bg-teal-300/50 dark:bg-teal-700/60"></div>
-                    <div class="w-2.5 h-2.5 rounded-sm bg-teal-400/70"></div>
-                    <div class="w-2.5 h-2.5 rounded-sm bg-teal-500"></div>
+                  <div v-if="authStore.user.githubConnected" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500/5 border border-teal-500/10 shadow-sm transition-all duration-300">
+                    <span class="w-2 h-2 bg-teal-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(20,184,166,0.5)]"></span>
+                    <span class="text-xs font-black text-teal-600 dark:text-teal-400 tracking-wide uppercase">Connected</span>
                   </div>
-                  <span class="text-[10px] text-sync-muted">많음</span>
-                </div>
-                <span class="text-[10px] text-sync-muted">이번 주</span>
-              </div>
+               </div>
+
+               <div v-if="authStore.user.githubConnected" class="flex flex-col gap-3 animate-fade-in">
+	                  <div v-for="u in teamMembers" :key="u.id" class="flex flex-row items-center gap-8 p-4 px-6 rounded-2xl bg-black/[0.02] dark:bg-white/[0.02] border border-sync-border/50 hover:bg-black/[0.04] dark:hover:bg-white/[0.04] transition-all group/item">
+	                    <!-- Profile Column -->
+	                    <div class="flex items-center gap-4 w-48 shrink-0">
+	                       <UserAvatar
+                          :user="u"
+                          size-class="w-10 h-10"
+                          avatar-class="border-2 border-white dark:border-sync-bg shadow-sm"
+                          show-status
+                          alt="team member avatar"
+                        />
+	                       <div class="flex flex-col min-w-0">
+	                          <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-[14px] font-black text-sync-text truncate">{{ u.nickname }}</span>
+                            <span v-if="isCurrentUser(u)" class="shrink-0 rounded-full bg-sync-primary/10 px-2 py-0.5 text-[9px] font-black text-sync-primary border border-sync-primary/20">나</span>
+                          </div>
+	                          <UserBadgeStrip
+	                            :badge-ids="u.selectedBadges || []"
+	                            size="xs"
+                            badge-class="bg-black/5 dark:bg-white/10 border-sync-border"
+                          />
+	                          <span class="text-[10px] font-bold text-sync-muted uppercase tracking-tight truncate">{{ u.role }}</span>
+	                       </div>
+	                    </div>
+                    
+                    <!-- Contribution Column -->
+                    <div class="flex-1 flex flex-col justify-center overflow-hidden">
+                       <div class="flex gap-1 overflow-x-auto custom-scrollbar pb-1 pointer-events-none opacity-80 group-hover/item:opacity-100 transition-opacity">
+                          <div v-for="(week, wi) in generateContribs(u.id)" :key="wi" class="flex flex-col gap-[3px]">
+                             <div v-for="(day, di) in week" :key="di"
+                                  class="w-2 h-2 rounded-[1.5px] transition-all"
+                                  :class="contribColor(day)"
+                             ></div>
+                          </div>
+                       </div>
+                    </div>
+
+                    <!-- Stats Column (Optional but adds premium feel) -->
+                    <div class="hidden md:flex flex-col items-end gap-0.5 w-24 shrink-0 pr-2">
+                       <span class="text-[16px] font-black text-sync-text tabular-nums">{{ generateContribs(u.id).flat().reduce((a,b)=>a+b,0) }}</span>
+                       <span class="text-[9px] font-black text-sync-muted uppercase tracking-widest">Commits</span>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center justify-between px-2 text-[10px] font-black text-sync-muted uppercase tracking-widest opacity-60">
+                    <span>Last 12 Weeks</span>
+                    <div class="flex items-center gap-1.5">
+                       <span>Less</span>
+                       <div class="flex gap-1">
+                          <div class="w-2.5 h-2.5 rounded-sm bg-black/5 dark:bg-white/5 border border-sync-border"></div>
+                          <div class="w-2.5 h-2.5 rounded-sm bg-teal-500/20"></div>
+                          <div class="w-2.5 h-2.5 rounded-sm bg-teal-500/50"></div>
+                          <div class="w-2.5 h-2.5 rounded-sm bg-teal-500"></div>
+                       </div>
+                       <span>More</span>
+                    </div>
+                    <span>Today</span>
+                  </div>
+               </div>
+
+               <!-- Not Connected State -->
+               <div v-else class="flex flex-col items-center justify-center py-20 px-8 border-2 border-dashed border-sync-border rounded-[2.5rem] bg-black/[0.02] dark:bg-white/[0.02] max-w-2xl mx-auto">
+                  <div class="w-20 h-20 bg-black/5 dark:bg-white/5 rounded-[2rem] flex items-center justify-center text-4xl mb-6 shadow-inner border border-white/10 opacity-70">⚡️</div>
+                  <h4 class="text-xl font-black text-sync-text tracking-tight mb-2">GitHub 연동이 필요합니다</h4>
+                  <p class="text-xs font-bold text-sync-muted text-center max-w-xs mb-8 leading-relaxed">
+                     팀원들의 실시간 기여도를 확인하려면 계정을 연동해주세요.
+                  </p>
+                  <button @click="authStore.user.githubConnected = true" class="px-8 py-3.5 bg-sync-primary hover:bg-sync-primaryHover text-white rounded-2xl font-bold text-sm transition-all shadow-md">GitHub 연결하기</button>
+               </div>
             </div>
           </div>
 
@@ -583,10 +681,18 @@ const getTimelineStatus = (dateStr) => {
 
           <div class="flex items-center gap-4">
             <!-- Collaboration Avatars (Notion style) -->
-            <div class="hidden sm:flex items-center">
-              <div class="flex -space-x-2.5">
-                <img v-for="user in teamMembers.slice(1,3)" :key="user.id" :src="user.avatar" class="w-7 h-7 rounded-full border-2 border-white dark:border-[#0A0A0A] shadow-sm relative z-10 hover:z-20 transition-all hover:-translate-y-0.5 object-cover" :title="user.nickname + '님이 함께 보고 있습니다.'" />
-              </div>
+	            <div class="hidden sm:flex items-center">
+	              <div class="flex -space-x-2.5">
+	                <UserAvatar
+                    v-for="user in teamMembers.slice(1,3)"
+                    :key="user.id"
+                    :user="user"
+                    size-class="w-7 h-7"
+                    wrapper-class="relative z-10 hover:z-20 transition-all hover:-translate-y-0.5"
+                    avatar-class="border-2 border-white dark:border-[#0A0A0A] shadow-sm"
+                    :alt="user.nickname + '님이 함께 보고 있습니다.'"
+                  />
+	              </div>
               <div class="flex items-center gap-1.5 ml-3 bg-teal-500/10 border border-teal-500/20 px-2 py-1 rounded-full">
                 <div class="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></div>
                 <span class="text-[10px] font-bold text-teal-600 dark:text-teal-400">2명 참여 중</span>

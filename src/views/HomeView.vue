@@ -11,6 +11,22 @@ const authStore = useAuthStore()
 const activeHackathons = ref(mockHackathons.slice(0, 3))
 const participatingHackathons = computed(() => authStore.isAuthenticated ? mockMyHackathons.slice(0, 2) : [])
 
+const participationStatusClass = (status) => {
+  if (status === '진행 중') {
+    return 'bg-teal-500/15 text-teal-300 border-teal-400/30 shadow-[0_0_18px_rgba(45,212,191,0.12)]'
+  }
+
+  if (status === '매칭 중') {
+    return 'bg-amber-500/15 text-amber-200 border-amber-400/30 shadow-[0_0_18px_rgba(245,158,11,0.12)]'
+  }
+
+  if (status === '참여 대기') {
+    return 'bg-blue-500/15 text-blue-200 border-blue-400/30 shadow-[0_0_18px_rgba(59,130,246,0.12)]'
+  }
+
+  return 'bg-white/10 text-slate-200 border-white/10'
+}
+
 const isHeroFolded = ref(false)
 const contentArea = ref(null)
 
@@ -87,24 +103,44 @@ const handleTouchMove = (e) => {
             </RouterLink>
           </div>
           
-          <GlowCardContainer class="flex flex-col gap-6">
+          <GlowCardContainer class="flex flex-col gap-4">
             <template v-if="authStore.isAuthenticated && participatingHackathons.length > 0">
-              <GlowCard v-for="hack in participatingHackathons" :key="hack.id" contentClass="p-10 flex flex-col md:flex-row md:items-center justify-between gap-8 bg-[#151723]/50">
-                <div class="flex flex-col gap-3 relative z-10">
-                  <div class="flex items-center gap-4">
-                    <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest bg-teal-500/20 text-teal-300 border border-teal-500/30 shadow-lg">{{ hack.status }}</span>
-                    <span class="text-xs text-slate-500 font-bold uppercase tracking-wider">Applied: {{ hack.appliedDate }}</span>
+              <GlowCard
+                v-for="hack in participatingHackathons"
+                :key="hack.id"
+                contentClass="p-6 md:p-7 flex flex-col xl:flex-row xl:items-center justify-between gap-5 bg-[#151723]/50"
+              >
+                <div class="flex flex-col gap-2.5 relative z-10 max-w-2xl">
+                  <div class="flex flex-wrap items-center gap-3">
+                    <span
+                      class="rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-widest"
+                      :class="participationStatusClass(hack.status)"
+                    >
+                      {{ hack.status }}
+                    </span>
+                    <span class="text-[11px] text-slate-500 font-bold uppercase tracking-[0.18em]">Applied: {{ hack.appliedDate }}</span>
                   </div>
-                  <h3 class="text-3xl font-black text-white leading-tight mt-2">{{ hack.title }}</h3>
-                  <p class="text-base text-slate-400 mt-2">
+                  <h3 class="text-2xl md:text-[2rem] font-black text-white leading-tight mt-1">{{ hack.title }}</h3>
+                  <p class="text-sm md:text-[15px] text-slate-400">
                     <span class="text-white font-bold">{{ hack.role }}</span>
                     <span v-if="hack.teamName" class="mx-3 text-white/20">|</span>
                     <span v-if="hack.teamName" class="text-slate-300">{{ hack.teamName }} 팀 소속</span>
                   </p>
                 </div>
-                <div class="flex gap-4 relative z-10 shrink-0">
-                   <RouterLink :to="`/hackathons/${hack.hackathonId}`" class="px-8 py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-bold hover:bg-white/10 transition-all">공고 열람</RouterLink>
-                   <RouterLink v-if="hack.status === '진행 중'" :to="`/workspace/${hack.hackathonId}`" class="px-8 py-4 rounded-2xl bg-sync-primary text-white font-bold shadow-2xl hover:bg-sync-primaryHover hover:-translate-y-1 transition-all">작업 공간 입장</RouterLink>
+                <div class="flex w-full flex-wrap gap-3 relative z-10 shrink-0 xl:w-auto xl:justify-end">
+                   <RouterLink
+                     :to="`/hackathons/${hack.hackathonId}`"
+                     class="flex-1 min-w-[140px] px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-center text-sm font-bold text-white hover:bg-white/10 transition-all xl:flex-none"
+                   >
+                     공고 열람
+                   </RouterLink>
+                   <RouterLink
+                     v-if="hack.status === '진행 중'"
+                     :to="`/workspace/${hack.hackathonId}`"
+                     class="flex-1 min-w-[160px] px-5 py-3 rounded-xl bg-sync-primary text-center text-sm font-bold text-white shadow-[0_12px_30px_rgba(50,132,255,0.25)] hover:bg-sync-primaryHover hover:-translate-y-0.5 transition-all xl:flex-none"
+                   >
+                     작업 공간 입장
+                   </RouterLink>
                 </div>
               </GlowCard>
             </template>
@@ -168,4 +204,3 @@ const handleTouchMove = (e) => {
   border-radius: 10px;
 }
 </style>
-```

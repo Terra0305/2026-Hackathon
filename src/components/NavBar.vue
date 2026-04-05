@@ -4,6 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 import { useThemeStore } from '../stores/theme'
 import { useAuthStore } from '../stores/auth'
 import SearchModal from './SearchModal.vue'
+import UserAvatar from './UserAvatar.vue'
 
 const route = useRoute()
 const themeStore = useThemeStore()
@@ -17,14 +18,6 @@ const isPathActive = (path) => {
   if (path !== '/' && route.path.startsWith(path)) return true;
   return false;
 }
-const availableBadges = [
-  { id: 'badge1', name: 'First Hackathon', icon: '🌱' },
-  { id: 'badge2', name: 'Bug Hunter', icon: '🐛' },
-  { id: 'badge3', name: 'Fast Learner', icon: '📚' },
-  { id: 'badge4', name: 'Night Owl', icon: '🌙' },
-  { id: 'badge5', name: 'Team Leader', icon: '👑' },
-  { id: 'badge6', name: 'Innovation Award', icon: '💡' }
-]
 </script>
 
 <template>
@@ -90,28 +83,26 @@ const availableBadges = [
             <div v-if="isDropdownOpen" class="fixed inset-0 z-40" @click="isDropdownOpen = false"></div>
             
             <div class="relative z-50">
-              <div class="relative w-9 h-9 flex items-center justify-center shrink-0">
-                <!-- Profile Border Overlay -->
-                <div v-if="authStore.user.profileBorder" class="absolute inset-0 profile-border-container scale-110 z-0" :class="`profile-border-${authStore.user.profileBorder}`"></div>
-                
-                <div @click="isDropdownOpen = !isDropdownOpen" class="w-full h-full rounded-full bg-slate-200 overflow-hidden cursor-pointer flex-shrink-0 border-2 border-white dark:border-[#22252D] hover:opacity-80 transition-all shadow-sm group relative z-10">
-                  <img :src="authStore.user.avatar" alt="User Profile" class="w-full h-full object-cover group-hover:scale-110 transition-transform">
-                </div>
+              <div @click="isDropdownOpen = !isDropdownOpen" class="flex cursor-pointer flex-col items-center gap-1 group">
+                <UserAvatar
+                  :user="authStore.user"
+                  size-class="w-9 h-9"
+                  avatar-class="border-2 border-white dark:border-[#22252D] shadow-sm"
+                  image-class="group-hover:scale-110 transition-transform"
+                  show-badge-overlay
+                  :badge-ids="authStore.user.selectedBadges || []"
+                  badge-size="xs"
+                  badge-position-class="-bottom-2 -right-3"
+                  badge-container-class="px-1.5 py-0.5"
+                />
               </div>
               
               <transition name="dropdown-fade">
-                <div v-if="isDropdownOpen" class="absolute right-0 mt-3 w-52 bg-white/90 dark:bg-[#181A20]/90 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl py-2 shadow-[0_12px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col group origin-top-right">
+                <div v-if="isDropdownOpen" class="absolute right-0 top-full mt-2 w-52 bg-white/90 dark:bg-[#181A20]/90 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl py-2 shadow-[0_12px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col group origin-top-right">
                   <div class="px-4 py-3.5 border-b border-black/5 dark:border-white/10 mb-1 flex flex-col gap-2 shrink-0">
                      <div class="flex flex-col gap-0.5">
                         <span class="text-[13px] font-bold text-sync-text">{{ authStore.user.nickname }}</span>
                         <span class="text-[10px] text-sync-muted font-bold truncate opacity-80">{{ authStore.user.email || 'builder@sync.com' }}</span>
-                     </div>
-                     <div v-if="authStore.user.selectedBadges?.length" class="flex items-center gap-1.5 mt-1">
-                        <div v-for="badgeId in authStore.user.selectedBadges" :key="badgeId" 
-                             class="w-7 h-7 rounded-full bg-white dark:bg-[#2A2D35] border border-sync-border flex items-center justify-center text-sm shadow-sm"
-                             :title="availableBadges.find(b => b.id === badgeId)?.name">
-                           {{ availableBadges.find(b => b.id === badgeId)?.icon }}
-                        </div>
                      </div>
                   </div>
                   <RouterLink v-if="!authStore.user?.isAdmin" to="/mypage" class="px-4 py-2.5 text-sm font-bold text-sync-muted hover:text-sync-text hover:bg-black/5 dark:hover:bg-white/5 transition-colors flex items-center gap-2.5 shrink-0" @click="isDropdownOpen = false">
