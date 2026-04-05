@@ -72,11 +72,12 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const signup = (nickname, email, password) => {
+  const signup = (nickname, realName, email, password) => {
     // Create an entirely new mock session object
     const mockUser = {
       id: Date.now(),
       nickname: nickname,
+      realName: realName,
       role: 'New Builder',
       email: email,
       avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${encodeURIComponent(nickname)}`,
@@ -94,6 +95,19 @@ export const useAuthStore = defineStore('auth', () => {
     router.push('/')
   }
 
+  const updateProfile = (data) => {
+    if (!user.value) return
+    const updatedUser = { ...user.value, ...data }
+    user.value = updatedUser
+    localStorage.setItem('sync_user', JSON.stringify(updatedUser))
+    
+    // Also update mockUsers if it's one of them
+    const idx = mockUsers.findIndex(u => u.id === updatedUser.id)
+    if (idx !== -1) {
+      mockUsers[idx] = { ...mockUsers[idx], ...data }
+    }
+  }
+
   const logout = () => {
     user.value = null
     localStorage.removeItem('sync_user')
@@ -105,6 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     login,
     signup,
+    updateProfile,
     logout
   }
 })

@@ -86,6 +86,10 @@ const toggleStatus = () => {
           
           <div class="flex flex-col gap-4">
             <div class="flex flex-col gap-1">
+              <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest">Real Name (본명)</span>
+              <span class="text-sync-text font-black text-lg">{{ targetUser.realName || '미입력' }}</span>
+            </div>
+            <div class="flex flex-col gap-1">
               <span class="text-[11px] font-bold text-sync-muted uppercase tracking-widest">Email</span>
               <span class="text-sync-text font-medium">{{ targetUser.email || '미입력' }}</span>
             </div>

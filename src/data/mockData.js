@@ -32,7 +32,12 @@ export const mockHackathons = reactive([
       "오픈소스 모델 가중치를 사용할 경우 라이선스 규정을 준수하십시오."
     ],
     organizer: "재단법인 AI Innovation Korea",
-    contactEmail: "contact@aihackathon.com"
+    contactEmail: "contact@aihackathon.com",
+    scoringCriteria: [
+      { name: "기술 실용성", weight: 40 },
+      { name: "창의성", weight: 30 },
+      { name: "파급 효과", weight: 30 }
+    ]
   },
   {
     id: 2,
@@ -153,7 +158,12 @@ export const mockHackathons = reactive([
       "실제 금융 API (제공됨) 연동이 1개 이상 포함되어야 합니다."
     ],
     organizer: "한국 핀테크 지원센터",
-    contactEmail: "fintech@korea.com"
+    contactEmail: "fintech@korea.com",
+    scoringCriteria: [
+      { name: "기술적 완성도", weight: 40 },
+      { name: "디자인 및 UX", weight: 30 },
+      { name: "기획 및 혁신성", weight: 30 }
+    ]
   }
 ]);
 
@@ -161,6 +171,7 @@ export const mockUsers = reactive([
   {
     id: 1,
     nickname: "건축가_Kim",
+    realName: "김철수",
     role: "Digital Craftsman & Full-stack Architect",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Kim",
     points: 11250,
@@ -177,6 +188,7 @@ export const mockUsers = reactive([
   {
     id: 2,
     nickname: "Alex_Dev",
+    realName: "이영희",
     role: "Full-stack Dev",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Oliver",
     points: 8420,
@@ -303,6 +315,7 @@ export const mockUsers = reactive([
   {
     id: 10,
     nickname: "Security_Ninja",
+    realName: "최민수",
     role: "Security Researcher",
     avatar: "https://api.dicebear.com/7.x/notionists/svg?seed=Ivy",
     points: 4200,
@@ -422,6 +435,8 @@ export const mockGlobalSubmissions = reactive([
     submittedAt: "2026.05.06",
     status: "심사 중",
     score: null,
+    detailedScores: {},
+    award: null,
     review: null,
     links: ["https://github.com/team-nexus/chatbot"],
     files: [
@@ -454,6 +469,8 @@ export const mockGlobalSubmissions = reactive([
     submittedAt: "2026.05.07",
     status: "심사 완료",
     score: 91,
+    detailedScores: { "기술 실용성": 95, "창의성": 85, "파급 효과": 92 },
+    award: "Innovation (3팀)",
     review: "기술적 완성도가 매우 높습니다. 실제 클라우드 환경 적용 가능성이 인상적이며, 발표 자료도 명확합니다.",
     links: ["https://github.com/sync-guard/scanner"],
     files: [

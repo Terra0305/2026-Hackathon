@@ -8,6 +8,7 @@ const isLogin = ref(true)
 const email = ref('')
 const password = ref('')
 const nickname = ref('')
+const realName = ref('')
 
 const handleLogin = () => {
   if (email.value && password.value) {
@@ -18,10 +19,10 @@ const handleLogin = () => {
 }
 
 const handleSignup = () => {
-  if (nickname.value && email.value && password.value) {
-    authStore.signup(nickname.value, email.value, password.value)
+  if (nickname.value && realName.value && email.value && password.value) {
+    authStore.signup(nickname.value, realName.value, email.value, password.value)
   } else {
-    alert('모든 필드(닉네임, 이메일, 비밀번호)를 기입해주세요.')
+    alert('모든 필드(닉네임, 본명, 이메일, 비밀번호)를 기입해주세요.')
   }
 }
 </script>
@@ -112,15 +113,26 @@ const handleSignup = () => {
             </form>
 
             <!-- SIGNUP FORM -->
-            <form v-else key="signup" class="flex flex-col gap-5 w-full" @submit.prevent="handleSignup">
-              <!-- Name -->
+            <form v-else key="signup" class="flex flex-col gap-4 w-full" @submit.prevent="handleSignup">
+              <!-- Nickname -->
                <div class="flex flex-col gap-2 group">
                 <label class="text-xs font-bold text-sync-text tracking-widest transition-colors group-focus-within:text-sync-primary">닉네임</label>
                 <div class="relative">
                   <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sync-muted group-focus-within:text-sync-primary transition-colors">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                   </span>
-                  <input v-model="nickname" type="text" placeholder="홍길동" class="w-full bg-white/50 dark:bg-black/50 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-sync-text placeholder-sync-muted shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus:outline-none focus:border-sync-primary focus:ring-2 focus:ring-sync-primary/20 transition-all">
+                  <input v-model="nickname" type="text" placeholder="Gildong_Dev" class="w-full bg-white/50 dark:bg-black/50 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-sync-text placeholder-sync-muted shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus:outline-none focus:border-sync-primary focus:ring-2 focus:ring-sync-primary/20 transition-all">
+                </div>
+              </div>
+
+              <!-- Real Name -->
+              <div class="flex flex-col gap-2 group">
+                <label class="text-xs font-bold text-sync-text tracking-widest transition-colors group-focus-within:text-sync-primary">본명</label>
+                <div class="relative">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-sync-muted group-focus-within:text-sync-primary transition-colors">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                  </span>
+                  <input v-model="realName" type="text" placeholder="홍길동" class="w-full bg-white/50 dark:bg-black/50 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm text-sync-text placeholder-sync-muted shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] focus:outline-none focus:border-sync-primary focus:ring-2 focus:ring-sync-primary/20 transition-all">
                 </div>
               </div>
 
