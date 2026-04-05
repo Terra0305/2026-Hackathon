@@ -3,6 +3,12 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { mockHackathons, mockGlobalSubmissions } from '../../data/mockData'
 import { useAuthStore } from '../../stores/auth'
+import {
+  applySubmissionRewards,
+  buildSubmissionRewardDistribution,
+  formatReviewDate,
+  getSubmissionRewardTotal
+} from '../../utils/submissionReview'
 
 const route = useRoute()
 const router = useRouter()
@@ -93,8 +99,14 @@ const saveReview = (sub) => {
   } else {
     sub.status = '심사 완료'
   }
+
+  sub.reviewedAt = formatReviewDate()
+
+  const nextRewardDistribution = buildSubmissionRewardDistribution(sub)
+  applySubmissionRewards(sub, nextRewardDistribution)
   
   editingReview.value = false
+  alert(`심사 결과가 저장되었습니다. 팀 전체에 ${getSubmissionRewardTotal(sub).toLocaleString()} PTS가 지급되었습니다.`)
 }
 
 // ─── Status helpers ──────────────────────────────────────
@@ -117,6 +129,10 @@ const priorityClass = (p) => {
 const docIcon = (type) => {
   const m = { '기획서': '📋', '발표자료': '📊', '디자인': '🎨', '영상': '🎬' }
   return m[type] || '📄'
+}
+
+const rewardTotal = (submission) => {
+  return getSubmissionRewardTotal(submission)
 }
 </script>
 
@@ -207,7 +223,7 @@ const docIcon = (type) => {
           </div>
 
           <!-- Right: Status / Links / Files preview -->
-          <div class="w-full md:w-56 flex flex-col gap-4 shrink-0">
+            <div class="w-full md:w-56 flex flex-col gap-4 shrink-0">
             <!-- Status Badge -->
             <div class="flex flex-col gap-2">
               <span class="text-[10px] font-bold text-sync-muted uppercase tracking-widest">진행 상태</span>
@@ -226,6 +242,11 @@ const docIcon = (type) => {
                 </div>
                 <span class="text-sm font-black text-sync-text">{{ sub.score }}</span>
               </div>
+            </div>
+
+            <div v-if="rewardTotal(sub)" class="flex flex-col gap-1">
+              <span class="text-[10px] font-bold text-sync-muted uppercase tracking-widest">지급 포인트</span>
+              <span class="text-sm font-black text-sync-primary">{{ rewardTotal(sub).toLocaleString() }} PTS</span>
             </div>
 
             <!-- Repo Links -->
@@ -338,6 +359,29 @@ const docIcon = (type) => {
               <div v-if="selectedSub.award" class="p-5 rounded-2xl bg-yellow-500/5 border border-yellow-500/20 flex flex-col gap-1">
                 <span class="text-[10px] font-black text-yellow-600 uppercase tracking-widest">최종 수상 결과</span>
                 <span class="text-xl font-black text-yellow-500">🏆 {{ selectedSub.award }}</span>
+              </div>
+
+              <div v-if="rewardTotal(selectedSub)" class="p-5 rounded-2xl bg-sync-primary/5 border border-sync-primary/20 flex flex-col gap-4">
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[10px] font-black text-sync-primary uppercase tracking-widest">심사 보상 지급</span>
+                    <span class="text-2xl font-black text-sync-text">{{ rewardTotal(selectedSub).toLocaleString() }} PTS</span>
+                  </div>
+                  <span class="text-[11px] font-bold text-sync-muted">{{ selectedSub.reviewedAt }}</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div
+                    v-for="reward in selectedSub.rewardDistribution"
+                    :key="reward.userId"
+                    class="rounded-xl border border-sync-border bg-black/5 dark:bg-white/5 px-4 py-3"
+                  >
+                    <div class="flex items-center justify-between gap-3">
+                      <span class="text-sm font-bold text-sync-text truncate">{{ reward.nickname }}</span>
+                      <span class="text-sm font-black text-sync-primary">{{ reward.total.toLocaleString() }} PTS</span>
+                    </div>
+                    <p class="text-[11px] font-medium text-sync-muted mt-1">{{ reward.breakdown.join(' · ') }}</p>
+                  </div>
+                </div>
               </div>
 
               <!-- Overall Score -->

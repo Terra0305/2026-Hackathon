@@ -1,10 +1,15 @@
 <script setup>
-import { computed, ref, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter, RouterLink, onBeforeRouteLeave } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { mockHackathons, mockTeams, mockUsers, mockGlobalSubmissions } from '../data/mockData'
+import { mockHackathons, mockTeams, mockUsers, mockGlobalSubmissions, mockWorkspaceChats } from '../data/mockData'
 import UserAvatar from '../components/UserAvatar.vue'
 import UserBadgeStrip from '../components/UserBadgeStrip.vue'
+import {
+  formatReviewDate,
+  getSubmissionRewardForUser,
+  getSubmissionRewardTotal
+} from '../utils/submissionReview'
 
 const route = useRoute()
 const router = useRouter()
@@ -46,6 +51,16 @@ const isCurrentUser = (user) => {
   return !!authStore.user && user.id === authStore.user.id
 }
 
+const currentUser = computed(() => {
+  if (!authStore.user?.id) return null
+  return syncedUsers.value.find((user) => user.id === authStore.user.id) || authStore.user
+})
+
+const isTeamParticipant = computed(() => {
+  if (!currentUser.value) return false
+  return teamMembers.value.some((user) => user.id === currentUser.value.id)
+})
+
 // ─── GitHub ────────────────────────────────────────────
 const githubRepoUrl = ref(team.value?.githubUrl || '')
 const githubRepoInput = ref('')
@@ -83,6 +98,530 @@ const contribColor = (val) => {
 
 // ─── Tab ───────────────────────────────────────────────
 const activeTab = ref('board')
+
+const latestSubmission = computed(() => {
+  return [...mockGlobalSubmissions]
+    .filter((submission) => submission.teamId === team.value.id && submission.hackathonId === hackathon.value.id)
+    .sort((left, right) => right.id - left.id)[0] || null
+})
+
+const isSubmissionReviewed = computed(() => {
+  return ['심사 완료', '수상'].includes(latestSubmission.value?.status)
+})
+
+const teamRewardTotal = computed(() => {
+  return latestSubmission.value ? getSubmissionRewardTotal(latestSubmission.value) : 0
+})
+
+const myReviewReward = computed(() => {
+  if (!latestSubmission.value || !currentUser.value) return null
+  return getSubmissionRewardForUser(latestSubmission.value, currentUser.value.id)
+})
+
+const reviewStatusClass = (status) => {
+  const map = {
+    '심사 전': 'text-sync-muted bg-black/5 dark:bg-white/5 border-sync-border',
+    '심사 중': 'text-amber-500 bg-amber-500/10 border-amber-500/20',
+    '심사 완료': 'text-teal-500 bg-teal-500/10 border-teal-500/20',
+    '수상': 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20'
+  }
+
+  return map[status] || map['심사 전']
+}
+
+// ─── Workspace Chat ────────────────────────────────────
+const activeChatRoomId = ref('')
+const chatDraft = ref('')
+const isChatPopupOpen = ref(false)
+const isChatComposing = ref(false)
+const isDraggingChatPopup = ref(false)
+const simulatedReadReceiptTimers = new Map()
+const recentChatSend = ref({ roomId: null, text: '', at: 0 })
+const chatMessageViewport = ref(null)
+const chatPopupPanel = ref(null)
+const chatPopupOffset = ref({ x: 0, y: 0 })
+const chatPopupDragState = ref(null)
+const CHAT_POPUP_MARGIN = 16
+
+const formatChatTimestamp = (date = new Date()) => {
+  const targetDate = new Date(date)
+  const year = targetDate.getFullYear()
+  const month = String(targetDate.getMonth() + 1).padStart(2, '0')
+  const day = String(targetDate.getDate()).padStart(2, '0')
+  const hours = String(targetDate.getHours()).padStart(2, '0')
+  const minutes = String(targetDate.getMinutes()).padStart(2, '0')
+
+  return `${year}.${month}.${day} ${hours}:${minutes}`
+}
+
+const normalizeReadBy = (message, participantIds = []) => {
+  if (!message) return
+
+  const allowedParticipantIds = new Set(participantIds)
+  const normalizedReadBy = []
+  const seenUserIds = new Set()
+
+  ;(Array.isArray(message.readBy) ? message.readBy : []).forEach((entry) => {
+    const userId = Number(entry?.userId)
+    if (!allowedParticipantIds.has(userId) || seenUserIds.has(userId)) return
+
+    normalizedReadBy.push({
+      userId,
+      readAt: entry?.readAt || message.sentAt || formatChatTimestamp()
+    })
+    seenUserIds.add(userId)
+  })
+
+  const senderId = Number(message.senderId)
+  if (allowedParticipantIds.has(senderId) && !seenUserIds.has(senderId)) {
+    normalizedReadBy.unshift({
+      userId: senderId,
+      readAt: message.sentAt || formatChatTimestamp()
+    })
+  }
+
+  message.readBy = normalizedReadBy
+}
+
+const normalizeRoomMessages = (room) => {
+  if (!room) return
+  room.messages = (room.messages || []).map((message) => {
+    normalizeReadBy(message, room.participantIds || [])
+    return message
+  })
+}
+
+const isMessageReadByUser = (message, userId) => {
+  if (!message || !userId) return false
+  return (message.readBy || []).some((entry) => entry.userId === userId)
+}
+
+const upsertMessageRead = (message, userId, readAt = formatChatTimestamp()) => {
+  if (!message || !userId) return
+
+  if (!Array.isArray(message.readBy)) {
+    message.readBy = []
+  }
+
+  const existingRead = message.readBy.find((entry) => entry.userId === userId)
+  if (existingRead) {
+    existingRead.readAt = readAt
+    return
+  }
+
+  message.readBy.push({ userId, readAt })
+}
+
+const markRoomAsRead = (room, userId) => {
+  if (!room || !userId) return
+
+  const readAt = formatChatTimestamp()
+  normalizeRoomMessages(room)
+
+  room.messages.forEach((message) => {
+    if (message.senderId === userId) return
+    upsertMessageRead(message, userId, readAt)
+  })
+}
+
+const scheduleSimulatedReadReceipts = (room, message) => {
+  if (!room || !message) return
+
+  room.participantIds
+    .filter((userId) => userId !== message.senderId)
+    .forEach((userId, index) => {
+      const timerKey = `${room.id}:${message.id}:${userId}`
+      if (simulatedReadReceiptTimers.has(timerKey)) return
+
+      const delay = room.type === 'dm' ? 1200 : 1200 + index * 700
+      const timerId = window.setTimeout(() => {
+        upsertMessageRead(message, userId, formatChatTimestamp())
+        simulatedReadReceiptTimers.delete(timerKey)
+      }, delay)
+
+      simulatedReadReceiptTimers.set(timerKey, timerId)
+    })
+}
+
+const syncWorkspaceChatRooms = () => {
+  if (!team.value?.id) return
+
+  const participantIds = teamMembers.value.map((member) => member.id)
+  if (!participantIds.length) return
+
+  const groupRoomId = `team-${team.value.id}-group`
+  const existingGroupRoom = mockWorkspaceChats.find((room) => room.id === groupRoomId)
+
+  if (!existingGroupRoom) {
+    mockWorkspaceChats.push({
+      id: groupRoomId,
+      teamId: team.value.id,
+      type: 'group',
+      name: '팀 전체 채팅',
+      participantIds: [...participantIds],
+      messages: [
+        {
+          id: Date.now(),
+          senderId: participantIds[0],
+          text: `${team.value.teamName} 워크스페이스 채팅이 열렸습니다. 팀 소통은 이곳에서 이어가세요.`,
+          type: 'notice',
+          sentAt: formatChatTimestamp(),
+          readBy: [
+            {
+              userId: participantIds[0],
+              readAt: formatChatTimestamp()
+            }
+          ]
+        }
+      ]
+    })
+  } else {
+    existingGroupRoom.participantIds = [...new Set(participantIds)]
+  }
+
+  mockWorkspaceChats
+    .filter((room) => room.teamId === team.value.id && room.type === 'dm')
+    .forEach((room) => {
+      room.participantIds = room.participantIds.filter((id) => participantIds.includes(id))
+    })
+
+  mockWorkspaceChats
+    .filter((room) => room.teamId === team.value.id)
+    .forEach((room) => normalizeRoomMessages(room))
+}
+
+watch(
+  [() => team.value?.id, () => teamMembers.value.map((member) => member.id).join(',')],
+  () => {
+    syncWorkspaceChatRooms()
+  },
+  { immediate: true }
+)
+
+const workspaceChatRooms = computed(() => {
+  const visibleRooms = mockWorkspaceChats.filter((room) => {
+    if (room.teamId !== team.value.id) return false
+    if (room.type === 'group') return true
+    return !!currentUser.value && room.participantIds.includes(currentUser.value.id)
+  })
+
+  return [...visibleRooms].sort((left, right) => {
+    if (left.type !== right.type) {
+      return left.type === 'group' ? -1 : 1
+    }
+
+    const leftTimestamp = left.messages?.at(-1)?.sentAt || ''
+    const rightTimestamp = right.messages?.at(-1)?.sentAt || ''
+    return rightTimestamp.localeCompare(leftTimestamp)
+  })
+})
+
+const totalUnreadChatCount = computed(() => {
+  return workspaceChatRooms.value.reduce((total, room) => {
+    if (!currentUser.value) return total
+
+    const unreadCount = (room.messages || []).filter((message) => {
+      return message.senderId !== currentUser.value.id && !isMessageReadByUser(message, currentUser.value.id)
+    }).length
+
+    return total + unreadCount
+  }, 0)
+})
+
+watch(
+  workspaceChatRooms,
+  (rooms) => {
+    if (!rooms.some((room) => room.id === activeChatRoomId.value)) {
+      activeChatRoomId.value = rooms[0]?.id || ''
+    }
+  },
+  { immediate: true }
+)
+
+const activeChatRoom = computed(() => {
+  return workspaceChatRooms.value.find((room) => room.id === activeChatRoomId.value) || null
+})
+
+const chatPopupStyle = computed(() => {
+  return {
+    transform: `translate(${chatPopupOffset.value.x}px, ${chatPopupOffset.value.y}px)`
+  }
+})
+
+const openChatPopup = (roomId = activeChatRoomId.value || workspaceChatRooms.value[0]?.id) => {
+  if (roomId) {
+    activeChatRoomId.value = roomId
+  }
+
+  isChatPopupOpen.value = true
+}
+
+const closeChatPopup = () => {
+  isChatPopupOpen.value = false
+}
+
+const scrollChatToBottom = () => {
+  const viewport = chatMessageViewport.value
+  if (!viewport) return
+
+  viewport.scrollTop = viewport.scrollHeight
+}
+
+const clampChatPopupOffset = () => {
+  const panel = chatPopupPanel.value
+  if (!panel) return
+
+  const rect = panel.getBoundingClientRect()
+  let nextOffsetX = chatPopupOffset.value.x
+  let nextOffsetY = chatPopupOffset.value.y
+
+  if (rect.left < CHAT_POPUP_MARGIN) {
+    nextOffsetX += CHAT_POPUP_MARGIN - rect.left
+  } else if (rect.right > window.innerWidth - CHAT_POPUP_MARGIN) {
+    nextOffsetX -= rect.right - (window.innerWidth - CHAT_POPUP_MARGIN)
+  }
+
+  if (rect.top < CHAT_POPUP_MARGIN) {
+    nextOffsetY += CHAT_POPUP_MARGIN - rect.top
+  } else if (rect.bottom > window.innerHeight - CHAT_POPUP_MARGIN) {
+    nextOffsetY -= rect.bottom - (window.innerHeight - CHAT_POPUP_MARGIN)
+  }
+
+  if (nextOffsetX !== chatPopupOffset.value.x || nextOffsetY !== chatPopupOffset.value.y) {
+    chatPopupOffset.value = { x: nextOffsetX, y: nextOffsetY }
+  }
+}
+
+const stopChatPopupDrag = () => {
+  isDraggingChatPopup.value = false
+  chatPopupDragState.value = null
+  window.removeEventListener('pointermove', handleChatPopupDrag)
+  window.removeEventListener('pointerup', stopChatPopupDrag)
+  window.removeEventListener('pointercancel', stopChatPopupDrag)
+}
+
+const handleChatPopupDrag = (event) => {
+  const dragState = chatPopupDragState.value
+  if (!dragState) return
+
+  const deltaX = event.clientX - dragState.startX
+  const deltaY = event.clientY - dragState.startY
+  const maxLeft = Math.max(CHAT_POPUP_MARGIN, window.innerWidth - dragState.width - CHAT_POPUP_MARGIN)
+  const maxTop = Math.max(CHAT_POPUP_MARGIN, window.innerHeight - dragState.height - CHAT_POPUP_MARGIN)
+  const nextLeft = Math.min(maxLeft, Math.max(CHAT_POPUP_MARGIN, dragState.left + deltaX))
+  const nextTop = Math.min(maxTop, Math.max(CHAT_POPUP_MARGIN, dragState.top + deltaY))
+
+  chatPopupOffset.value = {
+    x: dragState.startOffsetX + (nextLeft - dragState.left),
+    y: dragState.startOffsetY + (nextTop - dragState.top)
+  }
+}
+
+const startChatPopupDrag = (event) => {
+  if (event.button !== 0) return
+
+  const panel = chatPopupPanel.value
+  if (!panel) return
+
+  const rect = panel.getBoundingClientRect()
+  chatPopupDragState.value = {
+    startX: event.clientX,
+    startY: event.clientY,
+    left: rect.left,
+    top: rect.top,
+    width: rect.width,
+    height: rect.height,
+    startOffsetX: chatPopupOffset.value.x,
+    startOffsetY: chatPopupOffset.value.y
+  }
+
+  isDraggingChatPopup.value = true
+  window.addEventListener('pointermove', handleChatPopupDrag)
+  window.addEventListener('pointerup', stopChatPopupDrag)
+  window.addEventListener('pointercancel', stopChatPopupDrag)
+}
+
+watch(
+  [activeChatRoom, currentUser],
+  ([room, user]) => {
+    if (!room || !user) return
+    markRoomAsRead(room, user.id)
+  },
+  { immediate: true }
+)
+
+watch(
+  [isChatPopupOpen, () => activeChatRoom.value?.messages?.length, () => activeChatRoomId.value],
+  async ([isOpen]) => {
+    if (!isOpen) return
+    await nextTick()
+    clampChatPopupOffset()
+    scrollChatToBottom()
+  }
+)
+
+const getDmPartner = (room) => {
+  if (!room || room.type !== 'dm' || !currentUser.value) return null
+  const partnerId = room.participantIds.find((participantId) => participantId !== currentUser.value.id)
+  return syncedUsers.value.find((user) => user.id === partnerId) || null
+}
+
+const getRoomLabel = (room) => {
+  if (!room) return ''
+  if (room.type === 'group') return room.name
+  return getDmPartner(room)?.nickname || room.name
+}
+
+const getRoomMeta = (room) => {
+  if (!room) return ''
+  if (room.type === 'group') return `${room.participantIds.length}명 참여 중`
+
+  const partner = getDmPartner(room)
+  return partner?.role || '1:1 대화'
+}
+
+const getLastMessagePreview = (room) => {
+  return room?.messages?.at(-1)?.text || '아직 대화가 없습니다.'
+}
+
+const isNoticeMessage = (message) => {
+  if (!message) return false
+  if (message.type === 'notice') return true
+
+  return /채팅이 시작되었습니다|워크스페이스 채팅이 열렸습니다/.test(message.text || '')
+}
+
+const hasUnreadMessages = (room) => {
+  if (!room || !currentUser.value) return false
+
+  return (room.messages || []).some((message) => {
+    return message.senderId !== currentUser.value.id && !isMessageReadByUser(message, currentUser.value.id)
+  })
+}
+
+const getMessageSender = (message) => {
+  return syncedUsers.value.find((user) => user.id === message.senderId) || null
+}
+
+const isOwnMessage = (message) => {
+  return !!currentUser.value && message.senderId === currentUser.value.id
+}
+
+const getGroupReadUsers = (message, room) => {
+  if (!message || !room) return []
+
+  return (room.participantIds || [])
+    .filter((userId) => userId !== message.senderId && isMessageReadByUser(message, userId))
+    .map((userId) => syncedUsers.value.find((user) => user.id === userId))
+    .filter(Boolean)
+}
+
+const getGroupReadLabel = (message, room) => {
+  const readUsers = getGroupReadUsers(message, room)
+  if (!readUsers.length) return '아직 읽은 팀원이 없습니다.'
+
+  if (readUsers.length <= 2) {
+    return readUsers.map((user) => user.nickname).join(', ')
+  }
+
+  return `${readUsers.slice(0, 2).map((user) => user.nickname).join(', ')} 외 ${readUsers.length - 2}명`
+}
+
+const getDirectReadLabel = (message, room) => {
+  if (!message || !room || room.type !== 'dm' || !isOwnMessage(message)) return ''
+
+  const partner = getDmPartner(room)
+  if (!partner) return ''
+
+  return isMessageReadByUser(message, partner.id) ? `읽음 · ${partner.nickname}` : '전송됨'
+}
+
+const openDirectMessage = (member) => {
+  if (!currentUser.value || currentUser.value.id === member.id) return
+
+  const participantIds = [currentUser.value.id, member.id].sort((left, right) => left - right)
+  const roomId = `team-${team.value.id}-dm-${participantIds.join('-')}`
+  let room = mockWorkspaceChats.find((candidate) => candidate.id === roomId)
+
+  if (!room) {
+    room = {
+      id: roomId,
+      teamId: team.value.id,
+      type: 'dm',
+      name: `${currentUser.value.nickname} · ${member.nickname}`,
+      participantIds,
+      messages: [
+        {
+          id: Date.now(),
+          senderId: currentUser.value.id,
+          text: `${member.nickname}님과의 1:1 채팅이 시작되었습니다.`,
+          type: 'notice',
+          sentAt: formatChatTimestamp(),
+          readBy: [
+            {
+              userId: currentUser.value.id,
+              readAt: formatChatTimestamp()
+            }
+          ]
+        }
+      ]
+    }
+    mockWorkspaceChats.push(room)
+    normalizeRoomMessages(room)
+  }
+
+  openChatPopup(room.id)
+}
+
+const sendChatMessage = () => {
+  if (!currentUser.value || !activeChatRoom.value || !chatDraft.value.trim()) return
+  if (isChatComposing.value) return
+
+  const trimmedMessage = chatDraft.value.trim()
+  const now = Date.now()
+  const roomId = activeChatRoom.value.id
+
+  if (
+    recentChatSend.value.roomId === roomId &&
+    recentChatSend.value.text === trimmedMessage &&
+    now - recentChatSend.value.at < 500
+  ) {
+    return
+  }
+
+  const nextMessage = {
+    id: now,
+    senderId: currentUser.value.id,
+    text: trimmedMessage,
+    sentAt: formatChatTimestamp(),
+    readBy: [
+      {
+        userId: currentUser.value.id,
+        readAt: formatChatTimestamp()
+      }
+    ]
+  }
+
+  activeChatRoom.value.messages.push(nextMessage)
+  scheduleSimulatedReadReceipts(activeChatRoom.value, nextMessage)
+  recentChatSend.value = { roomId, text: trimmedMessage, at: now }
+
+  chatDraft.value = ''
+}
+
+const handleChatKeydown = (event) => {
+  if (event.key !== 'Enter' || event.shiftKey) return
+  if (event.isComposing || isChatComposing.value || event.repeat) return
+
+  event.preventDefault()
+  sendChatMessage()
+}
+
+onBeforeUnmount(() => {
+  stopChatPopupDrag()
+  simulatedReadReceiptTimers.forEach((timerId) => window.clearTimeout(timerId))
+  simulatedReadReceiptTimers.clear()
+})
 
 // ─── Sprint Board ───────────────────────────────────────
 const tasks = ref([
@@ -133,11 +672,13 @@ const moveTaskStatus = (task, dir) => {
 
 // Close all modals before navigating away to prevent Vue Transition crash
 onBeforeRouteLeave(() => {
+  stopChatPopupDrag()
   isTaskModalOpen.value = false
   isEditorOpen.value = false
   isNewDocModalOpen.value = false
   isUploadModalOpen.value = false
   isSubmitModalOpen.value = false
+  isChatPopupOpen.value = false
 })
 
 // ─── Documents ─────────────────────────────────────────
@@ -237,8 +778,51 @@ const submitForm = ref({ projectName: '', description: '', link: '', selectedDoc
 const openSubmitModal = () => { submitForm.value = { projectName: '', description: '', link: '', selectedDocs: [] }; isSubmitModalOpen.value = true }
 const handleFinalSubmit = () => {
   if (!submitForm.value.projectName || !submitForm.value.description) { alert('프로젝트 명과 상세 설명을 입력해주세요.'); return }
-  mockGlobalSubmissions.push({ id: Date.now(), hackathonId: hackathon.value.id, teamId: team.value.id, teamName: team.value.teamName, projectName: submitForm.value.projectName, description: submitForm.value.description, submittedAt: new Date().toLocaleDateString('ko-KR'), links: [submitForm.value.link].filter(Boolean), files: [] })
-  alert('최종 제출이 완료되었습니다!'); isSubmitModalOpen.value = false
+  const selectedDocs = documents.value.filter((doc) => submitForm.value.selectedDocs.includes(doc.id))
+  const existingSubmission = mockGlobalSubmissions.find((submission) => submission.teamId === team.value.id && submission.hackathonId === hackathon.value.id)
+  const nextSubmission = {
+    id: existingSubmission?.id || Date.now(),
+    hackathonId: hackathon.value.id,
+    teamId: team.value.id,
+    teamName: team.value.teamName,
+    projectName: submitForm.value.projectName,
+    description: submitForm.value.description,
+    submittedAt: formatReviewDate(),
+    status: '심사 전',
+    score: null,
+    detailedScores: {},
+    award: null,
+    review: null,
+    reviewedAt: null,
+    rewardDistribution: [],
+    rewardsApplied: false,
+    links: [submitForm.value.link].filter(Boolean),
+    files: selectedDocs.map((doc) => ({
+      name: doc.name,
+      size: '업로드 완료',
+      type: doc.type
+    })),
+    members: teamMembers.value.map((member) => ({
+      nickname: member.nickname,
+      role: member.role,
+      avatar: member.avatar
+    })),
+    tasks: tasks.value.map((task) => ({ ...task })),
+    documents: documents.value.map((doc) => ({
+      name: doc.name,
+      type: doc.type,
+      updated: doc.updated
+    }))
+  }
+
+  if (existingSubmission) {
+    Object.assign(existingSubmission, nextSubmission)
+  } else {
+    mockGlobalSubmissions.push(nextSubmission)
+  }
+
+  alert('최종 제출이 완료되었습니다. 심사 결과는 워크스페이스와 마이페이지에서 확인할 수 있습니다.')
+  isSubmitModalOpen.value = false
 }
 
 const docTypeIcon = (type) => type === '기획서' ? '📄' : type === '디자인' ? '🎨' : '📝'
@@ -361,6 +945,13 @@ const getTimelineStatus = (dateStr) => {
                  />
                  <span class="text-[12px] text-sync-muted font-medium truncate mt-0.5">{{ user.role }}</span>
                </div>
+               <button
+                 v-if="isTeamParticipant && !isCurrentUser(user)"
+                 @click.stop="openDirectMessage(user)"
+                 class="shrink-0 rounded-xl border border-sync-border px-3 py-2 text-[11px] font-bold text-sync-muted hover:border-sync-primary/40 hover:text-sync-primary transition-colors"
+               >
+                 1:1 채팅
+               </button>
              </div>
            </div>
          </div>
@@ -393,6 +984,76 @@ const getTimelineStatus = (dateStr) => {
 
       <!-- RIGHT MAIN CONTENT -->
       <div class="flex-1 flex flex-col min-w-0 gap-6">
+
+        <div
+          v-if="latestSubmission"
+          class="glass-card overflow-hidden rounded-[2rem] border border-sync-border shadow-sm"
+        >
+          <div class="bg-gradient-to-r from-sync-primary/10 via-transparent to-transparent px-6 py-5 border-b border-sync-border">
+            <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+              <div class="flex flex-col gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-full bg-white dark:bg-[#10131A] px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-sync-primary border border-sync-primary/20">심사 결과 알림</span>
+                  <span class="rounded-full border px-3 py-1 text-[11px] font-bold" :class="reviewStatusClass(latestSubmission.status || '심사 전')">
+                    {{ latestSubmission.status || '심사 전' }}
+                  </span>
+                  <span v-if="latestSubmission.award" class="rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-[11px] font-bold text-yellow-500">
+                    🏆 {{ latestSubmission.award }}
+                  </span>
+                </div>
+                <div>
+                  <h3 class="text-2xl font-black text-sync-text">{{ latestSubmission.projectName }}</h3>
+                  <p class="mt-2 max-w-3xl text-sm leading-relaxed text-sync-muted">
+                    {{ isSubmissionReviewed
+                      ? (latestSubmission.review || '심사 결과가 등록되었습니다. 팀원별 지급 포인트와 총평을 확인해보세요.')
+                      : '최종 결과물이 접수되었습니다. 어드민 심사 완료 후 이 영역에 결과가 공지됩니다.' }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 xl:min-w-[320px]">
+                <div class="rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 px-4 py-3">
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">제출일</span>
+                  <p class="mt-1 text-sm font-bold text-sync-text">{{ latestSubmission.submittedAt }}</p>
+                </div>
+                <div class="rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 px-4 py-3">
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">결과 발표</span>
+                  <p class="mt-1 text-sm font-bold text-sync-text">{{ latestSubmission.reviewedAt || '심사 진행 중' }}</p>
+                </div>
+                <div class="rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 px-4 py-3">
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">팀 지급 포인트</span>
+                  <p class="mt-1 text-sm font-black text-sync-primary">{{ teamRewardTotal ? `${teamRewardTotal.toLocaleString()} PTS` : '발표 전' }}</p>
+                </div>
+                <div class="rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 px-4 py-3">
+                  <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">내 보상</span>
+                  <p class="mt-1 text-sm font-black" :class="myReviewReward ? 'text-teal-500' : 'text-sync-muted'">
+                    {{ myReviewReward ? `${myReviewReward.total.toLocaleString()} PTS` : '해당 없음' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            v-if="isSubmissionReviewed && latestSubmission.rewardDistribution?.length"
+            class="grid grid-cols-1 md:grid-cols-2 gap-3 px-6 py-5"
+          >
+            <div
+              v-for="reward in latestSubmission.rewardDistribution"
+              :key="reward.userId"
+              class="rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 px-4 py-3"
+            >
+              <div class="flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                  <p class="text-sm font-bold text-sync-text truncate">{{ reward.nickname }}</p>
+                  <p class="text-[11px] font-medium text-sync-muted truncate">{{ reward.role }}</p>
+                </div>
+                <span class="text-sm font-black text-sync-primary">{{ reward.total.toLocaleString() }} PTS</span>
+              </div>
+              <p class="mt-2 text-[11px] leading-relaxed text-sync-muted">{{ reward.breakdown.join(' · ') }}</p>
+            </div>
+          </div>
+        </div>
         
         <!-- Tabs -->
         <div class="flex gap-2 border-b border-sync-border mb-2 overflow-x-auto custom-scrollbar pb-px">
@@ -491,10 +1152,8 @@ const getTimelineStatus = (dateStr) => {
           </div>
         </div>
 
-
-
-    <!-- ── TAB 4: GitHub Contributions ── -->
-    <div v-if="activeTab === 'github'" class="animate-fade-in flex flex-col gap-6">
+        <!-- ── TAB 4: GitHub Contributions ── -->
+        <div v-if="activeTab === 'github'" class="animate-fade-in flex flex-col gap-6">
           <div class="flex items-center justify-between">
             <p class="text-sm text-sync-muted font-medium">팀원들의 최근 12주 GitHub 커밋 기여 현황입니다.</p>
             <a v-if="githubRepoUrl" :href="githubRepoUrl" target="_blank" class="flex items-center gap-1.5 text-xs font-bold text-sync-primary hover:underline">
@@ -602,6 +1261,224 @@ const getTimelineStatus = (dateStr) => {
       </div>
     </div>
   </div>
+
+  <Teleport to="body">
+    <div v-if="isTeamParticipant" class="pointer-events-none fixed bottom-5 right-5 z-[95] flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
+      <div
+        v-if="isChatPopupOpen"
+        ref="chatPopupPanel"
+        :style="chatPopupStyle"
+        class="pointer-events-auto flex h-[72vh] max-h-[44rem] w-[calc(100vw-1rem)] max-w-[40rem] flex-col overflow-hidden rounded-[1.75rem] border border-sync-border bg-white/95 shadow-[0_18px_56px_rgba(0,0,0,0.28)] backdrop-blur-xl dark:bg-[#0F1218]/95"
+      >
+        <div class="flex items-center justify-between border-b border-sync-border px-5 py-4">
+          <div
+            class="min-w-0 flex-1 select-none pr-4 touch-none"
+            :class="isDraggingChatPopup ? 'cursor-grabbing' : 'cursor-grab'"
+            @pointerdown="startChatPopupDrag"
+          >
+            <p class="text-[11px] font-black uppercase tracking-[0.24em] text-sync-primary">Team Chat</p>
+            <h3 class="mt-1 truncate text-xl font-black text-sync-text">{{ team.teamName }} 채팅</h3>
+          </div>
+          <button
+            @click="closeChatPopup"
+            class="flex h-11 w-11 items-center justify-center rounded-full border border-sync-border text-sync-muted transition-colors hover:border-sync-primary/30 hover:text-sync-primary"
+          >
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[12.75rem_minmax(0,1fr)]">
+          <div class="flex min-h-0 flex-col border-b border-sync-border md:border-b-0 md:border-r">
+            <div class="border-b border-sync-border px-4 py-3">
+              <h4 class="text-sm font-black uppercase tracking-[0.18em] text-sync-muted">채널</h4>
+            </div>
+
+            <div class="min-h-0 flex-1 overflow-y-auto custom-scrollbar px-3 py-3">
+              <div class="flex flex-col gap-2">
+                <button
+                  v-for="room in workspaceChatRooms"
+                  :key="room.id"
+                  @click="activeChatRoomId = room.id"
+                  class="rounded-xl border px-3 py-3 text-left transition-all"
+                  :class="activeChatRoomId === room.id ? 'border-sync-primary bg-sync-primary/5 shadow-sm' : 'border-sync-border hover:border-sync-primary/30 hover:bg-black/5 dark:hover:bg-white/5'"
+                >
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                      <p class="flex items-center gap-2 text-sm font-bold leading-tight text-sync-text">
+                        <span class="truncate">{{ room.type === 'group' ? '💬' : '✉️' }} {{ getRoomLabel(room) }}</span>
+                        <span v-if="hasUnreadMessages(room)" class="h-2 w-2 shrink-0 rounded-full bg-sync-primary shadow-[0_0_8px_rgba(50,132,255,0.45)]"></span>
+                      </p>
+                      <p class="mt-1 truncate text-[12px] font-medium text-sync-muted">{{ getRoomMeta(room) }}</p>
+                    </div>
+                    <span class="shrink-0 text-[11px] font-bold text-sync-muted">{{ room.messages?.at(-1)?.sentAt?.slice(11) || '' }}</span>
+                  </div>
+                  <p class="mt-2 line-clamp-2 text-[12px] leading-relaxed text-sync-muted">{{ getLastMessagePreview(room) }}</p>
+                </button>
+              </div>
+            </div>
+
+            <div class="border-t border-sync-border px-4 py-3">
+              <div class="mb-3 flex items-center justify-between">
+                <h4 class="text-sm font-black uppercase tracking-[0.18em] text-sync-muted">빠른 1:1</h4>
+                <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">DM</span>
+              </div>
+              <div class="flex gap-2 overflow-x-auto custom-scrollbar pb-1 md:flex-col md:overflow-visible md:pb-0">
+                <button
+                  v-for="member in teamMembers.filter((user) => !isCurrentUser(user))"
+                  :key="`popup-dm-${member.id}`"
+                  @click="openDirectMessage(member)"
+                  class="flex min-w-[9.5rem] items-center gap-3 rounded-xl border border-sync-border px-3 py-2.5 text-left transition-colors hover:border-sync-primary/30 hover:bg-black/5 dark:hover:bg-white/5 md:min-w-0"
+                >
+                  <UserAvatar
+                    :user="member"
+                    size-class="w-9 h-9"
+                    avatar-class="border border-sync-border"
+                  />
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-bold text-sync-text">{{ member.nickname }}</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex min-h-0 flex-col">
+            <div v-if="activeChatRoom" class="flex items-center justify-between gap-3 border-b border-sync-border px-5 py-4">
+              <div class="min-w-0">
+                <h3 class="truncate text-xl font-black text-sync-text">{{ getRoomLabel(activeChatRoom) }}</h3>
+                <p class="mt-1 truncate text-[13px] font-medium text-sync-muted">{{ getRoomMeta(activeChatRoom) }}</p>
+              </div>
+              <span class="rounded-full border border-sync-border bg-black/5 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-sync-muted dark:bg-white/5">
+                {{ activeChatRoom.type === 'group' ? 'Group' : 'Direct' }}
+              </span>
+            </div>
+
+            <div v-if="activeChatRoom" class="flex min-h-0 flex-1 flex-col">
+              <div ref="chatMessageViewport" class="min-h-0 flex-1 overflow-y-auto custom-scrollbar px-5 py-4">
+                <div class="flex flex-col gap-4">
+                  <div
+                    v-for="message in activeChatRoom.messages"
+                    :key="message.id"
+                    class="flex flex-col"
+                    :class="isNoticeMessage(message) ? 'items-center' : isOwnMessage(message) ? 'items-end' : 'items-start'"
+                  >
+                    <template v-if="isNoticeMessage(message)">
+                      <div class="flex w-full items-center gap-3 py-1">
+                        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-sync-border to-transparent"></div>
+                        <div class="max-w-[20rem] rounded-xl border border-sync-border bg-black/5 px-4 py-3 text-center shadow-sm backdrop-blur-sm dark:bg-white/5">
+                          <div class="flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.22em] text-sync-primary">
+                            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-sync-primary/10 text-[11px]">i</span>
+                            공지
+                          </div>
+                          <p class="mt-2 text-sm font-bold leading-relaxed text-sync-text">{{ message.text }}</p>
+                          <span class="mt-2 block text-[10px] font-medium text-sync-muted">{{ message.sentAt }}</span>
+                        </div>
+                        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-sync-border to-transparent"></div>
+                      </div>
+                    </template>
+
+                    <template v-else>
+                      <p
+                        v-if="activeChatRoom.type === 'group' && !isOwnMessage(message)"
+                        class="mb-1 text-[11px] font-bold text-sync-muted"
+                      >
+                        {{ getMessageSender(message)?.nickname || '알 수 없음' }}
+                      </p>
+                      <div
+                        class="max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm"
+                        :class="isOwnMessage(message) ? 'bg-sync-primary text-white rounded-br-md' : 'bg-white dark:bg-[#151922] border border-sync-border text-sync-text rounded-bl-md'"
+                      >
+                        {{ message.text }}
+                      </div>
+                      <div
+                        class="mt-1 flex items-center gap-2 px-1"
+                        :class="isOwnMessage(message) ? 'justify-end' : 'justify-start'"
+                      >
+                        <span class="text-[10px] font-medium text-sync-muted">{{ message.sentAt }}</span>
+                        <span
+                          v-if="activeChatRoom.type === 'dm' && isOwnMessage(message)"
+                          class="text-[10px] font-bold"
+                          :class="getDirectReadLabel(message, activeChatRoom).startsWith('읽음') ? 'text-teal-500' : 'text-sync-muted'"
+                        >
+                          {{ getDirectReadLabel(message, activeChatRoom) }}
+                        </span>
+                      </div>
+                      <div
+                        v-if="activeChatRoom.type === 'group' && isOwnMessage(message)"
+                        class="mt-1 flex max-w-[82%] items-center gap-2 px-1"
+                      >
+                        <div v-if="getGroupReadUsers(message, activeChatRoom).length" class="flex -space-x-1.5">
+                          <UserAvatar
+                            v-for="reader in getGroupReadUsers(message, activeChatRoom).slice(0, 3)"
+                            :key="`popup-reader-${message.id}-${reader.id}`"
+                            :user="reader"
+                            size-class="w-4 h-4"
+                            avatar-class="border border-white dark:border-[#0D0F14] shadow-sm"
+                          />
+                        </div>
+                        <span class="text-[10px] font-medium text-sync-muted">
+                          {{ getGroupReadUsers(message, activeChatRoom).length ? `읽음 ${getGroupReadLabel(message, activeChatRoom)}` : getGroupReadLabel(message, activeChatRoom) }}
+                        </span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="border-t border-sync-border px-5 py-4">
+                <div class="flex flex-col gap-3">
+                  <textarea
+                    v-model="chatDraft"
+                    rows="3"
+                    class="w-full resize-none rounded-2xl border border-sync-border bg-black/5 px-4 py-3 text-sm text-sync-text outline-none transition-colors focus:border-sync-primary dark:bg-white/5"
+                    placeholder="팀에게 공유할 메시지를 남겨보세요."
+                    @keydown="handleChatKeydown"
+                    @compositionstart="isChatComposing = true"
+                    @compositionend="isChatComposing = false"
+                  ></textarea>
+                  <div class="flex items-center justify-between gap-4">
+                    <p class="text-[11px] font-medium text-sync-muted">`Enter` 전송, `Shift + Enter` 줄바꿈</p>
+                    <button
+                      @click="sendChatMessage"
+                      class="shrink-0 whitespace-nowrap rounded-xl bg-sync-primary px-5 py-2.5 text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:bg-sync-primaryHover shadow-[0_4px_14px_rgba(50,132,255,0.22)]"
+                    >
+                      보내기
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="flex flex-1 items-center justify-center px-8 text-center">
+              <div class="flex flex-col gap-3">
+                <h3 class="text-xl font-black text-sync-text">채널을 선택하세요.</h3>
+                <p class="text-sm font-medium leading-relaxed text-sync-muted">팀 전체 채팅 또는 1:1 대화를 바로 확인할 수 있습니다.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        @click="isChatPopupOpen ? closeChatPopup() : openChatPopup()"
+        class="pointer-events-auto relative flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full bg-sync-primary text-white shadow-[0_14px_32px_rgba(50,132,255,0.35)] transition-all hover:-translate-y-1 hover:bg-sync-primaryHover"
+        :aria-label="isChatPopupOpen ? '채팅창 닫기' : '채팅창 열기'"
+      >
+        <svg v-if="!isChatPopupOpen" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.489C3.512 15.042 3 13.57 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+        <svg v-else class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <span
+          v-if="totalUnreadChatCount > 0"
+          class="absolute -right-1 -top-1 flex min-h-[1.5rem] min-w-[1.5rem] items-center justify-center rounded-full bg-white px-1 text-[10px] font-black text-sync-primary shadow-sm"
+        >
+          {{ totalUnreadChatCount > 9 ? '9+' : totalUnreadChatCount }}
+        </span>
+      </button>
+    </div>
+  </Teleport>
 
   <!-- ══ Task Modal ══ -->
   <Teleport to="body">

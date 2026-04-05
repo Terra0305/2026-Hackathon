@@ -513,6 +513,9 @@ export const mockGlobalSubmissions = reactive([
     detailedScores: {},
     award: null,
     review: null,
+    reviewedAt: null,
+    rewardDistribution: [],
+    rewardsApplied: false,
     links: ["https://github.com/team-nexus/chatbot"],
     files: [
       { name: "아키텍처_설계서.pdf", size: "2.4MB", type: "기획서" },
@@ -547,6 +550,38 @@ export const mockGlobalSubmissions = reactive([
     detailedScores: { "기술 실용성": 95, "창의성": 85, "파급 효과": 92 },
     award: "Innovation (3팀)",
     review: "기술적 완성도가 매우 높습니다. 실제 클라우드 환경 적용 가능성이 인상적이며, 발표 자료도 명확합니다.",
+    reviewedAt: "2026.05.08",
+    rewardDistribution: [
+      {
+        userId: 10,
+        nickname: "Security_Ninja",
+        role: "팀장 / 보안 엔지니어",
+        participationReward: 250,
+        scoreReward: 500,
+        awardReward: 1100,
+        total: 1850,
+        breakdown: [
+          "250 PTS 참가 리워드",
+          "500 PTS 우수 심사 성과 보너스",
+          "1100 PTS 입상 보너스"
+        ]
+      },
+      {
+        userId: 8,
+        nickname: "Mobile_King",
+        role: "DevOps",
+        participationReward: 250,
+        scoreReward: 500,
+        awardReward: 1100,
+        total: 1850,
+        breakdown: [
+          "250 PTS 참가 리워드",
+          "500 PTS 우수 심사 성과 보너스",
+          "1100 PTS 입상 보너스"
+        ]
+      }
+    ],
+    rewardsApplied: true,
     links: ["https://github.com/sync-guard/scanner"],
     files: [
       { name: "최종_PPT.pdf", size: "5.1MB", type: "발표자료" },
@@ -562,6 +597,133 @@ export const mockGlobalSubmissions = reactive([
     ],
     documents: [
       { name: "제로 트러스트 아키텍처 설계", type: "기획서", updated: "2026.05.06" }
+    ]
+  }
+]);
+
+export const mockWorkspaceChats = reactive([
+  {
+    id: 'team-1-group',
+    teamId: 1,
+    type: 'group',
+    name: '팀 전체 채팅',
+    participantIds: [1, 2, 3, 4],
+    messages: [
+      {
+        id: 101,
+        senderId: 2,
+        text: '백엔드 API 스펙 초안 올려뒀어요. docs 탭에서 확인 부탁해요.',
+        sentAt: '2026.04.04 18:20',
+        readBy: [
+          { userId: 2, readAt: '2026.04.04 18:20' },
+          { userId: 1, readAt: '2026.04.04 18:24' },
+          { userId: 4, readAt: '2026.04.04 18:28' }
+        ]
+      },
+      {
+        id: 102,
+        senderId: 1,
+        text: '확인했습니다. 오늘 밤까지 프론트 요구사항 정리해서 연결할게요.',
+        sentAt: '2026.04.04 18:33',
+        readBy: [
+          { userId: 1, readAt: '2026.04.04 18:33' },
+          { userId: 2, readAt: '2026.04.04 18:36' },
+          { userId: 3, readAt: '2026.04.04 18:41' }
+        ]
+      },
+      {
+        id: 103,
+        senderId: 4,
+        text: '배포 환경 변수는 제가 정리해둘게요.',
+        sentAt: '2026.04.04 19:05',
+        readBy: [
+          { userId: 4, readAt: '2026.04.04 19:05' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'team-1-dm-1-2',
+    teamId: 1,
+    type: 'dm',
+    name: '건축가_Kim · Alex_Dev',
+    participantIds: [1, 2],
+    messages: [
+      {
+        id: 111,
+        senderId: 2,
+        text: '내일 오전에 API 응답 포맷만 한 번 맞춰볼까요?',
+        sentAt: '2026.04.04 20:12',
+        readBy: [
+          { userId: 2, readAt: '2026.04.04 20:12' },
+          { userId: 1, readAt: '2026.04.04 20:15' }
+        ]
+      },
+      {
+        id: 112,
+        senderId: 1,
+        text: '좋아요. 오전 10시에 워크스페이스에서 보죠.',
+        sentAt: '2026.04.04 20:19',
+        readBy: [
+          { userId: 1, readAt: '2026.04.04 20:19' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'team-2-group',
+    teamId: 2,
+    type: 'group',
+    name: '팀 전체 채팅',
+    participantIds: [8, 10],
+    messages: [
+      {
+        id: 201,
+        senderId: 10,
+        text: '심사 결과 나왔습니다. 리뷰 코멘트 반영해서 포트폴리오 정리해보죠.',
+        sentAt: '2026.05.08 10:10',
+        readBy: [
+          { userId: 10, readAt: '2026.05.08 10:10' },
+          { userId: 8, readAt: '2026.05.08 10:14' }
+        ]
+      },
+      {
+        id: 202,
+        senderId: 8,
+        text: '좋아요. 발표 자료도 업데이트해둘게요.',
+        sentAt: '2026.05.08 10:17',
+        readBy: [
+          { userId: 8, readAt: '2026.05.08 10:17' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'team-3-group',
+    teamId: 3,
+    type: 'group',
+    name: '팀 전체 채팅',
+    participantIds: [1, 5, 6],
+    messages: [
+      {
+        id: 301,
+        senderId: 5,
+        text: '결제 플로우 시안 v2 업로드했습니다.',
+        sentAt: '2026.04.03 15:42',
+        readBy: [
+          { userId: 5, readAt: '2026.04.03 15:42' },
+          { userId: 1, readAt: '2026.04.03 15:50' }
+        ]
+      },
+      {
+        id: 302,
+        senderId: 6,
+        text: '저녁 배포 전에 반응형 체크만 한번 더 하겠습니다.',
+        sentAt: '2026.04.03 16:05',
+        readBy: [
+          { userId: 6, readAt: '2026.04.03 16:05' }
+        ]
+      }
     ]
   }
 ]);
