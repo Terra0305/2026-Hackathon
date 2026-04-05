@@ -2,11 +2,12 @@
 import { ref, computed } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { mockTeams, mockMyHackathons, mockMySubmissions, mockMyActivities, mockJoinRequests, mockShopItems, availableBadges } from '../data/mockData'
+import { mockTeams, mockHackathons, mockMyHackathons, mockMySubmissions, mockMyActivities, mockJoinRequests, mockShopItems, availableBadges, mockGlobalSubmissions } from '../data/mockData'
 import EmptyState from '../components/EmptyState.vue'
 import UserAvatar from '../components/UserAvatar.vue'
 import UserBadgeStrip from '../components/UserBadgeStrip.vue'
 import { getAvailablePoints } from '../utils/userDecorations'
+import { getSubmissionRewardForUser } from '../utils/submissionReview'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -200,6 +201,42 @@ const dashboardOngoingProjects = computed(() => {
   })
 })
 
+const workspaceSubmissionHistory = computed(() => {
+  const joinedTeamIds = new Set(myJoinedTeams.value.map((team) => team.id))
+
+  return [...mockGlobalSubmissions]
+    .filter((submission) => joinedTeamIds.has(submission.teamId))
+    .sort((left, right) => (right.reviewedAt || right.submittedAt || '').localeCompare(left.reviewedAt || left.submittedAt || ''))
+    .map((submission) => {
+      const hackathonTitle = mockHackathons.find((hackathon) => hackathon.id === submission.hackathonId)?.title || submission.hackathonTitle || ''
+      const myReward = getSubmissionRewardForUser(submission, authStore.user?.id)
+
+      return {
+        ...submission,
+        source: 'workspace',
+        isWorkspaceSubmission: true,
+        hackathonTitle,
+        link: submission.links?.[0] || '',
+        reward: myReward?.total || 0,
+        rewardBreakdown: myReward?.breakdown || []
+      }
+    })
+})
+
+const archivedSubmissionHistory = computed(() => {
+  return mockMySubmissions.map((submission) => ({
+    ...submission,
+    source: 'archive',
+    isWorkspaceSubmission: false,
+    hackathonTitle: submission.hackathonTitle || submission.hackathonName || '',
+    links: submission.links?.length ? submission.links : [submission.link].filter(Boolean)
+  }))
+})
+
+const reviewNotifications = computed(() => {
+  return workspaceSubmissionHistory.value.filter((submission) => ['심사 완료', '수상'].includes(submission.status))
+})
+
 const recentTimeline = [
   { title: '새로운 팀 합류', time: '2시간 전', colorClass: 'bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]' },
   { title: '코드 커밋 완료', time: '어제', colorClass: 'bg-blue-400 shadow-[0_0_8px_rgba(50,132,255,0.8)]' },
@@ -239,6 +276,76 @@ const openSubmissionTimeline = (sub) => {
   selectedSubmission.value = sub
   isSubmissionModalOpen.value = true
 }
+
+const selectedSubmissionTimeline = computed(() => {
+  if (!selectedSubmission.value) return []
+
+  if (selectedSubmission.value.isWorkspaceSubmission) {
+    const timeline = [
+      {
+        id: 'submission',
+        title: '최종 결과물 제출',
+        desc: `${selectedSubmission.value.teamName} 팀이 결과물을 제출했습니다.`,
+        date: selectedSubmission.value.submittedAt,
+        colorClass: 'bg-sync-primary'
+      }
+    ]
+
+    if (selectedSubmission.value.reviewedAt) {
+      timeline.push({
+        id: 'review',
+        title: selectedSubmission.value.award ? '수상 및 심사 결과 발표' : '심사 결과 발표',
+        desc: selectedSubmission.value.award
+          ? `${selectedSubmission.value.award} · 내 보상 ${selectedSubmission.value.reward.toLocaleString()} PTS`
+          : `심사 완료${selectedSubmission.value.reward ? ` · 내 보상 ${selectedSubmission.value.reward.toLocaleString()} PTS` : ''}`,
+        date: selectedSubmission.value.reviewedAt,
+        colorClass: selectedSubmission.value.award ? 'bg-amber-500 animate-pulse' : 'bg-teal-500'
+      })
+    }
+
+    return timeline
+  }
+
+  return [
+    {
+      id: 'apply',
+      title: '해커톤 참가 신청',
+      desc: '참가 모집 기간 내 정상 신청 완료',
+      date: '2026.03.10',
+      colorClass: 'bg-teal-500'
+    },
+    {
+      id: 'team',
+      title: '팀 빌딩 완료',
+      desc: "'Sync-Wizard' 팀 소속으로 확정",
+      date: '2026.03.15',
+      colorClass: 'bg-blue-500'
+    },
+    {
+      id: 'final',
+      title: '최종 결과물 제출',
+      desc: 'GitHub Repo 및 문서 아카이빙 완료',
+      date: selectedSubmission.value.date,
+      colorClass: 'bg-sync-primary'
+    },
+    ...(selectedSubmission.value.award
+      ? [{
+          id: 'award',
+          title: '수상 결과 발표',
+          desc: `${selectedSubmission.value.award} 달성 ✨`,
+          date: '2026.03.25',
+          colorClass: 'bg-amber-500 animate-pulse'
+        }]
+      : [])
+  ]
+})
+
+const selectedSubmissionLinks = computed(() => {
+  if (!selectedSubmission.value) return []
+  return selectedSubmission.value.links?.length
+    ? selectedSubmission.value.links
+    : [selectedSubmission.value.link].filter(Boolean)
+})
 
 const myOwnedBorders = computed(() => {
   return decorationItems.filter(i => (authStore.user?.ownedItems || []).includes(i.id))
@@ -312,7 +419,7 @@ const myOwnedBorders = computed(() => {
           <div v-if="activeMenu === 'dashboard'" class="flex flex-col gap-10">
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2 flex flex-col gap-8">
-                   <div class="glass-card p-8 md:p-10 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5rem] relative overflow-hidden group">
+                 <div class="glass-card p-8 md:p-10 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5rem] relative overflow-hidden group">
                       <div class="absolute -right-20 -top-20 w-64 h-64 bg-sync-primary/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-sync-primary/20 transition-all duration-1000"></div>
                       <div class="flex justify-between items-center mb-10">
                         <h3 class="text-2xl font-black text-sync-text tracking-tight font-outfit">진행 중인 프로젝트</h3>
@@ -343,6 +450,51 @@ const myOwnedBorders = computed(() => {
                          </div>
                     </div>
                  </div>
+
+                    <div v-if="reviewNotifications.length" class="glass-card p-8 md:p-10 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5rem] bg-gradient-to-br from-teal-500/5 via-transparent to-transparent">
+                       <div class="flex items-center justify-between mb-8">
+                          <div>
+                            <h3 class="text-2xl font-black text-sync-text tracking-tight font-outfit">새 심사 결과</h3>
+                            <p class="mt-2 text-sm font-medium text-sync-muted">어드민이 등록한 심사 결과와 지급 포인트를 바로 확인할 수 있습니다.</p>
+                          </div>
+                          <button @click="activeMenu = 'submissions'" class="text-xs font-bold text-sync-primary hover:underline underline-offset-4">제출 내역 보기</button>
+                       </div>
+
+                       <div class="flex flex-col gap-4">
+                         <div
+                           v-for="submission in reviewNotifications.slice(0, 3)"
+                           :key="`review-${submission.id}`"
+                           class="rounded-[1.75rem] border border-sync-border bg-black/5 dark:bg-white/5 p-5"
+                         >
+                           <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                             <div class="flex flex-col gap-2">
+                               <div class="flex flex-wrap items-center gap-2">
+                                 <span class="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest"
+                                       :class="submission.status === '수상' ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500' : 'border-teal-500/20 bg-teal-500/10 text-teal-500'">
+                                   {{ submission.status }}
+                                 </span>
+                                 <span v-if="submission.award" class="text-xs font-bold text-yellow-500">{{ submission.award }}</span>
+                               </div>
+                               <div>
+                                 <p class="text-[11px] font-bold uppercase tracking-widest text-sync-primary">{{ submission.hackathonTitle }}</p>
+                                 <h4 class="mt-1 text-lg font-bold text-sync-text">{{ submission.projectName }}</h4>
+                               </div>
+                               <p class="text-sm font-medium leading-relaxed text-sync-muted">{{ submission.review || '심사 의견이 등록되었습니다.' }}</p>
+                             </div>
+
+                             <div class="flex flex-col gap-2 shrink-0">
+                               <div class="rounded-2xl border border-sync-border bg-white dark:bg-[#181A20] px-4 py-3 text-right">
+                                 <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">내 지급 포인트</span>
+                                 <p class="mt-1 text-lg font-black text-teal-500">{{ submission.reward ? `${submission.reward.toLocaleString()} PTS` : '안내 없음' }}</p>
+                               </div>
+                               <button @click="openSubmissionTimeline(submission)" class="rounded-xl border border-sync-primary/20 bg-sync-primary/10 px-4 py-2.5 text-xs font-bold text-sync-primary transition-all hover:bg-sync-primary/20">
+                                 상세 보기
+                               </button>
+                             </div>
+                           </div>
+                         </div>
+                       </div>
+                    </div>
 
                     <div class="glass-card p-8 md:p-10 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5rem] bg-gradient-to-br from-indigo-500/5 to-transparent relative overflow-hidden group">
                        <div class="flex justify-between items-center mb-10">
@@ -584,25 +736,91 @@ const myOwnedBorders = computed(() => {
 
           <!-- Submissions View -->
           <div v-if="activeMenu === 'submissions'" class="flex flex-col gap-8 animate-fade-in">
-              <div v-if="mockMySubmissions.length === 0" class="py-20 flex flex-col items-center justify-center text-center gap-4 border border-dashed border-sync-border rounded-[2.5rem]">
+              <div v-if="workspaceSubmissionHistory.length === 0 && archivedSubmissionHistory.length === 0" class="py-20 flex flex-col items-center justify-center text-center gap-4 border border-dashed border-sync-border rounded-[2.5rem]">
                  <EmptyState size="md" message="제출 내역이 존재하지 않습니다." icon="🏆" />
                  <RouterLink to="/workspace" class="text-sm font-bold text-sync-primary hover:underline">프로젝트 제출하러 가기</RouterLink>
               </div>
 
-              <div v-for="sub in mockMySubmissions" :key="sub.id" class="glass-card p-8 border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-sm flex flex-col md:flex-row justify-between gap-8 group">
-                 <div class="flex flex-col gap-4 flex-1">
-                    <div class="flex items-center gap-3">
-                       <span class="text-[10px] font-black text-white bg-sync-primary px-3 py-1 rounded-full shadow-sm">{{ sub.hackathonName }}</span>
-                    </div>
-                    <h3 class="text-2xl font-black text-sync-text tracking-tight group-hover:text-sync-primary transition-colors">{{ sub.projectName }}</h3>
-                    <p class="text-sm text-sync-muted font-medium leading-relaxed">{{ sub.description }}</p>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                       <a v-for="link in sub.links" :key="link" :href="link" target="_blank" class="text-xs font-bold text-sync-muted hover:text-sync-primary flex items-center gap-1.5 border border-sync-border px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 transition-all">🔗 GitHub Link</a>
-                    </div>
+              <div v-if="workspaceSubmissionHistory.length" class="flex flex-col gap-5">
+                 <div class="flex items-center justify-between px-2">
+                   <h3 class="text-xl font-bold text-sync-text">워크스페이스 제출 결과</h3>
+                   <span class="text-xs font-bold uppercase tracking-widest text-sync-muted">Review Feed</span>
                  </div>
-                 <div class="flex flex-col justify-between items-end shrink-0">
-                    <span class="text-xs font-bold text-sync-muted">제출일: {{ sub.date }}</span>
-                    <button @click="openSubmissionTimeline(sub)" class="px-6 py-2.5 bg-sync-primary/10 border border-sync-primary/20 hover:bg-sync-primary/20 text-sync-primary rounded-xl text-xs font-bold transition-all shadow-sm">제출 내역 보기</button>
+
+                 <div
+                   v-for="sub in workspaceSubmissionHistory"
+                   :key="`workspace-${sub.id}`"
+                   class="glass-card p-8 border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-sm flex flex-col gap-6"
+                 >
+                   <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+                     <div class="flex flex-col gap-4 flex-1">
+                       <div class="flex flex-wrap items-center gap-2">
+                         <span class="rounded-full bg-sync-primary/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-sync-primary border border-sync-primary/20">{{ sub.hackathonTitle }}</span>
+                         <span class="rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-widest"
+                               :class="sub.status === '수상' ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500' : sub.status === '심사 완료' ? 'border-teal-500/20 bg-teal-500/10 text-teal-500' : sub.status === '심사 중' ? 'border-orange-500/20 bg-orange-500/10 text-orange-500' : 'border-sync-border bg-black/5 dark:bg-white/5 text-sync-muted'">
+                           {{ sub.status || '심사 전' }}
+                         </span>
+                         <span v-if="sub.award" class="text-xs font-bold text-yellow-500">{{ sub.award }}</span>
+                       </div>
+                       <div>
+                         <h3 class="text-2xl font-black text-sync-text tracking-tight">{{ sub.projectName }}</h3>
+                         <p class="mt-3 text-sm font-medium leading-relaxed text-sync-muted">{{ sub.description }}</p>
+                       </div>
+                       <div v-if="sub.review" class="rounded-2xl border border-teal-500/10 bg-teal-500/5 px-4 py-3">
+                         <span class="text-[10px] font-bold uppercase tracking-widest text-teal-500">심사 총평</span>
+                         <p class="mt-2 text-sm font-medium leading-relaxed text-sync-text">{{ sub.review }}</p>
+                       </div>
+                       <div class="flex flex-wrap gap-2 mt-1">
+                         <a v-for="link in sub.links" :key="link" :href="link" target="_blank" class="text-xs font-bold text-sync-muted hover:text-sync-primary flex items-center gap-1.5 border border-sync-border px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 transition-all">🔗 GitHub Link</a>
+                       </div>
+                     </div>
+
+                     <div class="lg:w-64 shrink-0 flex flex-col gap-3">
+                       <div class="rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 px-4 py-3">
+                         <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">제출일</span>
+                         <p class="mt-1 text-sm font-bold text-sync-text">{{ sub.submittedAt }}</p>
+                       </div>
+                       <div class="rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 px-4 py-3">
+                         <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">결과 발표</span>
+                         <p class="mt-1 text-sm font-bold text-sync-text">{{ sub.reviewedAt || '심사 진행 중' }}</p>
+                       </div>
+                       <div class="rounded-2xl border border-sync-border bg-black/5 dark:bg-white/5 px-4 py-3">
+                         <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">내 보상</span>
+                         <p class="mt-1 text-lg font-black" :class="sub.reward ? 'text-teal-500' : 'text-sync-muted'">
+                           {{ sub.reward ? `${sub.reward.toLocaleString()} PTS` : '발표 전' }}
+                         </p>
+                         <p v-if="sub.rewardBreakdown.length" class="mt-2 text-[11px] font-medium leading-relaxed text-sync-muted">{{ sub.rewardBreakdown.join(' · ') }}</p>
+                       </div>
+                       <div class="flex flex-col gap-2 pt-2">
+                         <button @click="openSubmissionTimeline(sub)" class="px-6 py-2.5 bg-sync-primary/10 border border-sync-primary/20 hover:bg-sync-primary/20 text-sync-primary rounded-xl text-xs font-bold transition-all shadow-sm">제출 내역 보기</button>
+                         <RouterLink :to="`/workspace/${sub.teamId}`" class="px-6 py-2.5 bg-black/5 dark:bg-white/5 border border-sync-border hover:bg-black/10 dark:hover:bg-white/10 text-sync-text rounded-xl text-xs font-bold text-center transition-colors">워크스페이스 이동</RouterLink>
+                       </div>
+                     </div>
+                   </div>
+                 </div>
+              </div>
+
+              <div v-if="archivedSubmissionHistory.length" class="flex flex-col gap-5">
+                 <div class="flex items-center justify-between px-2">
+                   <h3 class="text-xl font-bold text-sync-text">지난 제출 아카이브</h3>
+                   <span class="text-xs font-bold uppercase tracking-widest text-sync-muted">Archive</span>
+                 </div>
+
+                 <div v-for="sub in archivedSubmissionHistory" :key="`archive-${sub.id}`" class="glass-card p-8 border border-slate-200 dark:border-white/5 rounded-[2.5rem] shadow-sm flex flex-col md:flex-row justify-between gap-8 group">
+                    <div class="flex flex-col gap-4 flex-1">
+                       <div class="flex items-center gap-3">
+                          <span class="text-[10px] font-black text-white bg-sync-primary px-3 py-1 rounded-full shadow-sm">{{ sub.hackathonTitle }}</span>
+                       </div>
+                       <h3 class="text-2xl font-black text-sync-text tracking-tight group-hover:text-sync-primary transition-colors">{{ sub.projectName }}</h3>
+                       <p class="text-sm text-sync-muted font-medium leading-relaxed">{{ sub.description }}</p>
+                       <div class="flex flex-wrap gap-2 mt-2">
+                          <a v-for="link in sub.links" :key="link" :href="link" target="_blank" class="text-xs font-bold text-sync-muted hover:text-sync-primary flex items-center gap-1.5 border border-sync-border px-3 py-1.5 rounded-xl bg-black/5 dark:bg-white/5 transition-all">🔗 GitHub Link</a>
+                       </div>
+                    </div>
+                    <div class="flex flex-col justify-between items-end shrink-0">
+                       <span class="text-xs font-bold text-sync-muted">제출일: {{ sub.date }}</span>
+                       <button @click="openSubmissionTimeline(sub)" class="px-6 py-2.5 bg-sync-primary/10 border border-sync-primary/20 hover:bg-sync-primary/20 text-sync-primary rounded-xl text-xs font-bold transition-all shadow-sm">제출 내역 보기</button>
+                    </div>
                  </div>
               </div>
           </div>
@@ -1012,40 +1230,20 @@ const myOwnedBorders = computed(() => {
           <div class="flex flex-col gap-8 py-4 relative pl-6">
             <div class="absolute left-[3px] top-6 bottom-6 w-px bg-sync-border border-l border-dashed"></div>
             
-            <div class="relative flex flex-col gap-1">
-              <div class="absolute -left-[27.5px] top-1.5 w-4 h-4 rounded-full bg-teal-500 border-4 border-white dark:border-[#0A0A0A] z-10 shadow-sm"></div>
-              <h4 class="text-base font-bold text-sync-text">해커톤 참가 신청</h4>
-              <p class="text-xs text-sync-muted font-medium">참가 모집 기간 내 정상 신청 완료</p>
-              <span class="text-[10px] font-bold text-sync-muted mt-1 uppercase opacity-60">2026.03.10</span>
-            </div>
-
-            <div class="relative flex flex-col gap-1">
-              <div class="absolute -left-[27.5px] top-1.5 w-4 h-4 rounded-full bg-blue-500 border-4 border-white dark:border-[#0A0A0A] z-10 shadow-sm"></div>
-              <h4 class="text-base font-bold text-sync-text">팀 빌딩 완료</h4>
-              <p class="text-xs text-sync-muted font-medium">'Sync-Wizard' 팀 소속으로 확정</p>
-              <span class="text-[10px] font-bold text-sync-muted mt-1 uppercase opacity-60">2026.03.15</span>
-            </div>
-
-            <div class="relative flex flex-col gap-1">
-              <div class="absolute -left-[27.5px] top-1.5 w-4 h-4 rounded-full bg-sync-primary border-4 border-white dark:border-[#0A0A0A] z-10 shadow-sm"></div>
-              <h4 class="text-base font-bold text-sync-text">최종 결과물 제출</h4>
-              <p class="text-xs text-sync-muted font-medium">GitHub Repo 및 문서 아카이빙 완료</p>
-              <span class="text-[10px] font-bold text-sync-muted mt-1 uppercase opacity-60">{{ selectedSubmission?.date }}</span>
-            </div>
-
-            <div v-if="selectedSubmission?.award" class="relative flex flex-col gap-1">
-              <div class="absolute -left-[27.5px] top-1.5 w-4 h-4 rounded-full bg-amber-500 border-4 border-white dark:border-[#0A0A0A] z-10 shadow-sm animate-pulse"></div>
-              <h4 class="text-base font-bold text-sync-text">수상 결과 발표</h4>
-              <p class="text-xs text-sync-muted font-medium">{{ selectedSubmission.award }} 달성 ✨</p>
-              <span class="text-[10px] font-bold text-sync-muted mt-1 uppercase opacity-60">2026.03.25</span>
+            <div v-for="entry in selectedSubmissionTimeline" :key="entry.id" class="relative flex flex-col gap-1">
+              <div class="absolute -left-[27.5px] top-1.5 w-4 h-4 rounded-full border-4 border-white dark:border-[#0A0A0A] z-10 shadow-sm" :class="entry.colorClass"></div>
+              <h4 class="text-base font-bold text-sync-text">{{ entry.title }}</h4>
+              <p class="text-xs text-sync-muted font-medium">{{ entry.desc }}</p>
+              <span class="text-[10px] font-bold text-sync-muted mt-1 uppercase opacity-60">{{ entry.date }}</span>
             </div>
           </div>
 
           <div class="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-sync-border flex flex-col gap-1.5">
              <span class="text-[10px] font-black text-sync-muted uppercase tracking-widest">Final Project</span>
              <h5 class="text-base font-bold text-sync-text">{{ selectedSubmission?.projectName }}</h5>
+             <p v-if="selectedSubmission?.isWorkspaceSubmission && selectedSubmission?.review" class="text-xs font-medium leading-relaxed text-sync-muted mt-1">{{ selectedSubmission.review }}</p>
              <div class="flex gap-2 mt-2">
-                <a :href="selectedSubmission?.link" target="_blank" class="px-4 py-2 bg-white dark:bg-[#181A20] border border-sync-border rounded-xl text-[11px] font-bold text-sync-text hover:text-sync-primary transition-colors shadow-sm">Code Repository</a>
+                <a v-for="link in selectedSubmissionLinks" :key="link" :href="link" target="_blank" class="px-4 py-2 bg-white dark:bg-[#181A20] border border-sync-border rounded-xl text-[11px] font-bold text-sync-text hover:text-sync-primary transition-colors shadow-sm">Code Repository</a>
              </div>
           </div>
           

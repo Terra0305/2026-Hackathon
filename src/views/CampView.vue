@@ -117,11 +117,11 @@ const getTeamMemberProfiles = (team) => {
   })
 }
 
-const getPreviewMembers = (team, limit = 3) => {
+const getPreviewMembers = (team, limit = 2) => {
   return getTeamMemberProfiles(team).slice(0, limit)
 }
 
-const getExtraMemberCount = (team, limit = 3) => {
+const getExtraMemberCount = (team, limit = 2) => {
   return Math.max((team.members || []).length - limit, 0)
 }
 
@@ -129,17 +129,17 @@ const getTeamMemberSummary = (team) => {
   const profiles = getTeamMemberProfiles(team)
 
   if (!profiles.length) {
-    return '아직 등록된 팀원이 없습니다.'
+    return '등록된 멤버 없음'
   }
 
-  const visibleNames = profiles.slice(0, 2).map((member) => member.nickname)
-  const extraCount = profiles.length - visibleNames.length
+  const firstMember = profiles[0]
+  const extraCount = profiles.length - 1
 
   if (extraCount > 0) {
-    return `${visibleNames.join(', ')} 외 ${extraCount}명`
+    return `${firstMember.nickname} 외 ${extraCount}명`
   }
 
-  return visibleNames.join(', ')
+  return firstMember.nickname
 }
 
 const filteredTeams = computed(() => {
@@ -278,51 +278,50 @@ const filteredTeams = computed(() => {
         </div>
 
         <div class="mt-auto pt-6 flex flex-col gap-4 border-t border-sync-border transition-colors z-10 w-full sm:flex-row sm:items-center sm:justify-between">
-          <div class="flex min-w-0 items-center gap-3">
-            <div class="flex items-center -space-x-2.5 shrink-0">
+          <div class="flex min-w-0 items-center gap-2.5 sm:flex-1">
+            <div class="flex items-center -space-x-2 shrink-0">
               <UserAvatar
                 v-for="(member, mIdx) in getPreviewMembers(team)"
                 :key="member.id"
                 :user="member"
-                size-class="w-10 h-10"
+                size-class="w-8 h-8"
                 wrapper-class="rounded-full ring-2 ring-white dark:ring-[#181A20]"
                 avatar-class="border border-slate-200 dark:border-[#0f1115] bg-slate-100 shadow-sm"
                 :style="{ zIndex: 10 - mIdx }"
               />
               <div
                 v-if="getExtraMemberCount(team) > 0"
-                class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-black/5 text-[11px] font-black text-sync-muted shadow-sm dark:border-[#181A20] dark:bg-white/10"
+                class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-black/5 text-[10px] font-black text-sync-muted shadow-sm dark:border-[#181A20] dark:bg-white/10"
               >
                 +{{ getExtraMemberCount(team) }}
               </div>
             </div>
 
-            <div class="min-w-0 flex-1">
-              <p class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">팀 멤버</p>
-              <p class="truncate text-sm font-bold text-sync-text">{{ getTeamMemberSummary(team) }}</p>
+            <div class="min-w-0 max-w-[9rem] flex-1 sm:max-w-[8.5rem]">
+              <p class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">멤버</p>
+              <p class="truncate text-[13px] font-bold leading-tight text-sync-text">{{ getTeamMemberSummary(team) }}</p>
             </div>
           </div>
 
-          <div class="flex w-full gap-2 sm:w-auto sm:justify-end">
+          <div class="flex w-full sm:w-auto sm:shrink-0 sm:justify-end">
              <button
                v-if="team.status === '마감' || team.roles.every(r => r.current >= r.total)"
                disabled
-               class="w-full px-5 py-2.5 rounded-xl bg-black/10 dark:bg-white/5 border border-sync-border text-sync-muted text-xs font-bold cursor-not-allowed opacity-60 sm:w-auto"
+               class="inline-flex min-h-[3.5rem] w-full items-center justify-center rounded-xl border border-sync-border bg-black/10 px-4 py-3 text-center text-[13px] font-bold leading-snug text-sync-muted opacity-60 cursor-not-allowed dark:bg-white/5 sm:h-14 sm:w-[7.75rem] sm:min-w-[7.75rem] sm:px-3"
              >
                {{ team.status === '마감' ? '마감되었습니다' : '모집 완료' }}
              </button>
              <button 
                v-else-if="!joinedTeams.has(team.id)"
                @click.stop="handleCardJoinClick(team)"
-               class="w-full px-5 py-2.5 rounded-xl bg-sync-primary hover:bg-sync-primaryHover text-white text-xs font-bold transition-all shadow-[0_4px_10px_rgba(50,132,255,0.3)] hover:-translate-y-0.5 sm:w-auto">
+               class="inline-flex min-h-[3.5rem] w-full items-center justify-center rounded-xl bg-sync-primary px-4 py-3 text-center text-[13px] font-bold leading-snug text-white shadow-[0_4px_10px_rgba(50,132,255,0.3)] transition-all hover:-translate-y-0.5 hover:bg-sync-primaryHover sm:h-14 sm:w-[7.75rem] sm:min-w-[7.75rem] sm:px-3">
                팀 합류하기
              </button>
              <button
                v-else
                @click.stop="joinedTeams.delete(team.id)"
-               class="w-full px-5 py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer sm:w-auto"
+               class="inline-flex min-h-[3.5rem] w-full items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-center text-[13px] font-bold leading-snug text-red-600 shadow-sm transition-all hover:bg-red-500/20 cursor-pointer dark:text-red-400 sm:h-14 sm:w-[7.75rem] sm:min-w-[7.75rem] sm:px-3"
              >
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 합류 요청 취소
              </button>
           </div>
