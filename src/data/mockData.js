@@ -328,7 +328,7 @@ export const mockTeams = reactive([
       { name: "백엔드", current: 1, total: 2 },
       { name: "프론트엔드", current: 0, total: 1 }
     ],
-    members: ["건축가_Kim", "A", "B", "C"],
+    members: ["건축가_Kim", "Alex_Dev", "Web3_Ninja", "Infra_God"],
     leaderId: 1,
     theme: "from-purple-500 to-indigo-500",
     icon: "✨"
@@ -344,7 +344,7 @@ export const mockTeams = reactive([
       { name: "DevOps", current: 0, total: 2 },
       { name: "백엔드", current: 1, total: 1 }
     ],
-    members: ["L", "M"],
+    members: ["Security_Ninja", "Mobile_King"],
     theme: "from-teal-500 to-emerald-500",
     icon: "🛡️"
   },
@@ -359,7 +359,7 @@ export const mockTeams = reactive([
       { name: "기획자", current: 1, total: 1 },
       { name: "풀스택", current: 2, total: 2 }
     ],
-    members: ["D", "E"],
+    members: ["건축가_Kim", "Design_Master", "Front_End_Wizard"],
     theme: "from-orange-400 to-red-500",
     icon: "🚀"
   }

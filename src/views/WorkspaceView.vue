@@ -8,7 +8,10 @@ const router = useRouter()
 
 const team = computed(() => mockTeams.find(t => String(t.id) === route.params.slug) || mockTeams[0])
 const hackathon = computed(() => mockHackathons.find(h => h.id === team.value.hackathonId) || mockHackathons[0])
-const teamMembers = computed(() => mockUsers.slice(0, 5))
+const teamMembers = computed(() => {
+  if (!team.value) return []
+  return mockUsers.filter(u => team.value.members.includes(u.nickname))
+})
 
 // ─── GitHub ────────────────────────────────────────────
 const githubRepoUrl = ref(team.value?.githubUrl || '')

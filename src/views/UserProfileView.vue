@@ -2,6 +2,9 @@
 import { computed, ref } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { mockUsers, mockMyHackathons, mockMySubmissions, mockMyActivities } from '../data/mockData'
+import GlowCard from '../components/GlowCard.vue'
+import GlowCardContainer from '../components/GlowCardContainer.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
