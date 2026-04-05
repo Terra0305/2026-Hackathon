@@ -58,7 +58,7 @@ const handleTouchMove = (e) => {
     <div class="fixed inset-0 z-0 pointer-events-none transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1)"
          :class="{ 'opacity-0 scale-95': isHeroFolded }">
       <spline-viewer class="w-full h-full object-cover" url="https://prod.spline.design/j9a3Ou6jdJcpdLSz/scene.splinecode"></spline-viewer>
-      <div class="absolute inset-0 bg-black/50 z-[1] transition-opacity duration-1000 mix-blend-multiply"></div>
+      <div class="absolute inset-0 bg-black/40 dark:bg-black/50 z-[1] transition-opacity duration-1000 mix-blend-multiply"></div>
     </div>
 
     <!-- 2. SCREEN 1: Hero (Landing) -->
@@ -86,17 +86,17 @@ const handleTouchMove = (e) => {
 
     <!-- 3. SCREEN 2: Content (Hackathons) - Forced High Visibility -->
     <div ref="contentArea" 
-         class="absolute inset-0 z-20 w-full h-full overflow-y-auto overflow-x-hidden transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1) bg-[#0a0b12] content-scrollbar"
+         class="absolute inset-0 z-20 w-full h-full overflow-y-auto overflow-x-hidden transition-all duration-1000 cubic-bezier(0.16, 1, 0.3, 1) bg-sync-bg content-scrollbar"
          :style="{ transform: isHeroFolded ? 'translateY(0)' : 'translateY(105%)' }">
       
       <div class="max-w-[1240px] mx-auto pt-14 pb-20 px-4 sm:px-6 flex flex-col gap-24">
         
         <!-- Section: My Hackathons -->
         <section class="flex flex-col gap-12">
-          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-8">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-sync-border pb-8">
             <div class="flex flex-col gap-2">
-              <h2 class="text-4xl font-outfit font-black text-white tracking-tight">현재 참여중인 해커톤</h2>
-              <p class="text-slate-400 text-base">혁신을 향한 당신의 여정을 여기서 관리하세요.</p>
+              <h2 class="text-4xl font-outfit font-black text-sync-text tracking-tight">현재 참여중인 해커톤</h2>
+              <p class="text-sync-muted text-base">혁신을 향한 당신의 여정을 여기서 관리하세요.</p>
             </div>
             <RouterLink v-if="authStore.isAuthenticated" to="/mypage" class="text-sync-primary font-bold text-sm flex items-center gap-1 hover:underline">
               마이페이지 이동 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
@@ -108,54 +108,38 @@ const handleTouchMove = (e) => {
               <GlowCard
                 v-for="hack in participatingHackathons"
                 :key="hack.id"
-                contentClass="p-6 md:p-7 flex flex-col xl:flex-row xl:items-center justify-between gap-5 bg-[#151723]/50"
+                contentClass="p-10 flex flex-col md:flex-row md:items-center justify-between gap-8"
               >
-                <div class="flex flex-col gap-2.5 relative z-10 max-w-2xl">
-                  <div class="flex flex-wrap items-center gap-3">
-                    <span
-                      class="rounded-full border px-3 py-1 text-[11px] font-black uppercase tracking-widest"
-                      :class="participationStatusClass(hack.status)"
-                    >
-                      {{ hack.status }}
-                    </span>
-                    <span class="text-[11px] text-slate-500 font-bold uppercase tracking-[0.18em]">Applied: {{ hack.appliedDate }}</span>
+                <div class="flex flex-col gap-3 relative z-10">
+                  <div class="flex items-center gap-4">
+                    <span class="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest bg-teal-500/20 text-teal-300 border border-teal-500/30 shadow-lg">{{ hack.status }}</span>
+                    <span class="text-xs text-sync-muted font-bold uppercase tracking-wider">Applied: {{ hack.appliedDate }}</span>
                   </div>
-                  <h3 class="text-2xl md:text-[2rem] font-black text-white leading-tight mt-1">{{ hack.title }}</h3>
-                  <p class="text-sm md:text-[15px] text-slate-400">
-                    <span class="text-white font-bold">{{ hack.role }}</span>
-                    <span v-if="hack.teamName" class="mx-3 text-white/20">|</span>
-                    <span v-if="hack.teamName" class="text-slate-300">{{ hack.teamName }} 팀 소속</span>
+                  <h3 class="text-3xl font-black text-sync-text dark:text-white leading-tight mt-2">{{ hack.title }}</h3>
+                  <p class="text-base text-sync-muted mt-2">
+                    <span class="text-sync-text dark:text-white font-bold">{{ hack.role }}</span>
+                    <span v-if="hack.teamName" class="mx-3 text-sync-border">|</span>
+                    <span v-if="hack.teamName" class="text-sync-muted">{{ hack.teamName }} 팀 소속</span>
                   </p>
                 </div>
-                <div class="flex w-full flex-wrap gap-3 relative z-10 shrink-0 xl:w-auto xl:justify-end">
-                   <RouterLink
-                     :to="`/hackathons/${hack.hackathonId}`"
-                     class="flex-1 min-w-[140px] px-5 py-3 rounded-xl bg-white/5 border border-white/10 text-center text-sm font-bold text-white hover:bg-white/10 transition-all xl:flex-none"
-                   >
-                     공고 열람
-                   </RouterLink>
-                   <RouterLink
-                     v-if="hack.status === '진행 중'"
-                     :to="`/workspace/${hack.hackathonId}`"
-                     class="flex-1 min-w-[160px] px-5 py-3 rounded-xl bg-sync-primary text-center text-sm font-bold text-white shadow-[0_12px_30px_rgba(50,132,255,0.25)] hover:bg-sync-primaryHover hover:-translate-y-0.5 transition-all xl:flex-none"
-                   >
-                     작업 공간 입장
-                   </RouterLink>
+                <div class="flex gap-4 relative z-10 shrink-0">
+                   <RouterLink :to="`/hackathons/${hack.hackathonId}`" class="px-8 py-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-sync-border text-sync-text dark:text-white font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-all">공고 열람</RouterLink>
+                   <RouterLink v-if="hack.status === '진행 중'" :to="`/workspace/${hack.hackathonId}`" class="px-8 py-4 rounded-2xl bg-sync-primary text-white font-bold shadow-2xl hover:bg-sync-primaryHover hover:-translate-y-1 transition-all">작업 공간 입장</RouterLink>
                 </div>
               </GlowCard>
             </template>
             
-            <GlowCard v-else-if="authStore.isAuthenticated" contentClass="py-24 px-10 flex flex-col items-center gap-8 text-center bg-white/[0.02] border-dashed">
-              <div class="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-2">
-                <svg class="w-10 h-10 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <GlowCard v-else-if="authStore.isAuthenticated" contentClass="py-24 px-10 flex flex-col items-center gap-8 text-center bg-black/[0.02] dark:bg-white/[0.01] border-dashed">
+              <div class="w-20 h-20 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center mb-2">
+                <svg class="w-10 h-10 text-sync-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
-              <h3 class="text-3xl font-black text-white">참여 중인 해커톤이 없습니다.</h3>
+              <h3 class="text-3xl font-black text-sync-text dark:text-white">참여 중인 해커톤이 없습니다.</h3>
               <RouterLink to="/hackathons" class="px-12 py-5 bg-sync-primary text-white font-black rounded-2xl shadow-2xl hover:scale-105 transition-transform">모든 해커톤 둘러보기</RouterLink>
             </GlowCard>
 
-            <GlowCard v-else contentClass="py-32 px-10 flex flex-col items-center gap-8 text-center bg-white/[0.02] border-dashed">
-              <h3 class="text-4xl font-black text-white tracking-tight">당신의 첫 해커톤을 시작하세요</h3>
-              <p class="text-slate-400 text-lg max-w-md">로그인하고 전 세계 개발자들과 함께 협업하며 아이디어를 현실로 만드세요.</p>
+            <GlowCard v-else contentClass="py-32 px-10 flex flex-col items-center gap-8 text-center bg-black/[0.02] dark:bg-white/[0.01] border-dashed">
+              <h3 class="text-4xl font-black text-sync-text dark:text-white tracking-tight">당신의 첫 해커톤을 시작하세요</h3>
+              <p class="text-sync-muted dark:text-slate-400 text-lg max-w-md">로그인하고 전 세계 개발자들과 함께 협업하며 아이디어를 현실로 만드세요.</p>
               <RouterLink to="/login" class="px-16 py-6 bg-sync-primary text-white font-black text-xl rounded-2xl shadow-2xl hover:scale-105 transition-transform tracking-widest uppercase">로그인하기</RouterLink>
             </GlowCard>
           </GlowCardContainer>
@@ -163,14 +147,14 @@ const handleTouchMove = (e) => {
 
         <!-- Section: Active Hackathons -->
         <section class="flex flex-col gap-12">
-          <div class="flex items-center justify-between border-b border-white/10 pb-8">
-            <h2 class="text-4xl font-outfit font-black text-white tracking-tight">Active Hackathons</h2>
-            <RouterLink to="/hackathons" class="text-slate-400 hover:text-white font-bold text-sm flex items-center gap-2">전체 보기 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg></RouterLink>
+          <div class="flex items-center justify-between border-b border-sync-border pb-8">
+            <h2 class="text-4xl font-outfit font-black text-sync-text tracking-tight">Active Hackathons</h2>
+            <RouterLink to="/hackathons" class="text-sync-muted hover:text-sync-text font-bold text-sm flex items-center gap-2">전체 보기 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg></RouterLink>
           </div>
           
           <GlowCardContainer class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             <GlowCard v-for="hackathon in activeHackathons" :key="hackathon.id" :as="RouterLink" :to="`/hackathons/${hackathon.id}`" 
-              class="flex flex-col group h-full" contentClass="bg-[#151723]/50">
+              class="flex flex-col group h-full" contentClass="">
               <div class="w-full h-52 rounded-b-none bg-gradient-to-br flex items-center justify-center p-8 relative overflow-hidden" :class="hackathon.bgGradient">
                 <div class="absolute inset-0 bg-black/10"></div>
                 <h3 class="text-3xl font-black text-white text-center drop-shadow-2xl z-10 select-none">{{ hackathon.heroText }}</h3>
