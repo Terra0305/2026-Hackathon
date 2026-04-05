@@ -179,9 +179,17 @@ const recentTimeline = [
              <div class="absolute bottom-1 right-1 w-6 h-6 rounded-full border-[3px] border-sync-bg z-20 flex items-center justify-center shadow-sm" :class="authStore.user.status === 'up' ? 'bg-teal-400' : 'bg-orange-400'"></div>
            </div>
            
-           <div class="flex flex-col gap-1.5">
-              <h1 class="text-4xl font-outfit font-black text-sync-text tracking-tight">{{ authStore.user.nickname }}</h1>
-              <p class="text-[15px] font-medium text-sync-muted">{{ authStore.user.role }}</p>
+           <div class="flex flex-col gap-1.5 min-w-0">
+             <div class="flex items-center gap-3">
+               <h1 class="text-4xl font-outfit font-black text-sync-text tracking-tight truncate">{{ authStore.user.nickname }}</h1>
+               <RouterLink to="/mypage/edit" class="p-2 rounded-xl bg-black/5 dark:bg-white/5 border border-sync-border text-sync-muted hover:text-sync-primary hover:border-sync-primary transition-all shadow-sm shrink-0" title="프로필 수정">
+                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+               </RouterLink>
+             </div>
+             <div class="flex items-center gap-2 flex-wrap">
+               <p class="text-[15px] font-medium text-sync-muted truncate">{{ authStore.user.role }}</p>
+               <span v-if="authStore.user.realName" class="text-[11px] font-bold text-sync-muted bg-black/5 dark:bg-white/5 px-2 py-0.5 rounded border border-sync-border whitespace-nowrap">({{ authStore.user.realName }})</span>
+             </div>
            </div>
         </div>
 
