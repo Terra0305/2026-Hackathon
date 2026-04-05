@@ -137,10 +137,20 @@ const isBadgeSelected = (badgeId) => {
   return authStore.user?.selectedBadges?.includes(badgeId) || false
 }
 
-const ongoingProjects = [
-  { title: 'AI Web Infrastructure 2024', dDay: 'D-12', progress: 60, colorClass: 'bg-sync-primary/20 text-sync-primary border-sync-primary/30', barClass: 'bg-sync-primary shadow-[0_0_12px_rgba(50,132,255,0.6)]' },
-  { title: 'Creative UI/UX Challenge', dDay: 'D-34', progress: 25, colorClass: 'bg-teal-500/20 text-teal-400 border-teal-500/30', barClass: 'bg-teal-400 shadow-[0_0_12px_rgba(45,212,191,0.6)]' }
-]
+const dashboardOngoingProjects = computed(() => {
+  return myJoinedTeams.value.slice(0, 2).map(team => {
+    return {
+      id: team.id,
+      hackathonId: team.hackathonId,
+      title: team.teamName,
+      hackathonName: team.hackathonTitle || team.hackathonName,
+      dDay: 'D-Day', // Mocking for now
+      progress: Math.floor(Math.random() * 40) + 30, // Mocking progress
+      colorClass: 'bg-sync-primary/20 text-sync-primary border-sync-primary/30',
+      barClass: 'bg-sync-primary shadow-[0_0_12px_rgba(50,132,255,0.6)]'
+    }
+  })
+})
 
 const recentTimeline = [
   { title: '새로운 팀 합류', time: '2시간 전', colorClass: 'bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]' },
@@ -211,21 +221,24 @@ const recentTimeline = [
                       <div class="absolute -right-20 -top-20 w-64 h-64 bg-sync-primary/10 rounded-full blur-[80px] pointer-events-none group-hover:bg-sync-primary/20 transition-all duration-1000"></div>
                       <div class="flex justify-between items-center mb-10">
                         <h3 class="text-2xl font-black text-sync-text tracking-tight font-outfit">진행 중인 프로젝트</h3>
-                        <RouterLink to="/workspace" class="text-xs font-bold text-sync-primary hover:underline underline-offset-4">워크스페이스로 이동</RouterLink>
+                        <button @click="activeMenu = 'participating'" class="text-xs font-bold text-sync-primary hover:underline underline-offset-4">더보기</button>
                       </div>
 
-                      <div class="flex flex-col gap-5">
-                         <div v-for="pj in ongoingProjects" :key="pj.title" class="p-6 rounded-3xl bg-black/5 dark:bg-white/5 border border-sync-border hover:border-sync-primary/30 transition-all">
-                            <div class="flex justify-between items-center mb-4">
+                      <div class="flex flex-col gap-6">
+                         <div v-for="pj in dashboardOngoingProjects" :key="pj.id" class="p-6 rounded-3xl bg-black/5 dark:bg-white/5 border border-sync-border hover:border-sync-primary/30 transition-all">
+                            <div class="flex justify-between items-start mb-4">
                                <div class="flex flex-col gap-1">
-                                  <span class="text-[10px] font-bold uppercase tracking-widest text-sync-muted">{{ pj.dDay }}</span>
+                                  <span class="text-[10px] font-bold uppercase tracking-widest text-sync-primary">{{ pj.hackathonName }}</span>
                                   <h4 class="text-lg font-bold text-sync-text">{{ pj.title }}</h4>
                                 </div>
-                                <span class="px-3 py-1 rounded-full text-[10px] font-bold shadow-sm" :class="pj.colorClass">ONGOING</span>
+                                <div class="flex gap-2">
+                                  <RouterLink :to="`/hackathons/${pj.hackathonId}`" class="px-3 py-1.5 rounded-lg bg-black/5 dark:bg-white/5 border border-sync-border text-[10px] font-bold text-sync-muted hover:text-sync-text transition-colors">공고보기</RouterLink>
+                                  <RouterLink :to="`/workspace/${pj.id}`" class="px-3 py-1.5 rounded-lg bg-sync-primary/10 border border-sync-primary/20 text-[10px] font-bold text-sync-primary hover:bg-sync-primary/20 transition-colors">워크스페이스</RouterLink>
+                                </div>
                             </div>
                             <div class="flex flex-col gap-2">
                                <div class="flex justify-between text-[11px] font-bold">
-                                  <span class="text-sync-muted">Progress</span>
+                                  <span class="text-sync-muted">프로젝트 진행률</span>
                                   <span class="text-sync-text">{{ pj.progress }}%</span>
                                </div>
                                <div class="w-full h-2 rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
@@ -233,8 +246,8 @@ const recentTimeline = [
                                </div>
                             </div>
                          </div>
-                      </div>
-                   </div>
+                    </div>
+                 </div>
 
                    <div class="glass-card p-8 md:p-10 border border-slate-200 dark:border-white/5 shadow-sm rounded-[2.5rem] bg-gradient-to-br from-indigo-500/5 to-transparent relative overflow-hidden group">
                       <h3 class="text-2xl font-black text-sync-text tracking-tight mb-10 font-outfit">나의 활동 타임라인</h3>
