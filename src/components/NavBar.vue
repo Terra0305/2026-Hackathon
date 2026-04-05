@@ -21,7 +21,7 @@ const isPathActive = (path) => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 w-full bg-white/60 dark:bg-[#0D0E12]/70 backdrop-blur-2xl border-b border-black/5 dark:border-white/10 transition-colors duration-300">
+  <header class="sticky top-0 z-40 w-full bg-white/80 dark:bg-sync-bg/70 backdrop-blur-2xl border-b border-sync-border transition-colors duration-300">
     <div class="max-w-[1240px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <RouterLink to="/" class="flex items-center gap-2 group">
         <span class="font-outfit font-bold text-xl tracking-tight text-sync-text group-hover:text-sync-primary transition-colors">Sync</span>
