@@ -21,7 +21,7 @@ const isPathActive = (path) => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-40 w-full bg-white/80 dark:bg-sync-bg/70 backdrop-blur-2xl border-b border-sync-border transition-colors duration-300">
+  <header class="sticky top-0 z-40 w-full bg-white dark:bg-sync-bg border-b border-sync-border transition-colors duration-300 shadow-sm dark:shadow-none">
     <div class="max-w-[1240px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
       <RouterLink to="/" class="flex items-center gap-2 group">
         <span class="font-outfit font-bold text-xl tracking-tight text-sync-text group-hover:text-sync-primary transition-colors">Sync</span>
@@ -98,7 +98,7 @@ const isPathActive = (path) => {
               </div>
               
               <transition name="dropdown-fade">
-                <div v-if="isDropdownOpen" class="absolute right-0 top-full mt-2 w-52 bg-white/90 dark:bg-[#181A20]/90 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-2xl py-2 shadow-[0_12px_40px_rgba(0,0,0,0.1)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.4)] overflow-hidden flex flex-col group origin-top-right">
+                <div v-if="isDropdownOpen" class="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-[#181A20] border border-sync-border rounded-2xl py-2 shadow-xl dark:shadow-2xl overflow-hidden flex flex-col group origin-top-right">
                   <div class="px-4 py-3.5 border-b border-black/5 dark:border-white/10 mb-1 flex flex-col gap-2 shrink-0">
                      <div class="flex flex-col gap-0.5">
                         <span class="text-[13px] font-bold text-sync-text">{{ authStore.user.nickname }}</span>
